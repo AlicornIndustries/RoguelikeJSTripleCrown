@@ -10,10 +10,10 @@ var Game = {
         this._createPlayer();
         this.player._draw();
 
-        var scheduler = new ROT.Scheduler.Simple();
-        scheduler.add(this.player, true);
-        this.engine = new ROT.Engine(scheduler);
-        this.engine.start();
+        // var scheduler = new ROT.Scheduler.Simple();
+        // scheduler.add(this.player, true);
+        // this.engine = new ROT.Engine(scheduler);
+        // this.engine.start();
     },
     _createDisplay: function() {
         this.display = new ROT.Display(this.displayOptions);
