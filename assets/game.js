@@ -1,3 +1,11 @@
+// Add back in the extend function, which is missing in later versions of ROT.JS
+Function.prototype.extend = function(parent) {
+    this.prototype = Object.create(parent.prototype);
+    this.prototype.constructor = this;
+    return this;
+}
+
+
 var Game = {
     _display: null,
     _currentScreen: null,
