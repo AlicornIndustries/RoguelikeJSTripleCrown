@@ -24,12 +24,14 @@ Game.Screen.startScreen = {
 }
 Game.Screen.playScreen = {
     _map: null, // All screen logic and data is in the screen's class, so the map is here
+    _centerX: 0, // COords to center the view on
+    _centerY: 0,
     enter: function() {
         // For now, create map on enter
         console.log("Entered play screen.");
         var map = [];
-        var mapWidth=80; var mapHeight=24;
-        for (var x=0; x<mapWidth; x++) { // TODO: Replace with proper Game.Display.Options.Width or something
+        var mapWidth=500; var mapHeight=500;
+        for (var x=0; x<mapWidth; x++) {
             map.push([]);
             // Add all the tiles
             for (var y=0; y<mapHeight; y++) {
@@ -56,15 +58,54 @@ Game.Screen.playScreen = {
     },
     exit: function() {console.log("Exited play screen."); },
     render: function(display) {
-        // Iterate through map tiles and render glyph
-        for (var x=0; x<this._map.getWidth(); x++) {
-            for (var y=0; y<this._map.getHeight(); y++) {
+        var screenWidth = Game.getScreenWidth();
+        var screenHeight = Game.getScreenHeight();
+        // Keep it centered on player (st. top-left corner is half a screen away from player)
+        // Ensure x axis doesn't exceed left bound
+        var topLeftX = Math.max(0, this._centerX-(screenWidth/2));
+        // Ensure we have enough space to fit an entire screenWidth. If not, stop scrolling
+        topLeftX = Math.min(topLeftX, this._map.getWidth()-screenWidth);
+        // Ensure y axis doesn't exceed top bound
+        var topLeftY = Math.max(0, this._centerY-(screenHeight/2));
+        topLeftY = Math.min(topLeftY, this._map.getHeight()-screenHeight);
+
+        // Iterate through visible map tiles and render glyph
+        for (var x=topLeftX; x<topLeftX+screenWidth; x++) {
+            for (var y=topLeftY; y<topLeftY+screenHeight; y++) {
                 var glyph = this._map.getTile(x,y).getGlyph();
-                display.draw(x,y,glyph.getChar(),glyph.getForeground(),glyph.getBackground());
+                display.draw(x-topLeftX,y-topLeftY,glyph.getChar(),glyph.getForeground(),glyph.getBackground());
+            }
+        }
+
+        // Render cursor (player) on top
+        display.draw(this._centerX-topLeftX, this._centerY-topLeftY,"@","white","black");
+    },
+    handleInput: function(inputType, inputData) {
+        if (inputType === "keydown") {
+            // Movement
+            if ((inputData.keyCode === ROT.KEYS.VK_LEFT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD4)) {
+                this.move(-1,0);
+            } else if ((inputData.keyCode == ROT.KEYS.VK_RIGHT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD6)) {
+                this.move(1,0);
+            } else if ((inputData.keyCode === ROT.KEYS.VK_UP) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD8)) {
+                this.move(0,-1);
+            } else if ((inputData.keyCode === ROT.KEYS.VK_DOWN) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD2)) {
+                this.move(0,1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD7) {
+                this.move(-1,-1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD9) {
+                this.move(1,-1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD3) {
+                this.move(1,1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD1) {
+                this.move(-1,1);
             }
         }
     },
-    handleInput: function(inputType, inputData) {
+    move: function(dX, dY) { // Temp function until proper support for Player is added
+        // +dX is right, -dX is left. +dY is down, -dY is up (centered on top left)
+        this._centerX = Math.max(0, Math.min(this._map.getWidth()-1, this._centerX+dX));
+        this._centerY = Math.max(0, Math.min(this._map.getHeight()-1, this._centerY+dY));
     }
 }
 Game.Screen.winScreen = {
