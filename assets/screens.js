@@ -31,7 +31,7 @@ Game.Screen.playScreen = {
         // For now, create map on enter
         console.log("Entered play screen.");
         var map = [];
-        var mapWidth=100; var mapHeight=100;
+        var mapWidth=500; var mapHeight=500;
         for (var x=0; x<mapWidth; x++) {
             map.push([]);
             // Add all the tiles
@@ -54,13 +54,15 @@ Game.Screen.playScreen = {
                 map[x][y] = Game.Tile.wallTile;
             }
         });
-        // Create map from the tiles
-        this._map = new Game.Map(map);
-        // Create player and set position
+        // Create map from the tiles and player
         this._player = new Game.Entity(Game.PlayerTemplate);
+        this._map = new Game.Map(map, this._player);
+        // Set player position        
         var position = this._map.getRandomFloorPosition();
         this._player.setX(position.x);
         this._player.setY(position.y);
+        // Start map's engine
+        this._map.getEngine().start();
     },
     exit: function() {console.log("Exited play screen."); },
     render: function(display) {
@@ -83,35 +85,49 @@ Game.Screen.playScreen = {
             }
         }
 
-        // Render player on top
-        display.draw(
-            this._player.getX() - topLeftX,
-            this._player.getY() - topLeftY,
-            this._player.getChar(),
-            this._player.getForeground(),
-            this._player.getBackground()
-        );
+        // Render entities on top
+        var entities = this._map.getEntities();
+        for (var i=0; i<entities.length; i++) {
+            var entity = entities[i];
+            // Only render entity if it would show up on-screen
+            if (entity.getX() >= topLeftX && entity.getY() >= topLeftY && entity.getX() < topLeftX + screenWidth && entity.getY() < topLeftY + screenHeight) {
+                display.draw(
+                    entity.getX() - topLeftX, 
+                    entity.getY() - topLeftY,    
+                    entity.getChar(), 
+                    entity.getForeground(), 
+                    entity.getBackground()
+                );
+            }
+        }
     },
     handleInput: function(inputType, inputData) {
         if (inputType === "keydown") {
-            // Movement
-            if ((inputData.keyCode === ROT.KEYS.VK_LEFT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD4)) {
-                this.move(-1,0);
-            } else if ((inputData.keyCode == ROT.KEYS.VK_RIGHT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD6)) {
-                this.move(1,0);
-            } else if ((inputData.keyCode === ROT.KEYS.VK_UP) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD8)) {
-                this.move(0,-1);
-            } else if ((inputData.keyCode === ROT.KEYS.VK_DOWN) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD2)) {
-                this.move(0,1);
-            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD7) {
-                this.move(-1,-1);
-            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD9) {
-                this.move(1,-1);
-            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD3) {
-                this.move(1,1);
-            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD1) {
-                this.move(-1,1);
+            if(inputData.keyCode === ROT.KEYS.VK_RETURN) {
+                Game.switchScreen(Game.Screen.winScreen);
+            } else {
+                // Movement
+                if ((inputData.keyCode === ROT.KEYS.VK_LEFT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD4)) {
+                    this.move(-1,0);
+                } else if ((inputData.keyCode == ROT.KEYS.VK_RIGHT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD6)) {
+                    this.move(1,0);
+                } else if ((inputData.keyCode === ROT.KEYS.VK_UP) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD8)) {
+                    this.move(0,-1);
+                } else if ((inputData.keyCode === ROT.KEYS.VK_DOWN) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD2)) {
+                    this.move(0,1);
+                } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD7) {
+                    this.move(-1,-1);
+                } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD9) {
+                    this.move(1,-1);
+                } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD3) {
+                    this.move(1,1);
+                } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD1) {
+                    this.move(-1,1);
+                }
+                // Unlock the engine after moving
+                this._map.getEngine().unlock();
             }
+            
         }
     },
     move: function(dX, dY) { // Move the player

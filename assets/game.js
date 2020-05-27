@@ -1,4 +1,4 @@
-// Add back in the extend function, which is missing in later versions of ROT.JS
+// Add back in the extend function, which is missing in later versions of ROT.JS. See https://github.com/ondras/rot.js/blob/f8dfeb711bcef2659c491be11ee044e84bd01857/src/js/function.js
 Function.prototype.extend = function(parent) {
     this.prototype = Object.create(parent.prototype);
     this.prototype.constructor = this;
@@ -20,12 +20,12 @@ var Game = {
             window.addEventListener(event, function(e) {
                 // When event is received, send it to currentScreen
                 if(game._currentScreen !== null) {
-                    game._currentScreen.handleInput(event, e)
-                    game._display.clear();
-                    game._currentScreen.render(game._display); // Re-render (could be refactored to only re-render when needed. Use a flag)
+                    // Send event type and data to the screen
+                    game._currentScreen.handleInput(event, e);
                 }
             });
         }
+        // Bind keyboard events
         bindEventToScreen("keydown");
         //bindEventToScreen("keyup");
         //bindEventToScreen("keypress");
@@ -39,6 +39,11 @@ var Game = {
     getScreenHeight: function() {
         return this._screenHeight;
     },
+    refresh: function() {
+        // Clear, then render the screen
+        this._display.clear();
+        this._currentScreen.render(this._display);
+    },
     switchScreen: function(screen) {
         // Notify the past screen that we exited it
         if(this._currentScreen !== null) {
@@ -46,11 +51,11 @@ var Game = {
         }
         // Clear display
         this.getDisplay().clear(); //Q?: Why not just _display, like we do below?
-        // Update to the new currentScreen, enter, render
+        // Update currentScreen, notify it we entered, render
         this._currentScreen = screen;
         if(!this._currentScreen !== null) {
             this._currentScreen.enter();
-            this._currentScreen.render(this._display);
+            this.refresh();
         }
     },
 }
