@@ -16,9 +16,6 @@ Game.Map = function(tiles, player) {
     // Add random fungi
     for (var i=0; i<1000; i++) {
         F = this.addEntityAtRandomPosition(new Game.Entity(Game.FungusTemplate));
-        F.entity.setX(F.x); // TODO: Guide doesn't do this. Why do we need to?
-        F.entity.setY(F.y);
-    
     }
 };
 
@@ -72,8 +69,8 @@ Game.Map.prototype.addEntity = function(entity) {
 Game.Map.prototype.addEntityAtRandomPosition = function(entity) {
     // Returns position. For testing, it also returns the entity
     var position = this.getRandomFloorPosition();
-    entity.setX(position.X);
-    entity.setY(position.Y);
+    entity.setX(position.x);
+    entity.setY(position.y);
     this.addEntity(entity);
     return{x:position.x, y:position.y, entity:entity}
 }
