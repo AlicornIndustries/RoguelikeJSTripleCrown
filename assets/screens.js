@@ -31,7 +31,7 @@ Game.Screen.playScreen = {
         // For now, create map on enter
         console.log("Entered play screen.");
         var map = [];
-        var mapWidth=500; var mapHeight=500;
+        var mapWidth=80; var mapHeight=24;
         for (var x=0; x<mapWidth; x++) {
             map.push([]);
             // Add all the tiles
@@ -57,10 +57,6 @@ Game.Screen.playScreen = {
         // Create map from the tiles and player
         this._player = new Game.Entity(Game.PlayerTemplate);
         this._map = new Game.Map(map, this._player);
-        // Set player position        
-        var position = this._map.getRandomFloorPosition();
-        this._player.setX(position.x);
-        this._player.setY(position.y);
         // Start map's engine
         this._map.getEngine().start();
     },
@@ -123,6 +119,10 @@ Game.Screen.playScreen = {
                     this.move(1,1);
                 } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD1) {
                     this.move(-1,1);
+                } else if (inputData.keyCode === ROT.KEYS.VK_Q) {
+                    // For testing
+                    //console.log(this._map._entities);
+                    console.log(this._map._scheduler._queue);
                 }
                 // Unlock the engine after moving
                 this._map.getEngine().unlock();

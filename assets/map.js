@@ -11,12 +11,13 @@ Game.Map = function(tiles, player) {
     this._scheduler = new ROT.Scheduler.Simple();
     this._engine = new ROT.Engine(this._scheduler);
     // Add the player
-    var playerSpawnPoint = this.addEntityAtRandomPosition(player);
-    console.log("Player position is: "+playerSpawnPoint.x+","+playerSpawnPoint.y);
+    this.addEntityAtRandomPosition(player);
     // Add random fungi
-    for (var i=0; i<1000; i++) {
-        F = this.addEntityAtRandomPosition(new Game.Entity(Game.FungusTemplate));
+    for (var i=0; i<2; i++) {
+        //this.addEntityAtRandomPosition(new Game.Entity(Game.FungusTemplate));
+        this.addEntityAtRandomPosition(new Game.Entity(Game.FungusTemplate));
     }
+    this.addEntityAtRandomPosition(new Game.Entity(Game.TestActorTemplate));
 };
 
 // Getters
@@ -36,7 +37,7 @@ Game.Map.prototype.getRandomFloorPosition = function() {
     do {
         x = Math.floor(Math.random() * this._width);
         y = Math.floor(Math.random() * this._height); // Guide has width, which I believe is a typo
-    } while (this.getTile(x,y) != Game.Tile.floorTile || this.getEntityAt(x,y));
+    } while (!this.isEmptyFloor(x,y));
     return {x: x, y: y};
 }
 Game.Map.prototype.getEngine = function() { return this._engine; }
@@ -51,6 +52,11 @@ Game.Map.prototype.getEntityAt = function(x,y) {
     }
     return false;
 }
+Game.Map.prototype.isEmptyFloor = function(x,y) {
+    // True if tile is floor and has no entity on it
+    return this.getTile(x,y) == Game.Tile.floorTile && !this.getEntityAt(x,y);
+}
+
 Game.Map.prototype.addEntity = function(entity) {
     // Ensure position within bounds
     if (entity.getX() < 0 || entity.getX() >= this._width ||
@@ -62,8 +68,9 @@ Game.Map.prototype.addEntity = function(entity) {
     // Add the entity to the list of entities
     this._entities.push(entity);
     // Check if this entity is an actor, and if so add them to the scheduler
-    if (entity.hasMixin("Actor")) {
+    if (entity.hasMixin('Actor')) {
        this._scheduler.add(entity, true);
+       console.log("Entity added to scheduler at: "+entity.getX()+","+entity.getY());
     }
 }
 Game.Map.prototype.addEntityAtRandomPosition = function(entity) {
@@ -72,7 +79,20 @@ Game.Map.prototype.addEntityAtRandomPosition = function(entity) {
     entity.setX(position.x);
     entity.setY(position.y);
     this.addEntity(entity);
-    return{x:position.x, y:position.y, entity:entity}
+    //return{x:position.x, y:position.y, entity:entity}
+}
+Game.Map.prototype.removeEntity = function(entity) {
+    // If entity is present in list of entities, remove it.
+    for (var i=0; i<this._entities.length; i++) {
+        if (this._entities[i] == entity) {
+            this._entities.splice(i,1);
+            break;
+        }
+    }
+    // If entity is an actor, remove it from the scheduler
+    if (entity.hasMixin("Actor")) {
+        this._scheduler.remove(entity);
+    }
 }
 Game.Map.prototype.dig = function(x,y) {
     // If the tile is diggable, update it to a floor

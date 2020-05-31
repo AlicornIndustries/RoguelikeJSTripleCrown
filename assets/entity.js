@@ -48,7 +48,7 @@ Game.Entity.prototype.getMap = function(map) {return this._map};
 
 Game.Entity.prototype.hasMixin = function(obj) {
     // Allow passing the mixin itself or its name/group name as a string
-    if (typeof obj == "object") {
+    if (typeof obj === "object") {
         return this._attachedMixins[obj.name];
     } else {
         return this._attachedMixins[obj] || this._attachedMixinGroups[obj];
