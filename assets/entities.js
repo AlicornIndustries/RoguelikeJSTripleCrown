@@ -59,10 +59,10 @@ Game.Mixins.FungusActor = {
         this._growthsRemaining = 5;
     },
     act: function() {
-        console.log("Fungus is trying to act at: "+this.getX()+","+this.getY()+". It has "+this._growthsRemaining+" growths remaining.");
+        // console.log("Fungus is trying to act at: "+this.getX()+","+this.getY()+". It has "+this._growthsRemaining+" growths remaining.");
         // Random chance to spread
         if(this._growthsRemaining>0) {
-            var growthChance = 1 // Not exact, since can't grow on own tile
+            var growthChance = 0.02 // Not exact, since can't grow on own tile
             if(Math.random() <= growthChance) {
                 // Coords of random adj tile. Generate offset of [-1 0 1] by picking random number 0~2, then subtracting 1
                 var xOffset = Math.floor(Math.random() * 3) - 1;

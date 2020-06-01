@@ -5,7 +5,6 @@ Function.prototype.extend = function(parent) {
     return this;
 }
 
-
 var Game = {
     _display: null,
     _currentScreen: null,

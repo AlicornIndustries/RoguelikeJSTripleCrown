@@ -13,11 +13,10 @@ Game.Map = function(tiles, player) {
     // Add the player
     this.addEntityAtRandomPosition(player);
     // Add random fungi
-    for (var i=0; i<2; i++) {
+    for (var i=0; i<10; i++) {
         //this.addEntityAtRandomPosition(new Game.Entity(Game.FungusTemplate));
         this.addEntityAtRandomPosition(new Game.Entity(Game.FungusTemplate));
     }
-    this.addEntityAtRandomPosition(new Game.Entity(Game.TestActorTemplate));
 };
 
 // Getters
@@ -70,7 +69,7 @@ Game.Map.prototype.addEntity = function(entity) {
     // Check if this entity is an actor, and if so add them to the scheduler
     if (entity.hasMixin('Actor')) {
        this._scheduler.add(entity, true);
-       console.log("Entity added to scheduler at: "+entity.getX()+","+entity.getY());
+       // console.log("Entity added to scheduler at: "+entity.getX()+","+entity.getY());
     }
 }
 Game.Map.prototype.addEntityAtRandomPosition = function(entity) {
