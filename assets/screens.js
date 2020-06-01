@@ -31,7 +31,7 @@ Game.Screen.playScreen = {
         // For now, create map on enter
         console.log("Entered play screen.");
         var map = [];
-        var mapWidth=80; var mapHeight=24;
+        var mapWidth=100; var mapHeight=48;
         for (var x=0; x<mapWidth; x++) {
             map.push([]);
             // Add all the tiles
@@ -96,6 +96,19 @@ Game.Screen.playScreen = {
                 );
             }
         }
+
+        // Render messages. TODO: Move to proper message box instead of top left
+        var messages = this._player.getMessages();
+        var messageY = 0;
+        for(var i=0; i<messages.length; i++) {
+            // Draw each message, moving down each line
+            messageY += display.drawText(0, messageY, "%c{white}%b{black}"+messages[i]);
+        }
+
+        // Render player stats on last row of screen
+        var stats = "%c{white}%b{black}";
+        stats += vsprintf("HP: %d/%d",[this._player.getHp(), this._player.getMaxHp()]);
+        display.drawText(0, screenHeight, stats);
     },
     handleInput: function(inputType, inputData) {
         if (inputType === "keydown") {
@@ -121,8 +134,6 @@ Game.Screen.playScreen = {
                     this.move(-1,1);
                 } else if (inputData.keyCode === ROT.KEYS.VK_Q) {
                     // For testing
-                    //console.log(this._map._entities);
-                    console.log(this._map._scheduler._queue);
                 }
                 // Unlock the engine after moving
                 this._map.getEngine().unlock();

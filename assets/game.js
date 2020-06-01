@@ -10,9 +10,10 @@ var Game = {
     _currentScreen: null,
     _screenWidth: 80,
     _screenHeight: 24,
+    _bottomUIHeight: 1, // For stats display, etc
     init: function() {
         // Create display (window.onload() is what actually appends it)
-        this._display = new ROT.Display({width:this._screenWidth, height:this._screenHeight});
+        this._display = new ROT.Display({width:this._screenWidth, height:this._screenHeight+this._bottomUIHeight});
         // Helper function to bind to events, to talk to screens.js
         var game=this;
         var bindEventToScreen=function(event) {

@@ -13,7 +13,7 @@ Game.Map = function(tiles, player) {
     // Add the player
     this.addEntityAtRandomPosition(player);
     // Add random fungi
-    for (var i=0; i<10; i++) {
+    for (var i=0; i<50; i++) {
         //this.addEntityAtRandomPosition(new Game.Entity(Game.FungusTemplate));
         this.addEntityAtRandomPosition(new Game.Entity(Game.FungusTemplate));
     }
@@ -50,6 +50,25 @@ Game.Map.prototype.getEntityAt = function(x,y) {
         }
     }
     return false;
+}
+Game.Map.prototype.getEntitiesWithinRadius = function(centerX, centerY, radius) {
+    // This is actually a square, not a circle.
+    results = [];
+    // Determine bounds
+    var leftX = centerX - radius;
+    var rightX = centerX + radius;
+    var topY = centerY - radius;
+    var bottomY = centerY + radius;
+    // Iterate through entities, adding all within bounds. TODO: Wildly inefficient, will be replaced later.
+    for(var i=0; i<this._entities.length; i++) {
+        if (this._entities[i].getX() >= leftX &&
+            this._entities[i].getX() <= rightX && 
+            this._entities[i].getY() >= topY &&
+            this._entities[i].getY() <= bottomY) {
+            results.push(this._entities[i]);
+        }
+    }
+
 }
 Game.Map.prototype.isEmptyFloor = function(x,y) {
     // True if tile is floor and has no entity on it
