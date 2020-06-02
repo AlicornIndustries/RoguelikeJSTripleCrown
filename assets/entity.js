@@ -8,6 +8,7 @@ Game.Entity = function(properties) {
     this._name = properties["name"] || "";
     this._x = properties["x"] || 0;
     this._y = properties["y"] || 0;
+    this._d = properties["d"] || 0; // depth
     this._map = null; // Entities have an attached map
     
     this._attachedMixins = {}; // Keep track of mixins based on name property
@@ -40,10 +41,17 @@ Game.Entity.extend(Game.Glyph);
 Game.Entity.prototype.setName = function(name) {this._name = name; }
 Game.Entity.prototype.setX = function(x) {this._x = x;}
 Game.Entity.prototype.setY = function(y) {this._y = y;}
+Game.Entity.prototype.setD = function(d) {this._d = d;}
+Game.Entity.prototype.setMap = function(map) {this._map = map};
+Game.Entity.prototype.setPosition = function(x,y,d) {
+    this._x = x;
+    this._y = y;
+    this._d = d;
+}
 Game.Entity.prototype.getName = function() {return this._name;}
 Game.Entity.prototype.getX = function() {return this._x;}
-Game.Entity.prototype.getY   = function() {return this._y;}
-Game.Entity.prototype.setMap = function(map) {this._map = map};
+Game.Entity.prototype.getY = function() {return this._y;}
+Game.Entity.prototype.getD = function() {return this._d;}
 Game.Entity.prototype.getMap = function(map) {return this._map};
 
 Game.Entity.prototype.hasMixin = function(obj) {

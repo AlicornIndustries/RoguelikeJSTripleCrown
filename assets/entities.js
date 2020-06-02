@@ -5,9 +5,26 @@ Game.Mixins = {};
 
 Game.Mixins.Mobile = { // Guide calls this "moveable"
     name: "Mobile",
-    tryMove: function(x,y,map) { // Doesn't regard pathfinding or distance
-        var tile = map.getTile(x,y);
-        var target = map.getEntityAt(x,y);
+    tryMove: function(x,y,d,map) { // Doesn't regard pathfinding or distance
+        var map = this.getMap(); // Why do we pass it as input if we then ignore it?
+        var tile = map.getTile(x,y,this.getD());
+        var target = map.getEntityAt(x,y,this.getD());
+        // If our depth would change, check if we're on a stair
+        if(d<this.getD()) {
+            if(tile!=Game.Tile.stairsUpTile) {
+                Game.sendMessage(this, "You can't go up here!");
+            } else {
+                Game.sendMessage(this, "You ascend to level %d!", [d+1]);
+                this.setPosition(x,y,d);
+            }
+        } else if(d>this.getD()) {
+            if(tile!=Game.Tile.stairsDownTile) {
+                Game.sendMessage(this, "You can't go down here!");
+            } else {
+                this.setPosition(x,y,d);
+                Game.sendMessage(this, "You descend to level %d!", [d+1])
+            }
+        }
         // If entity present, attack it
         if(target) {
             // If we are an attacker, try to attack
@@ -21,11 +38,10 @@ Game.Mixins.Mobile = { // Guide calls this "moveable"
         }
         if (tile.isWalkable()) {
             // Update entity's position
-            this._x = x;
-            this._y = y;
+            this.setPosition(x,y,d);
             return true;
         } else if (tile.isDiggable()) {
-            map.dig(x,y,);
+            map.dig(x,y,d);
             return true;
         }
         return false;
@@ -72,7 +88,7 @@ Game.Mixins.FungusActor = {
                 // Can't spawn on our own tile
                 if (xOffset!=0 || yOffset!=0) {
                     // Grow
-                    if(this.getMap().isEmptyFloor(this.getX()+xOffset, this.getY()+yOffset)) {
+                    if(this.getMap().isEmptyFloor(this.getX()+xOffset, this.getY()+yOffset, this.getD())) {
                         var entity = new Game.Entity(Game.FungusTemplate);
                         entity.setX(this.getX() + xOffset);
                         entity.setY(this.getY() + yOffset);

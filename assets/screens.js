@@ -25,39 +25,13 @@ Game.Screen.startScreen = {
 Game.Screen.playScreen = {
     _map: null, // All screen logic and data is in the screen's class, so the map is here
     _player: null,
-    _centerX: 0, // COords to center the view on
-    _centerY: 0,
     enter: function() {
-        // For now, create map on enter
         console.log("Entered play screen.");
-        var map = [];
-        var mapWidth=100; var mapHeight=48;
-        for (var x=0; x<mapWidth; x++) {
-            map.push([]);
-            // Add all the tiles
-            for (var y=0; y<mapHeight; y++) {
-                map[x].push(Game.Tile.nullTile);
-            }
-        }
-        // Setup map generator
-        var generator = new ROT.Map.Cellular(mapWidth,mapHeight);
-        generator.randomize(0.5); // Probability of random cell being 1 (floor)
-        var totalIterations = 3; // Loop over the generator a few times to smooth it out
-        for (var i=0; i<totalIterations-1;i++) {
-            generator.create();
-        }
-        // Smooth one last time, then update the map
-        generator.create(function(x,y,v) {
-            if(v===1) { // If the generator has a 1 for that tile, it's floor
-                map[x][y] = Game.Tile.floorTile;
-            } else {
-                map[x][y] = Game.Tile.wallTile;
-            }
-        });
-        // Create map from the tiles and player
+        var mapWidth=100; var mapHeight=48; var mapDepth=6;
+        // Create map
+        var tiles = new Game.Builder(mapWidth,mapHeight,mapDepth).getTiles();
         this._player = new Game.Entity(Game.PlayerTemplate);
-        this._map = new Game.Map(map, this._player);
-        // Start map's engine
+        this._map = new Game.Map(tiles, this._player);
         this._map.getEngine().start();
     },
     exit: function() {console.log("Exited play screen."); },
@@ -76,7 +50,7 @@ Game.Screen.playScreen = {
         // Iterate through visible map tiles and render glyph
         for (var x=topLeftX; x<topLeftX+screenWidth; x++) {
             for (var y=topLeftY; y<topLeftY+screenHeight; y++) {
-                var tile = this._map.getTile(x,y);
+                var tile = this._map.getTile(x,y,this._player.getD());
                 display.draw(x-topLeftX,y-topLeftY,tile.getChar(),tile.getForeground(),tile.getBackground());
             }
         }
@@ -86,7 +60,7 @@ Game.Screen.playScreen = {
         for (var i=0; i<entities.length; i++) {
             var entity = entities[i];
             // Only render entity if it would show up on-screen
-            if (entity.getX() >= topLeftX && entity.getY() >= topLeftY && entity.getX() < topLeftX + screenWidth && entity.getY() < topLeftY + screenHeight) {
+            if (entity.getX() >= topLeftX && entity.getY() >= topLeftY && entity.getX() < topLeftX + screenWidth && entity.getY() < topLeftY + screenHeight && entity.getD() == this._player.getD()) {
                 display.draw(
                     entity.getX() - topLeftX, 
                     entity.getY() - topLeftY,    
@@ -117,35 +91,52 @@ Game.Screen.playScreen = {
             } else {
                 // Movement
                 if ((inputData.keyCode === ROT.KEYS.VK_LEFT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD4)) {
-                    this.move(-1,0);
+                    this.move(-1,0,0);
                 } else if ((inputData.keyCode == ROT.KEYS.VK_RIGHT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD6)) {
-                    this.move(1,0);
+                    this.move(1,0,0);
                 } else if ((inputData.keyCode === ROT.KEYS.VK_UP) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD8)) {
-                    this.move(0,-1);
+                    this.move(0,-1,0);
                 } else if ((inputData.keyCode === ROT.KEYS.VK_DOWN) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD2)) {
-                    this.move(0,1);
+                    this.move(0,1,0);
                 } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD7) {
-                    this.move(-1,-1);
+                    this.move(-1,-1,0);
                 } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD9) {
-                    this.move(1,-1);
+                    this.move(1,-1,0);
                 } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD3) {
-                    this.move(1,1);
+                    this.move(1,1,0);
                 } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD1) {
-                    this.move(-1,1);
+                    this.move(-1,1,0);
                 } else if (inputData.keyCode === ROT.KEYS.VK_Q) {
                     // For testing
+                } else {
+                    // Not a valid key
+                    return;
                 }
                 // Unlock the engine after moving
                 this._map.getEngine().unlock();
             }
             
         }
+        else if (inputType === "keypress") {
+            var keyChar = String.fromCharCode(inputData.charCode);
+            if(keyChar === ">") {
+                this.move(0,0,1);
+            } else if (keyChar === "<") {
+                this.move(0,0,-1);
+            } else {
+                // Not a valid key
+                return;
+            }
+            // Unlock engine after moving
+            this._map.getEngine().unlock();
+        }
     },
-    move: function(dX, dY) { // Move the player
+    move: function(dX, dY, dD) { // Move the player
         // +dX is right, -dX is left. +dY is down, -dY is up (centered on top left)
         var newX = this._player.getX() + dX;
         var newY = this._player.getY() + dY;
-        this._player.tryMove(newX, newY, this._map);
+        var newD = this._player.getD() + dD;
+        this._player.tryMove(newX, newY, newD, this._map);
     }
 }
 Game.Screen.winScreen = {
