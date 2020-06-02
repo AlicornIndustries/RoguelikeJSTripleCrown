@@ -24,9 +24,8 @@ Game.Mixins.Mobile = { // Guide calls this "moveable"
                 this.setPosition(x,y,d);
                 Game.sendMessage(this, "You descend to level %d!", [d+1])
             }
-        }
         // If entity present, attack it
-        if(target) {
+        } else if(target) {
             // If we are an attacker, try to attack
             if(this.hasMixin("Attacker")) {
                 this.attack(target);
