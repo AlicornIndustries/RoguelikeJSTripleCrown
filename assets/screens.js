@@ -49,19 +49,33 @@ Game.Screen.playScreen = {
 
         // Cells in FOV
         var visibleCells = {};
+        // Store this._map and player's depth to avoid losing it in callbacks.
+        var map = this._map;
+        var currentDepth = this._player.getD();
         // Find all visible cells
         this._map.getFov(this._player.getD()).compute(
             this._player.getX(), this._player.getY(),
             this._player.getSightRadius(),
             function(x,y,radius,visibility) {
                 visibleCells[x+","+y] = true;
+                // Mark cell as explored (even if it already was)
+                map.setExplored(x,y,currentDepth,true);
             });
-        // Iterate through on-screen map tiles and render glyph
+
+        // Render explored/visible map cells
         for (var x=topLeftX; x<topLeftX+screenWidth; x++) {
             for (var y=topLeftY; y<topLeftY+screenHeight; y++) {
-                if(visibleCells[x+","+y]) {
-                    var tile = this._map.getTile(x,y,this._player.getD());
-                    display.draw(x-topLeftX,y-topLeftY,tile.getChar(),tile.getForeground(),tile.getBackground());
+                if(map.isExplored(x,y,currentDepth)) {
+                    var tile = this._map.getTile(x,y,currentDepth);
+                    // Use different foreground color is tile is explored but not visible
+                    var foreground = visibleCells[x+","+y] ? tile.getForeground() : "darkGray";
+                    display.draw(
+                        x-topLeftX,
+                        y-topLeftY,
+                        tile.getChar(),
+                        foreground,
+                        tile.getBackground()
+                    );
                 }
             }
         }

@@ -23,6 +23,10 @@ Game.Map = function(tiles, player) {
             this.addEntityAtRandomPosition(new Game.Entity(Game.FungusTemplate), d);
         }
     }
+
+    // Setup the explored array
+    this._explored = new Array(this._depth);
+    this._setupExploredArray();
 };
 
 // Getters
@@ -144,3 +148,28 @@ Game.Map.prototype.setupFov = function() {
 Game.Map.prototype.getFov = function(depth) {
     return this._fov[depth];
 }
+Game.Map.prototype._setupExploredArray = function() {
+    // Initialize all values to false
+    for(var d=0; d<this._depth; d++) {
+        this._explored[d] = new Array(this._width);
+        for(var x=0; x<this._width; x++) {
+            this._explored[d][x] = new Array(this._height);
+            for(var y=0; y<this._height; y++) {
+                this._explored[d][x][y] = false;
+            }
+        }
+    }
+}
+Game.Map.prototype.setExplored = function(x,y,d,state) {
+    // Only update if tile within bounds
+    if(this.getTile(x,y,d) !== Game.Tile.nullTile) {
+        this._explored[d][x][y] = state;
+    }
+};
+Game.Map.prototype.isExplored = function(x,y,d) {
+    if(this.getTile(x,y,d) !== Game.Tile.nullTile) {
+        return this._explored[d][x][y];
+    } else {
+        return false;
+    }
+};
