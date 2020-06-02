@@ -47,11 +47,22 @@ Game.Screen.playScreen = {
         var topLeftY = Math.max(0, this._player.getY()-(screenHeight/2));
         topLeftY = Math.min(topLeftY, this._map.getHeight()-screenHeight);
 
-        // Iterate through visible map tiles and render glyph
+        // Cells in FOV
+        var visibleCells = {};
+        // Find all visible cells
+        this._map.getFov(this._player.getD()).compute(
+            this._player.getX(), this._player.getY(),
+            this._player.getSightRadius(),
+            function(x,y,radius,visibility) {
+                visibleCells[x+","+y] = true;
+            });
+        // Iterate through on-screen map tiles and render glyph
         for (var x=topLeftX; x<topLeftX+screenWidth; x++) {
             for (var y=topLeftY; y<topLeftY+screenHeight; y++) {
-                var tile = this._map.getTile(x,y,this._player.getD());
-                display.draw(x-topLeftX,y-topLeftY,tile.getChar(),tile.getForeground(),tile.getBackground());
+                if(visibleCells[x+","+y]) {
+                    var tile = this._map.getTile(x,y,this._player.getD());
+                    display.draw(x-topLeftX,y-topLeftY,tile.getChar(),tile.getForeground(),tile.getBackground());
+                }
             }
         }
 
@@ -61,13 +72,15 @@ Game.Screen.playScreen = {
             var entity = entities[i];
             // Only render entity if it would show up on-screen
             if (entity.getX() >= topLeftX && entity.getY() >= topLeftY && entity.getX() < topLeftX + screenWidth && entity.getY() < topLeftY + screenHeight && entity.getD() == this._player.getD()) {
-                display.draw(
-                    entity.getX() - topLeftX, 
-                    entity.getY() - topLeftY,    
-                    entity.getChar(), 
-                    entity.getForeground(), 
-                    entity.getBackground()
-                );
+                if(visibleCells[entity.getX()+","+entity.getY()]) {
+                    display.draw(
+                        entity.getX() - topLeftX, 
+                        entity.getY() - topLeftY,    
+                        entity.getChar(), 
+                        entity.getForeground(), 
+                        entity.getBackground()
+                    );
+                }
             }
         }
 
@@ -108,6 +121,7 @@ Game.Screen.playScreen = {
                     this.move(-1,1,0);
                 } else if (inputData.keyCode === ROT.KEYS.VK_Q) {
                     // For testing
+                    console.log("Q");
                 } else {
                     // Not a valid key
                     return;
@@ -115,7 +129,6 @@ Game.Screen.playScreen = {
                 // Unlock the engine after moving
                 this._map.getEngine().unlock();
             }
-            
         }
         else if (inputType === "keypress") {
             var keyChar = String.fromCharCode(inputData.charCode);

@@ -5,7 +5,7 @@ Game.Mixins = {};
 
 Game.Mixins.Mobile = { // Guide calls this "moveable"
     name: "Mobile",
-    tryMove: function(x,y,d,map) { // Doesn't regard pathfinding or distance
+    tryMove: function(x,y,d,map) { // Doesn't regard pathfinding or distance 
         var map = this.getMap(); // Why do we pass it as input if we then ignore it?
         var tile = map.getTile(x,y,this.getD());
         var target = map.getEntityAt(x,y,this.getD());
@@ -44,6 +44,17 @@ Game.Mixins.Mobile = { // Guide calls this "moveable"
             return true;
         }
         return false;
+    }
+}
+
+Game.Mixins.Sight = { // Can see with given radius
+    name: "Sight",
+    groupName: "Sight",
+    init: function(template) {
+        this._sightRadius = template["sightRadius"] || 5;
+    },
+    getSightRadius: function() {
+        return this._sightRadius;
     }
 }
 
@@ -220,9 +231,10 @@ Game.PlayerTemplate = {
     background: "black",
     maxHp: 40,
     attackValue: 70,
+    sightRadius: 6,
     mixins: [Game.Mixins.Mobile, Game.Mixins.PlayerActor,
              Game.Mixins.Attacker, Game.Mixins.Destructible,
-             Game.Mixins.MessageRecipient]
+             Game.Mixins.Sight, Game.Mixins.MessageRecipient]
 }
 
 Game.FungusTemplate = {

@@ -6,6 +6,9 @@ Game.Map = function(tiles, player) {
     this._depth = tiles.length;
     this._width = tiles[0].length;
     this._height = tiles[0][0].length;
+    // Setup FOV
+    this._fov = [];
+    this.setupFov();
     // Create list to hold entities on the map
     this._entities = [];
     // Create engine and scheduler
@@ -122,4 +125,22 @@ Game.Map.prototype.dig = function(x,y,d) {
     if (this.getTile(x,y,d).isDiggable()) {
         this._tiles[d][x][y] = Game.Tile.floorTile;
     }
+}
+Game.Map.prototype.setupFov = function() {
+    var map = this;
+    for(var d=0; d<this._depth; d++) {
+        // Wrap in its own scope to prevent depth var from being hoisted out of the loop
+        (function() {
+            // For each depth, create a callback to figure out if light can pass through a given tile
+            var depth = d;
+            map._fov.push(
+                // DiscreteShadowcasting is obsoleted by PreciseShadowcasting, but so be it.
+                new ROT.FOV.DiscreteShadowcasting(function(x, y) {
+                    return !map.getTile(x,y,depth).isBlockingLight();
+                }, {topology: 4}));
+        })();
+    }
+}
+Game.Map.prototype.getFov = function(depth) {
+    return this._fov[depth];
 }
