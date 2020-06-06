@@ -82,18 +82,12 @@ Game.Screen.playScreen = {
 
         // Render entities on top
         var entities = this._map.getEntities();
-        for (var i=0; i<entities.length; i++) {
-            var entity = entities[i];
+        for (var key in entities) {
+            var entity = entities[key];
             // Only render entity if it would show up on-screen
             if (entity.getX() >= topLeftX && entity.getY() >= topLeftY && entity.getX() < topLeftX + screenWidth && entity.getY() < topLeftY + screenHeight && entity.getD() == this._player.getD()) {
-                if(visibleCells[entity.getX()+","+entity.getY()]) {
-                    display.draw(
-                        entity.getX() - topLeftX, 
-                        entity.getY() - topLeftY,    
-                        entity.getChar(), 
-                        entity.getForeground(), 
-                        entity.getBackground()
-                    );
+                if (visibleCells[entity.getX() + ',' + entity.getY()]) {
+                    display.draw(entity.getX() - topLeftX, entity.getY() - topLeftY, entity.getChar(), entity.getForeground(), entity.getBackground());
                 }
             }
         }

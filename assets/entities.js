@@ -100,8 +100,7 @@ Game.Mixins.FungusActor = {
                     // Grow
                     if(this.getMap().isEmptyFloor(this.getX()+xOffset, this.getY()+yOffset, this.getD())) {
                         var entity = new Game.Entity(Game.FungusTemplate);
-                        entity.setX(this.getX() + xOffset);
-                        entity.setY(this.getY() + yOffset);
+                        entity.setPosition(this.getX()+xOffset, this.getY()+yOffset, this.getD());
                         this.getMap().addEntity(entity);
                         this._growthsRemaining--;
                     }

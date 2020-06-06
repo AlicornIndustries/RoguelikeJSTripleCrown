@@ -44,14 +44,25 @@ Game.Entity.prototype.setY = function(y) {this._y = y;}
 Game.Entity.prototype.setD = function(d) {this._d = d;}
 Game.Entity.prototype.setMap = function(map) {this._map = map};
 Game.Entity.prototype.setPosition = function(x,y,d) {
+    var oldX = this._x;
+    var oldY = this._y;
+    var oldD = this._d;
+    // Update position    
     this._x = x;
     this._y = y;
     this._d = d;
+    // If on a map, tell the map we moved
+    if(this._map) {
+        this._map.updateEntityPosition(this, oldX, oldY, oldD);
+    }
 }
 Game.Entity.prototype.getName = function() {return this._name;}
 Game.Entity.prototype.getX = function() {return this._x;}
 Game.Entity.prototype.getY = function() {return this._y;}
 Game.Entity.prototype.getD = function() {return this._d;}
+Game.Entity.prototype.getKey = function() {
+    return this.getX()+","+this.getY()+","+this.getD();
+}
 Game.Entity.prototype.getMap = function(map) {return this._map};
 
 Game.Entity.prototype.hasMixin = function(obj) {

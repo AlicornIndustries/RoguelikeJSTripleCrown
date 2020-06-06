@@ -9,17 +9,16 @@ Game.Map = function(tiles, player) {
     // Setup FOV
     this._fov = [];
     this.setupFov();
-    // Create list to hold entities on the map
-    this._entities = [];
+    // Create hash table, indexed by position, to hold entities on the map
+    this._entities = {}; // NOTE: This makes it tricky to have multiple entities on the same tile, but greatly speeds up finding entities
     // Create engine and scheduler
-    this._scheduler = new ROT.Scheduler.Simple();
+    this._scheduler = new ROT.Scheduler.Simple(); // TODO: Move Scheduler and Engine to a World class?
     this._engine = new ROT.Engine(this._scheduler);
     // Add the player
     this.addEntityAtRandomPosition(player,0);
     // Add random fungi
     for(var d=0; d<this._depth; d++) {
         for (var i=0; i<25; i++) {
-            //this.addEntityAtRandomPosition(new Game.Entity(Game.FungusTemplate));
             this.addEntityAtRandomPosition(new Game.Entity(Game.FungusTemplate), d);
         }
     }
@@ -53,14 +52,8 @@ Game.Map.prototype.getRandomFloorPosition = function(d) {
 Game.Map.prototype.getEngine = function() { return this._engine; }
 Game.Map.prototype.getEntities = function() { return this._entities; }
 Game.Map.prototype.getEntityAt = function(x,y,d) {
-    // Iterate through all entities on the map, looking for one with matching position
-    // TODO: Should tiles know what entities are on them, to speed this up?
-    for (var i=0; i<this._entities.length; i++) {
-        if (this._entities[i].getX() == x && this._entities[i].getY() == y && this._entities[i].getD() == d) {
-            return this._entities[i];
-        }
-    }
-    return false;
+    // Get entity with position index
+    return this._entities[x+","+y+","+d];
 }
 Game.Map.prototype.getEntitiesWithinRadius = function(centerX, centerY, radius) {
     // This is actually a square, not a circle.
@@ -71,16 +64,16 @@ Game.Map.prototype.getEntitiesWithinRadius = function(centerX, centerY, radius) 
     var rightX = centerX + radius;
     var topY = centerY - radius;
     var bottomY = centerY + radius;
-    // Iterate through entities, adding all within bounds. TODO: Wildly inefficient, will be replaced later.
-    for(var i=0; i<this._entities.length; i++) {
-        if (this._entities[i].getX() >= leftX &&
-            this._entities[i].getX() <= rightX && 
-            this._entities[i].getY() >= topY &&
-            this._entities[i].getY() <= bottomY) {
-            results.push(this._entities[i]);
+    // Iterate through entities, adding all within bounds. 
+    for(var key in this._entities) {
+        var entity = this._entities[key];
+        if (entity.getX() >= leftX && entity.getX() <= rightX && 
+            entity.getY() >= topY && entity.getY() <= bottomY &&
+            entity.getZ() == centerZ) {
+            results.push(entity);
         }
     }
-
+    return results;
 }
 Game.Map.prototype.isEmptyFloor = function(x,y,d) {
     // True if tile is floor and has no entity on it
@@ -88,16 +81,10 @@ Game.Map.prototype.isEmptyFloor = function(x,y,d) {
 }
 
 Game.Map.prototype.addEntity = function(entity) {
-    // Ensure position within bounds
-    if (entity.getX() < 0 || entity.getX() >= this._width ||
-        entity.getY() < 0 || entity.getY() >= this._height ||
-        entity.getD() < 0 || entity.getD() >= this._depth) {
-        throw new Error("Adding entity out of bounds.");
-    }
     // Update the entity's map
     entity.setMap(this);
     // Add the entity to the list of entities
-    this._entities.push(entity);
+    this.updateEntityPosition(entity);
     // Check if this entity is an actor, and if so add them to the scheduler
     if (entity.hasMixin('Actor')) {
        this._scheduler.add(entity, true);
@@ -111,13 +98,36 @@ Game.Map.prototype.addEntityAtRandomPosition = function(entity, d) {
     entity.setD(position.d);
     this.addEntity(entity);
 }
-Game.Map.prototype.removeEntity = function(entity) {
-    // If entity is present in list of entities, remove it.
-    for (var i=0; i<this._entities.length; i++) {
-        if (this._entities[i] == entity) {
-            this._entities.splice(i,1);
-            break;
+Game.Map.prototype.updateEntityPosition = function(entity, oldX, oldY, oldD) {
+    // Updates entity that the map thinks is at oldCoords to match the entity's internal location
+    
+    // If oldX, oldY, oldD are null, we're really adding a new entity
+    // Delete the old key if it is the same entity and we have old positions
+    if(typeof(oldX)!== "undefined") {
+        var oldKey = oldX+","+oldY+","+oldD;
+        if(this._entities[oldKey] == entity) {
+            delete this._entities[oldKey];
         }
+    }
+    // Ensure position within bounds
+    if (entity.getX() < 0 || entity.getX() >= this._width ||
+        entity.getY() < 0 || entity.getY() >= this._height ||
+        entity.getD() < 0 || entity.getD() >= this._depth) {
+        throw new Error("Entity's position is out of bounds.");
+    }
+    // Sanity check to ensure there is no entity at the new position
+    var key = entity.getKey();
+    if(this._entities[key]) {
+        throw new Error("Tried to add an entity at an occupied position.");
+    }    
+    // Add entity to the table
+    this._entities[key] = entity;
+}
+Game.Map.prototype.removeEntity = function(entity) {
+    // Remove from the map
+    var key = entity.getKey();
+    if(this._entities[key] == entity) {
+        delete this._entities[key];
     }
     // If entity is an actor, remove it from the scheduler
     if (entity.hasMixin("Actor")) {
