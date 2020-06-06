@@ -74,3 +74,47 @@ Game.Entity.prototype.hasMixin = function(obj) {
     }
 }
 
+Game.Entity.prototype.tryMove = function(x,y,d,map) {
+    // True if successful move/attack
+    var map = this.getMap();
+    var tile = map.getTile(x,y,this.getD());
+    var target = map.getEntityAt(x,y,this.getD());
+    // If we're targeting a different depth level, check if we're on stairs
+    if(d<this.getD()) {
+        if(tile != Game.Tile.stairsUpTile) {
+            Game.sendMessage(this, "You can't go up here!");
+            return false;
+        } else {
+            Game.sendMessage(this, "You ascend to level %d!", [d+1]); // +1 because zero-indexed
+            this.setPosition(x,y,d);
+            return true;
+        }
+    } else if(d>this.getD()) {
+        if(tile != Game.Tile.stairsDownTile) {
+            Game.sendMessage(this, "You can't go down here!");
+            return false;
+        } else {
+            this.setPosition(x,y,d);
+            Game.sendMessage(this, "You descend to level %d!", [d+1]);
+            return true;
+        }
+    } else if(target) { // If an entity is present at the target tile
+        // If we are an attacker, try to attack
+        // Can only attack if we have Attacker and either we are the player or our target is the player (to avoid monsters attacking each other)
+        // TODO: Replace with factions system.
+        if(this.hasMixin("Attacker") && (this.hasMixin(Game.Mixins.PlayerActor) || target.hasMixin(Game.Mixins.PlayerActor))) {
+            this.attack(target);
+            return true;
+        } else {
+            return false; // Nothing we can do, but we can't move there
+        }
+    } else if (tile.isWalkable()) {     // If no other entity there, check if we can move there
+        // Update our position
+        this.setPosition(x,y,d);
+        return true;
+    } else if (tile.isDiggable()) {
+        map.dig(x,y,d);
+        return true;
+    }
+    return false;
+}

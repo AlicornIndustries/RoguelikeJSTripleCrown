@@ -106,6 +106,13 @@ Game.Screen.playScreen = {
         display.drawText(0, screenHeight, stats);
     },
     handleInput: function(inputType, inputData) {
+        // If game is over, enter will bring them to the lose screen
+        if(this._gameEnded) {
+            if(inputType==="keydown" && inputData.keyCode === ROT.KEYS.VK_RETURN) {
+                Game.switchScreen(Game.Screen.loseScreen);
+            }
+            return;
+        }
         if (inputType === "keydown") {
             if(inputData.keyCode === ROT.KEYS.VK_RETURN) {
                 Game.switchScreen(Game.Screen.winScreen);
@@ -158,6 +165,9 @@ Game.Screen.playScreen = {
         var newY = this._player.getY() + dY;
         var newD = this._player.getD() + dD;
         this._player.tryMove(newX, newY, newD, this._map);
+    },
+    setGameEnded: function(gameEnded) {
+        this._gameEnded = gameEnded;
     }
 }
 Game.Screen.winScreen = {

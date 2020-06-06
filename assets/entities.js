@@ -3,6 +3,8 @@
 // Create mixins namespace
 Game.Mixins = {};
 
+{
+    /* Moved to Game.Entity.prototype.tryMove
 Game.Mixins.Mobile = { // Guide calls this "moveable"
     name: "Mobile",
     tryMove: function(x,y,d,map) { // Doesn't regard pathfinding or distance 
@@ -46,6 +48,8 @@ Game.Mixins.Mobile = { // Guide calls this "moveable"
         return false;
     }
 }
+*/
+}
 
 Game.Mixins.Sight = { // Can see with given radius
     name: "Sight",
@@ -63,6 +67,11 @@ Game.Mixins.PlayerActor = {
     name: "PlayerActor",
     groupName: "Actor",
     act: function() {
+        // Detect if game is over
+        if(this.getHp() <= 0 ) {
+            Game.Screen.playScreen.setGameEnded(true);
+            Game.sendMessage(this, "You have died... Press [ENTER] to continue.");
+        }
         // Re-render the screen on your turn
         Game.refresh();
         // Lock the engine, wait async for player input
@@ -110,6 +119,16 @@ Game.Mixins.FungusActor = {
     }
 }
 
+Game.Mixins.WanderActor = { // Wanders randomly
+    name: "WanderActor",
+    groupName: "Actor",
+    act: function() {
+        // Pick a random direction x,y to move in
+        var dirn = ROT.RNG.getItem(ROT.DIRS["8"]);
+        this.tryMove(this.getX()+dirn[0], this.getY()+dirn[1], this.getD());
+    }
+}
+
 // TODO: Make an alternate Destructible setup for entities with only armor (no HP), like living statues
 Game.Mixins.Destructible = {
     // Creatures, etc. Has HP.
@@ -145,7 +164,11 @@ Game.Mixins.Destructible = {
         }
     },
     die: function() {
-        this.getMap().removeEntity(this);
+        if(this.hasMixin(Game.Mixins.PlayerActor)) {
+            this.act(); // handles the game ending
+        } else {
+            this.getMap().removeEntity(this); // Non-players just die.
+        }
     }
 }
 
@@ -201,7 +224,6 @@ Game.Mixins.MessageRecipient = {
 }
 
 Game.sendMessage = function(recipient, message, args) {
-    // Make sure recipient can receive messages
     if(recipient.hasMixin(Game.Mixins.MessageRecipient)) {
         // If args passed, format message.
         if(args) {
@@ -230,10 +252,11 @@ Game.PlayerTemplate = {
     background: "black",
     maxHp: 40,
     attackValue: 70,
+    defenseValue: 0,
     sightRadius: 6,
-    mixins: [Game.Mixins.Mobile, Game.Mixins.PlayerActor,
-             Game.Mixins.Attacker, Game.Mixins.Destructible,
-             Game.Mixins.Sight, Game.Mixins.MessageRecipient]
+    mixins: [Game.Mixins.PlayerActor, Game.Mixins.Attacker,
+             Game.Mixins.Destructible, Game.Mixins.Sight,
+             Game.Mixins.MessageRecipient]
 }
 
 Game.FungusTemplate = {
@@ -242,5 +265,30 @@ Game.FungusTemplate = {
     foreground: "chartreuse",
     background: "black",
     maxHp: 3,
+    defenseValue: 0,
     mixins: [Game.Mixins.FungusActor, Game.Mixins.Destructible]
+}
+
+Game.TimberwolfTemplate = {
+    name: "timberwolf",
+    character: "t",
+    foreground: "chocolate",
+    background: "black",
+    maxHp: 5,
+    attackValue: 50,
+    defenseValue: 0,
+    mixins: [Game.Mixins.WanderActor, Game.Mixins.Attacker,
+        Game.Mixins.Destructible]
+}
+
+Game.DireTimberwolfTemplate = {
+    name: "dire timberwolf",
+    character: "T",
+    foreground: "chocolate",
+    background: "black",
+    maxHp: 7,
+    attackValue: 60,
+    defenseValue: 0,
+    mixins: [Game.Mixins.WanderActor, Game.Mixins.Attacker,
+        Game.Mixins.Destructible]
 }

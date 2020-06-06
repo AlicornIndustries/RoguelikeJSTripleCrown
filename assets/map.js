@@ -16,10 +16,13 @@ Game.Map = function(tiles, player) {
     this._engine = new ROT.Engine(this._scheduler);
     // Add the player
     this.addEntityAtRandomPosition(player,0);
-    // Add random fungi
+    // Add random monsters
+    var templates = [Game.FungusTemplate, Game.TimberwolfTemplate, Game.DireTimberwolfTemplate];
     for(var d=0; d<this._depth; d++) {
         for (var i=0; i<25; i++) {
-            this.addEntityAtRandomPosition(new Game.Entity(Game.FungusTemplate), d);
+            // Pick a random entity template to create
+            var template = templates[Math.floor(Math.random() * templates.length)];
+            this.addEntityAtRandomPosition(new Game.Entity(template), d);
         }
     }
 
