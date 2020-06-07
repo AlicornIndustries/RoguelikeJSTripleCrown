@@ -108,7 +108,7 @@ Game.Mixins.FungusActor = {
                 if (xOffset!=0 || yOffset!=0) {
                     // Grow
                     if(this.getMap().isEmptyFloor(this.getX()+xOffset, this.getY()+yOffset, this.getD())) {
-                        var entity = new Game.Entity(Game.FungusTemplate);
+                        var entity = Game.EntityRepository.create("fungus");
                         entity.setPosition(this.getX()+xOffset, this.getY()+yOffset, this.getD());
                         this.getMap().addEntity(entity);
                         this._growthsRemaining--;
@@ -245,7 +245,7 @@ Game.sendMessageNearby = function(map, centerX, centerY, radius, message, args) 
     }
 }
 
-// Player template. Will be refactored later
+// Player template.
 Game.PlayerTemplate = {
     character: "@",
     foreground: "white",
@@ -259,7 +259,11 @@ Game.PlayerTemplate = {
              Game.Mixins.MessageRecipient]
 }
 
-Game.FungusTemplate = {
+// Non-player templates are held in repositories
+// Create central entity repository
+Game.EntityRepository = new Game.Repository("entities", Game.Entity);
+
+Game.EntityRepository.define("fungus", {
     name: "fungus",
     character: "F",
     foreground: "chartreuse",
@@ -267,9 +271,8 @@ Game.FungusTemplate = {
     maxHp: 3,
     defenseValue: 0,
     mixins: [Game.Mixins.FungusActor, Game.Mixins.Destructible]
-}
-
-Game.TimberwolfTemplate = {
+});
+Game.EntityRepository.define("timberwolf", {
     name: "timberwolf",
     character: "t",
     foreground: "chocolate",
@@ -279,9 +282,8 @@ Game.TimberwolfTemplate = {
     defenseValue: 0,
     mixins: [Game.Mixins.WanderActor, Game.Mixins.Attacker,
         Game.Mixins.Destructible]
-}
-
-Game.DireTimberwolfTemplate = {
+});
+Game.EntityRepository.define("dire timberwolf", {
     name: "dire timberwolf",
     character: "T",
     foreground: "chocolate",
@@ -291,4 +293,4 @@ Game.DireTimberwolfTemplate = {
     defenseValue: 0,
     mixins: [Game.Mixins.WanderActor, Game.Mixins.Attacker,
         Game.Mixins.Destructible]
-}
+});

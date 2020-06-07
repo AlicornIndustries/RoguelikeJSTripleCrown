@@ -62,32 +62,39 @@ Game.Screen.playScreen = {
                 map.setExplored(x,y,currentDepth,true);
             });
 
-        // Render explored/visible map cells
+        // Render explored/visible map cells and visible items
         for (var x=topLeftX; x<topLeftX+screenWidth; x++) {
             for (var y=topLeftY; y<topLeftY+screenHeight; y++) {
                 if(map.isExplored(x,y,currentDepth)) {
-                    var tile = this._map.getTile(x,y,currentDepth);
-                    // Use different foreground color is tile is explored but not visible
-                    var foreground = visibleCells[x+","+y] ? tile.getForeground() : "darkGray";
+                    var glyph = this._map.getTile(x,y,currentDepth);
+                    var foreground = glyph.getForeground();
+                    // Use different foreground color if tile is explored but not visible
+                    //var foreground = visibleCells[x+","+y] ? tile.getForeground() : "darkGray";
+                    // If cell in FOV, draw items and entities
+                    if(visibleCells[x+","+y]) { // TODO: replace with an isVisible function
+                        // Check for items first, since we want to draw entities over items
+                        var items = map.getItemsAt(x,y,currentDepth);
+                        // Render topmost item
+                        if(items) {
+                            glyph = items[items.length-1];
+                        }
+                        // Check if there's an entity on the tile
+                        if(map.getEntityAt(x,y,currentDepth)) {
+                            glyph = map.getEntityAt(x,y,currentDepth);
+                        }
+                        // Update foreground if our glyph changed to an item or entity
+                        foreground = glyph.getForeground();
+                    } else {
+                        // Tile was previously explored but not currently visible
+                        foreground = "darkGray";
+                    }
                     display.draw(
                         x-topLeftX,
                         y-topLeftY,
-                        tile.getChar(),
+                        glyph.getChar(),
                         foreground,
-                        tile.getBackground()
+                        glyph.getBackground()
                     );
-                }
-            }
-        }
-
-        // Render entities on top
-        var entities = this._map.getEntities();
-        for (var key in entities) {
-            var entity = entities[key];
-            // Only render entity if it would show up on-screen
-            if (entity.getX() >= topLeftX && entity.getY() >= topLeftY && entity.getX() < topLeftX + screenWidth && entity.getY() < topLeftY + screenHeight && entity.getD() == this._player.getD()) {
-                if (visibleCells[entity.getX() + ',' + entity.getY()]) {
-                    display.draw(entity.getX() - topLeftX, entity.getY() - topLeftY, entity.getChar(), entity.getForeground(), entity.getBackground());
                 }
             }
         }

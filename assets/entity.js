@@ -15,7 +15,7 @@ Game.Entity = function(properties) {
     this._attachedMixinGroups = {}; // Likewise, for groups (e.g. different kinds of Mobile, like Flying, Ghost, Digging)
 
     // Setup mixins
-    var mixins = properties["mixins"];
+    var mixins = properties["mixins"] || [];
     for (i=0; i<mixins.length; i++) {
         // Copy over all non-name, non-init properties. Don't override existing properties.
         for (var key in mixins[i]) {

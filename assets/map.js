@@ -11,18 +11,30 @@ Game.Map = function(tiles, player) {
     this.setupFov();
     // Create hash table, indexed by position, to hold entities on the map
     this._entities = {}; // NOTE: This makes it tricky to have multiple entities on the same tile, but greatly speeds up finding entities
+    this._items = {}; // To allow multiple items per tile, this is a table of arrays of items at each tile   
     // Create engine and scheduler
     this._scheduler = new ROT.Scheduler.Simple(); // TODO: Move Scheduler and Engine to a World class?
     this._engine = new ROT.Engine(this._scheduler);
     // Add the player
     this.addEntityAtRandomPosition(player,0);
     // Add random monsters
-    var templates = [Game.FungusTemplate, Game.TimberwolfTemplate, Game.DireTimberwolfTemplate];
+    //var templates = [Game.FungusTemplate, Game.TimberwolfTemplate, Game.DireTimberwolfTemplate];
+    
+    var entitiesPerFloor = 25;
+    var itemsPerFloor = 10;
     for(var d=0; d<this._depth; d++) {
-        for (var i=0; i<25; i++) {
+        for (var i=0; i<entitiesPerFloor; i++) {
             // Pick a random entity template to create
-            var template = templates[Math.floor(Math.random() * templates.length)];
-            this.addEntityAtRandomPosition(new Game.Entity(template), d);
+            //var template = templates[Math.floor(Math.random() * templates.length)];
+            //this.addEntityAtRandomPosition(new Game.Entity(template), d);
+            //this.addEntityAtRandomPosition(Game.EntityRepository.createRandom(), d);
+            var entity = Game.EntityRepository.createRandom();
+            this.addEntityAtRandomPosition(entity, d);
+        
+        
+        }
+        for(var i=0; i<itemsPerFloor; i++) {
+            this.addItemAtRandomPosition(Game.ItemRepository.createRandom(), d);
         }
     }
 
@@ -185,4 +197,36 @@ Game.Map.prototype.isExplored = function(x,y,d) {
     } else {
         return false;
     }
+};
+
+// ITEMS
+Game.Map.prototype.getItemsAt = function(x,y,d) {
+    // Returns list of items at location
+    return this._items[x+","+y+","+d];
+};
+Game.Map.prototype.setItemsAt = function(x,y,d,items) {
+    // If items array is empty, delete that key
+    var key = x+","+y+","+d;
+    if(items.length===0) {
+        if(this._items[key]) {
+            delete this._items[key];
+        }
+    } else {
+        // Otherwise, update the items at that key
+        this._items[key] = items;
+    }
+};
+Game.Map.prototype.addItem = function(x,y,d,item) {
+    // If there are already items at that position, append it to the list
+    //console.log(item);
+    var key = x+","+y+","+d;
+    if(this._items[key]) {
+        this._items[key].push(item);
+    } else {
+        this._items[key] = [item];
+    }
+};
+Game.Map.prototype.addItemAtRandomPosition = function(item,d) {
+    var position = this.getRandomFloorPosition(d);
+    this.addItem(position.x, position.y, position.d, item);
 };
