@@ -111,6 +111,15 @@ Game.Entity.prototype.tryMove = function(x,y,d,map) {
     } else if (tile.isWalkable()) {     // If no other entity there, check if we can move there
         // Update our position
         this.setPosition(x,y,d);
+        // If there are items on the tile, send message
+        var items=this.getMap().getItemsAt(x,y,d);
+        if(items) {
+            if(items.length===1) {
+                Game.sendMessage(this,"There is %s on the floor.",[items[0].describeA()]);
+            } else {
+                Game.sendMessage(this, "There are several objects here.");
+            }
+        }
         return true;
     } else if (tile.isDiggable()) {
         map.dig(x,y,d);

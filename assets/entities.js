@@ -223,6 +223,77 @@ Game.Mixins.MessageRecipient = {
     }
 }
 
+Game.Mixins.InventoryHolder = {
+    name:"InventoryHolder",
+    init: function(template) {
+        var inventorySlots = template['inventorySlots'] || 10;
+        this._items = new Array(inventorySlots);
+    },
+    getItems: function() {
+        return this._items;
+    },
+    getItem: function(i) {
+        return this._items[i];
+    },
+    addItem: function(item) {
+        // Try to find a slot
+        for(var i=0; i<this._items.length; i++) {
+            if(!this._items[i]) {
+                this._items[i] = item;
+                return true;
+            }
+        }
+        return false; // No empty slot found
+    },
+    removeItem: function(i) {
+        this._items[i] = null;
+    },
+    canAddItem: function() {
+        // Check if we have an empty slot
+        for(var i=0; i<this._items.length; i++) {
+            if(!this._items[i]) {
+                return true;
+            }
+        }
+        return false;
+    },
+    pickupItems: function(indices) {
+        // Pick up all items at our position. Indices for array returned by map.getItemsAt
+        var mapItems = this._map.getItemsAt(this.getX(), this.getY(), this.getD());
+        var added = 0; // number of items added
+        // Iterate through all indices
+        for(var i=0; i<indices.length; i++) {
+            // Try to add. If inventory not full, splice item out of list of items.
+            if(this.addItem(mapItems[indices[i]-added])) {
+                mapItems.splice(indices[i]-added, 1);
+                added++;
+            } else {
+                // Inventory is full
+                break;
+            }
+        }
+        // Update map items
+        this._map.setItemsAt(this.getX(), this.getY(), this.getD(), mapItems);
+        // True only if we added all items
+        return added===indices.length;
+    },
+    dropItem: function(i) {
+        // Drop item on current map tile
+        if(this._items[i]) {
+            if(this._map) {
+                this._map.addItem(this.getX(), this.getY(), this.getD(), this._items[i]);
+            }
+            this.removeItem(i);
+        }
+    }
+}
+
+
+
+
+
+
+
 Game.sendMessage = function(recipient, message, args) {
     if(recipient.hasMixin(Game.Mixins.MessageRecipient)) {
         // If args passed, format message.
@@ -254,9 +325,10 @@ Game.PlayerTemplate = {
     attackValue: 70,
     defenseValue: 0,
     sightRadius: 6,
+    inventorySlots: 22,
     mixins: [Game.Mixins.PlayerActor, Game.Mixins.Attacker,
              Game.Mixins.Destructible, Game.Mixins.Sight,
-             Game.Mixins.MessageRecipient]
+             Game.Mixins.MessageRecipient, Game.Mixins.InventoryHolder]
 }
 
 // Non-player templates are held in repositories
