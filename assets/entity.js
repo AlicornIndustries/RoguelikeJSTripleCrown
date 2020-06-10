@@ -11,6 +11,8 @@ Game.Entity = function(properties) {
     this._d = properties["d"] || 0; // depth
     this._map = null; // Entities have an attached map
     this._alive = true;
+    // Speed for scheduler
+    this._speed = properties["speed"] || 1000;
 }
 Game.Entity.extend(Game.DynamicGlyph);
 
@@ -32,6 +34,9 @@ Game.Entity.prototype.setPosition = function(x,y,d) {
         this._map.updateEntityPosition(this, oldX, oldY, oldD);
     }
 }
+Game.Entity.prototype.setSpeed = function(speed) {
+    this._speed = speed;
+}
 Game.Entity.prototype.getX = function() {return this._x;}
 Game.Entity.prototype.getY = function() {return this._y;}
 Game.Entity.prototype.getD = function() {return this._d;}
@@ -40,6 +45,9 @@ Game.Entity.prototype.getKey = function() {
 }
 Game.Entity.prototype.getMap = function(map) {return this._map;}
 Game.Entity.prototype.isAlive = function() {return this._alive;}
+Game.Entity.prototype.getSpeed = function() {
+    return this._speed;
+}
 Game.Entity.prototype.kill = function(message) {
     // You cannot kill that which already lies beyond the grave.
     if(!this._alive) {

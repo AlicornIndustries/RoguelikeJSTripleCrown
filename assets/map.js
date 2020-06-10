@@ -13,9 +13,10 @@ Game.Map = function(tiles, player) {
     this._entities = {}; // NOTE: This makes it tricky to have multiple entities on the same tile, but greatly speeds up finding entities
     this._items = {}; // To allow multiple items per tile, this is a table of arrays of items at each tile   
     // Create engine and scheduler
-    this._scheduler = new ROT.Scheduler.Simple(); // TODO: Move Scheduler and Engine to a World class?
+    this._scheduler = new ROT.Scheduler.Speed();
     this._engine = new ROT.Engine(this._scheduler);
     // Add the player
+    this._player = player;
     this.addEntityAtRandomPosition(player,0);
     // Add random monsters
     //var templates = [Game.FungusTemplate, Game.TimberwolfTemplate, Game.DireTimberwolfTemplate];
@@ -93,6 +94,9 @@ Game.Map.prototype.getEntitiesWithinRadius = function(centerX, centerY, radius) 
         }
     }
     return results;
+}
+Game.Map.prototype.getPlayer = function() {
+    return this._player;
 }
 Game.Map.prototype.isEmptyFloor = function(x,y,d) {
     // True if tile is floor and has no entity on it

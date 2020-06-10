@@ -34,6 +34,96 @@ Game.EntityMixins.Sight = { // Can see with given radius
     },
     getSightRadius: function() {
         return this._sightRadius;
+    },
+    canSee: function(entity) {
+        // Can't see if not on the same map/depth
+        if(!entity || this._map !== entity.getMap() || this._d !== entity.getD()) {
+            return false;
+        }
+
+        var otherX = entity.getX();
+        var otherY = entity.getY();
+
+        // If not in sight radius, don't need to calculate actual FOV
+        if((otherX - this._x) * (otherX -this._x) + (otherY - this._y) * (otherY - this._y) > this._sightRadius * this._sightRadius) {
+            return false;
+        }
+
+        // Compute FOV
+        // TODO: Optimize. Currently, this recomputes the whole FOV.
+        var found = false;
+        this.getMap().getFov(this.getD()).compute(this.getX(), this.getY(), this.getSightRadius(),
+            function(x,y,radius,visibility){
+                if(x===otherX && y===otherY) {
+                    found = true;
+                }
+            });
+        return found;    
+    }
+}
+
+Game.EntityMixins.TaskActor = {
+    name: "TaskActor",
+    groupName: "Actor",
+    init: function(template) {
+        // Load tasks
+        this._tasks = template["tasks"] || ["wander"];
+    },
+    act: function() {
+        // Iterate through our tasks
+        for(var i=0; i<this._tasks.length; i++) {
+            if(this.canDoTask(this._tasks[i])) {
+                // Do the first task we can
+                this[this._tasks[i]]();
+                return;
+            }
+        }
+    },
+    canDoTask: function(task) {
+        if(task==="hunt") {
+            // Can hunt if can see player
+            return this.hasMixin("Sight") && this.canSee(this.getMap().getPlayer());
+        } else if(task==="wander") {
+            return true;
+        } else {
+            throw new Error("Tried to perform undefined task "+ task);
+        }
+    },
+    hunt: function() {
+        var player = this.getMap().getPlayer();
+        var offsets = Math.abs(player.getX()-this.getX()) + Math.abs(player.getY()-this.getY());
+        if(offsets===1) { // If adjacent to player, attack
+            if(this.hasMixin("Attacker")) {
+                this.attack(player);
+                return;
+            }
+        }
+        // If not adjacent, calc path and move a step closer
+        var source = this;
+        var d = source.getD();
+        var path = new ROT.Path.AStar(player.getX(), player.getY(), function(x,y) {
+            // Function to determine what's pathable
+            // Can't move through entities
+            var entity = source.getMap().getEntityAt(x,y,d);
+            if(entity && entity!==player && entity!==source) {
+                return false;
+            }
+            return source.getMap().getTile(x,y,d).isWalkable();
+        }, {topology: 8});
+        // Once path is found, move to the second cell passed in the callback (first is starting point)
+        var count = 0;
+        path.compute(source.getX(), source.getY(), function(x,y) {
+            if(count==1) {
+                source.tryMove(x,y,d);
+            }
+            count++;
+        });
+    },
+    wander: function() {
+        // Pick a random direction x,y to move in
+        var dirn = ROT.RNG.getItem(ROT.DIRS["8"]);
+        this.tryMove(this.getX()+dirn[0], this.getY()+dirn[1], this.getD());
+        
     }
 }
 
@@ -64,16 +154,6 @@ Game.EntityMixins.FungusActor = {
                 }
             }
         }
-    }
-}
-
-Game.EntityMixins.WanderActor = { // Wanders randomly
-    name: "WanderActor",
-    groupName: "Actor",
-    act: function() {
-        // Pick a random direction x,y to move in
-        var dirn = ROT.RNG.getItem(ROT.DIRS["8"]);
-        this.tryMove(this.getX()+dirn[0], this.getY()+dirn[1], this.getD());
     }
 }
 
