@@ -167,11 +167,14 @@ Game.EntityMixins.Destructible = {
         // Defense (dodge) values
         this._defenseValue = template["defenseValue"] || 0;
     },
-    getHp: function() {
-        return this._hp;
-    },
-    getMaxHp: function() {
-        return this._maxHp;
+    getHp: function() {return this._hp;},
+    getMaxHp: function() {return this._maxHp;},
+    setHp: function(hp) {this._hp = hp;},
+    increaseMaxHp: function(value) {
+        value = value | 10; // Default to 10
+        this._maxHp += value;
+        this._hp += value;
+        Game.sendMessage(this,"You look healthier!");
     },
     getArmorDurability: function() {
         if(this.hasMixin(Game.EntityMixins.Equipper)) {
@@ -216,6 +219,21 @@ Game.EntityMixins.Destructible = {
                 this.tryDropCorpse();
             }
             this.kill();
+
+            // Give attacker experience
+            if(attacker.hasMixin("ExperienceGainer")) {
+                var xp = this.getMaxHp(); // TODO: Replace with better equation
+                if(this.hasMixin("Attacker")) {
+                    xp+=this.getStrength();
+                }
+                // Account for level differences
+                if(this.hasMixin("ExperienceGainer")) {
+                    xp-=(attacker.getLevel() - this.getLevel())*3;
+                }
+                if(xp>0) {
+                    attacker.gainExperience(xp);
+                }
+            }
         }
     }
 }
@@ -246,6 +264,11 @@ Game.EntityMixins.Attacker = {
         if(this.hasMixin(Game.EntityMixins.Equipper)) {
             if(this.getWeapon()) {
                 modifier+=this.getWeapon().getDamageValue();
+                // Apply additional bonus if skilled in weapon use
+                var weaponSkill = this.getSkill(SkillTerms.MELEEWEAPONS);
+                if(weaponSkill) {
+                    modifier+=weaponSkill.getDamageValueBoost();
+                }
             }
         }
         return this._strength+modifier;
@@ -276,6 +299,14 @@ Game.EntityMixins.Attacker = {
     },
     getAttackValue: function() {
         return this._attackValue;
+    },
+    getStrength: function() {
+        return this._strength;
+    },
+    increaseStrength: function(value) {
+        value = value || 1; // Default increase value
+        this._strength += value;
+        Game.sendMessage(this,"You feel stronger!");
     }
 }
 
@@ -478,6 +509,124 @@ Game.EntityMixins.Equipper = {
         }
         if(this._armor===item) {
             this.unwear();
+        }
+    }
+}
+
+Game.EntityMixins.ExperienceGainer = {
+    name: "ExperienceGainer",
+    init: function(template) {
+        this._level = template["level"] || 1;
+        this._experience = template["experience"] || 0;
+        this._statPointsPerLevel = template['statPointsPerLevel'] || 1;
+        this._statPoints = 0;
+        
+        // Determine what stats can be leveled up
+        this._statOptions = [];
+        if(this.hasMixin("Attacker")) {
+            this._statOptions.push(["Increase strength", this.increaseStrength]);
+        }
+        if(this.hasMixin("Destructible")) {
+            this._statOptions.push(["Increase endurance",this.increaseMaxHp]);
+        }
+
+        // TODO: if hasMixin(SkillHaver), then also earn skill points at level up.
+    },
+    getLevel: function() {return this._level;},
+    getExperience: function() {return this._experience;},
+    getNextLevelExperience: function() {return (this._level*this._level)*10},
+    getStatPoints: function() {return this._statPoints},
+    setStatPoints: function(statPoints) {this._statPoints = statPoints},
+    getStatOptions: function() {return this._statOptions},
+    gainExperience: function(xp) {
+        var statPointsGained = 0; // But we never return this value? TODO
+        var levelsGained = 0;
+        // Loop until all xp allocated
+        while(xp>0) {
+            // Check if adding xp exceeds threshold
+            if(this._experience+xp>=this.getNextLevelExperience()) {
+                // Fill our experience until next threshold
+                var usedXp = this.getNextLevelExperience()-this._experience;
+                xp -= usedXp;
+                // Level up
+                this._level++;
+                levelsGained++;
+                this._statPoints += this._statPointsPerLevel;
+                statPointsGained += this._statPointsPerLevel;
+            } else {
+                // Not enough to clear next threshold
+                this._experience += xp;
+                xp = 0;
+            }
+        }
+        if(levelsGained>0) {
+            Game.sendMessage(this,"You advance to level %d.",[this._level]);
+            // Heal entity if possible
+            if(this.hasMixin("Destructible")) {
+                this.setHp(this.getMaxHp());
+                Game.sendMessage(this,"You feel strangely invigorated."); // Replace with alignment-based phrases, "You feel your heart beat in harmony with the world."
+            }
+            if(this.hasMixin("StatGainer")) {
+                this.onGainLevel();
+            }
+        }
+    }
+}
+
+// Gains stats randomly on level up (for monsters)
+Game.EntityMixins.RandomStatGainer = {
+    name: "RandomStatGainer",
+    groupName: "StatGainer",
+    onGainLevel: function() {
+        var statOptions = this.getStatOptions();
+        // Randomly pick a stat, execute its callback for each stat point
+        while(this.getStatPoints>0) {
+            // TODO: Not working.
+            var stat = ROT.RNG.getItem(statOptions);
+            stat[1].call(this); // Call stat increasing function with "this" as context
+            //statOptions.random()[1].call(this); // use getItem for current ROT.JS RNG
+            this.setStatPoints(this.getStatPoints()-1);
+        }
+    }
+};
+
+Game.EntityMixins.PlayerStatGainer = {
+    name: "PlayerStatGainer",
+    groupName: "StatGainer",
+    onGainLevel: function() {
+        Game.Screen.gainStatScreen.setup(this);
+        Game.Screen.playScreen.setSubscreen(Game.Screen.gainStatScreen);
+    }
+};
+
+Game.EntityMixins.SkillHaver = {
+    name: "SkillHaver",
+    init: function(template) {
+        this._skills = {};
+        // In future, may replace with a template that loads in specific skills (since not all players may have access to the same skills)
+        // Determine what skills we can have based on mixins
+        // Add skill to our attached skills, then call init
+
+        if(this.hasMixin("Equipper")) {
+            this._skills[SkillTerms.ARMORER] = Object.create(Game.Skills.Armorer);
+            this._skills[SkillTerms.ARMORER].init();
+            // This should be equivalent to:
+            // this.getSkill(SkillTerms.ARMORER).init();
+            if(this.hasMixin("Attacker")) {
+                this._skills[SkillTerms.MELEEWEAPONS] = Object.create(Game.Skills.MeleeWeapons);
+                this._skills[SkillTerms.MELEEWEAPONS].init();
+            }
+        }
+        if(this.hasMixin("Sight")) {
+            this._skills[SkillTerms.SCOUT] = Object.create(Game.Skills.Scout);
+            this._skills[SkillTerms.SCOUT].init();
+        }
+    },
+    getSkill: function(obj) {
+        if(typeof obj==="object") {
+            return this._skills[obj.name];
+        } else {
+            return this._skills[obj]
         }
     }
 }

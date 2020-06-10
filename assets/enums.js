@@ -4,11 +4,19 @@ const DamageTypes = Object.freeze({
     PIERCING: "piercing"
 });
 
+// Probably won't use this much, beyond UNARMORED.
 const ArmorTypes = Object.freeze({
     UNARMORED: "unarmored",
     CLOTH: "cloth",
     PLATE: "plate",
     CHAINMAIL: "chain mail",
+});
+
+const SkillTerms = Object.freeze({
+    ARMORER: "armorer", // could use the "another way to format" to have different names for each level.
+    MELEEWEAPONS: "melee weapons",
+    SCOUT: "scout",
+
 });
 
 // Another way to do it???:

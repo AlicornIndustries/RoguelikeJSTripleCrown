@@ -124,8 +124,10 @@ Game.Screen.playScreen = {
         // Render hunger stat
         var hungerState = this._player.getHungerState();
         display.drawText(screenWidth-hungerState.length, screenHeight, hungerState);
-
-    
+        // Render level
+        var levelStr = '%c{white}%b{black}';
+        levelStr += vsprintf("L: %d XP: %d", [this._player.getLevel(), this._player.getExperience()]);
+        display.drawText(screenWidth-15, screenHeight+1, levelStr);
     },
     handleInput: function(inputType, inputData) {
         // If game is over, enter will bring them to the lose screen
@@ -482,4 +484,42 @@ Game.Screen.wearScreen = new Game.Screen.ItemListScreen({
         }
         return true;
     }
-})
+});
+Game.Screen.gainStatScreen = {
+    setup: function(entity) {
+        // Must be called before rendering
+        this._entity = entity;
+        this._statOptions = entity.getStatOptions();
+    },
+    render: function(display) {
+        var letters = 'abcdefghijklmnopqrstuvwxyz';
+        display.drawText(0,0,"Choose a stat to increase");
+        // Iterate through each option
+        for(var i=0; i<this._statOptions.length; i++) {
+            display.drawText(0,2+i,
+                letters.substring(i,i+1)+" - "+this._statOptions[i][0]);
+        }
+        // Show remaining stat points
+        display.drawText(0,4+this._statOptions.length,"Remaining stat points: "+this._entity.getStatPoints());
+    },
+    handleInput: function(inputType,inputData) {
+        if(inputType==="keydown") {
+            // If letter pressed, check if it matches a valid option
+            if(inputData.keyCode>=ROT.KEYS.VK_A && inputData.keyCode<=ROT.KEYS.VK_Z) {
+                var index = inputData.keyCode - ROT.KEYS.VK_A;
+                if(this._statOptions[index]) {
+                    // Call the function to boost the stat
+                    this._statOptions[index][1].call(this._entity);
+                    // Decrease stat points
+                    this._entity.setStatPoints(this._entity.getStatPoints()-1);
+                    // If no stat points left, leave screen. Else, refresh.
+                    if(this._entity.getStatPoints()==0) {
+                        Game.Screen.playScreen.setSubscreen(undefined);
+                    } else {
+                        Game.refresh();
+                    }
+                }
+            }
+        }
+    }
+};

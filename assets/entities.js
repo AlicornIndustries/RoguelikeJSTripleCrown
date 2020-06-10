@@ -15,7 +15,9 @@ Game.PlayerTemplate = {
     mixins: [Game.EntityMixins.PlayerActor, Game.EntityMixins.Attacker,
              Game.EntityMixins.Destructible, Game.EntityMixins.Sight,
              Game.EntityMixins.MessageRecipient, Game.EntityMixins.InventoryHolder,
-             Game.EntityMixins.FoodConsumer, Game.EntityMixins.Equipper]
+             Game.EntityMixins.FoodConsumer, Game.EntityMixins.Equipper,
+             Game.EntityMixins.SkillHaver, Game.EntityMixins.ExperienceGainer,
+             Game.EntityMixins.PlayerStatGainer]
 }
 
 // Non-player templates are held in repositories
@@ -30,7 +32,8 @@ Game.EntityRepository.define("fungus", {
     speed: 250,
     maxHp: 15,
     defenseValue: 0,
-    mixins: [Game.EntityMixins.FungusActor, Game.EntityMixins.Destructible]
+    mixins: [Game.EntityMixins.FungusActor, Game.EntityMixins.Destructible,
+             Game.EntityMixins.ExperienceGainer, Game.EntityMixins.RandomStatGainer]
 });
 Game.EntityRepository.define("timberwolf", {
     name: "timberwolf",
@@ -45,7 +48,8 @@ Game.EntityRepository.define("timberwolf", {
     defenseValue: 0,
     tasks: ["hunt", "wander"],
     mixins: [Game.EntityMixins.TaskActor, Game.EntityMixins.Sight, Game.EntityMixins.Attacker,
-        Game.EntityMixins.Destructible, Game.EntityMixins.CorpseDropper]
+        Game.EntityMixins.Destructible, Game.EntityMixins.CorpseDropper,
+        Game.EntityMixins.ExperienceGainer, Game.EntityMixins.RandomStatGainer]
 });
 Game.EntityRepository.define("dire timberwolf", {
     name: "dire timberwolf",
@@ -60,7 +64,8 @@ Game.EntityRepository.define("dire timberwolf", {
     defenseValue: 0,
     tasks: ["hunt", "wander"],
     mixins: [Game.EntityMixins.TaskActor, Game.EntityMixins.Sight, Game.EntityMixins.Attacker,
-        Game.EntityMixins.Destructible, Game.EntityMixins.CorpseDropper]
+        Game.EntityMixins.Destructible, Game.EntityMixins.CorpseDropper,
+        Game.EntityMixins.ExperienceGainer, Game.EntityMixins.RandomStatGainer]
 });
 Game.EntityRepository.define("vampire bat", {
     name: "vampire bat",
@@ -75,5 +80,6 @@ Game.EntityRepository.define("vampire bat", {
     defenseValue: 0,
     tasks: ["hunt", "wander"],
     mixins: [Game.EntityMixins.TaskActor, Game.EntityMixins.Sight, Game.EntityMixins.Attacker,
-        Game.EntityMixins.Destructible, Game.EntityMixins.CorpseDropper]
+        Game.EntityMixins.Destructible, Game.EntityMixins.CorpseDropper,
+        Game.EntityMixins.ExperienceGainer, Game.EntityMixins.RandomStatGainer]
 });
