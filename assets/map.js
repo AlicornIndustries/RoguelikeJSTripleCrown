@@ -37,7 +37,11 @@ Game.Map = function(tiles, player) {
             this.addItemAtRandomPosition(Game.ItemRepository.createRandom(), d);
         }
     }
-
+    // Add weapons and armor to the map in random positions and depths
+    var gearTemplates = ["stiletto","sword","staff","padded barding","chain mail barding","crude plate barding","orichalcum plate barding","sword","sword","sword","sword","sword","sword","sword","sword","sword","sword","sword","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding",];
+    for(var i=0; i<gearTemplates.length;i++) {
+        this.addItemAtRandomPosition(Game.ItemRepository.create(gearTemplates[i]), Math.floor(this._depth*Math.random()));
+    }
     // Setup the explored array
     this._explored = new Array(this._depth);
     this._setupExploredArray();
@@ -118,7 +122,7 @@ Game.Map.prototype.updateEntityPosition = function(entity, oldX, oldY, oldD) {
     
     // If oldX, oldY, oldD are null, we're really adding a new entity
     // Delete the old key if it is the same entity and we have old positions
-    if(typeof(oldX)!== "undefined") {
+    if(typeof(oldX) === "number") {
         var oldKey = oldX+","+oldY+","+oldD;
         if(this._entities[oldKey] == entity) {
             delete this._entities[oldKey];

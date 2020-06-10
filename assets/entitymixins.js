@@ -84,12 +84,6 @@ Game.EntityMixins.Destructible = {
     init: function(template) {
         this._maxHp = template["maxHp"] || 1;
         this._hp = template["hp"] || this._maxHp;
-
-        // Armor system. Probably redo this later.
-        this._armorDurability = template["armorDurability"] || 0;
-        this._armorReduction = template["armorReduction"] || 0;
-        // TODO: Armor coverage
-        
         // Defense (dodge) values
         this._defenseValue = template["defenseValue"] || 0;
     },
@@ -99,11 +93,40 @@ Game.EntityMixins.Destructible = {
     getMaxHp: function() {
         return this._maxHp;
     },
+    getArmorDurability: function() {
+        if(this.hasMixin(Game.EntityMixins.Equipper)) {
+            if(this.getArmor()) {
+                return this.getArmor().getArmorDurability();
+            }
+        }
+        return 0;
+    },
+    getArmorReduction: function() {
+        if(this.hasMixin(Game.EntityMixins.Equipper)) {
+            if(this.getArmor()) {
+                return this.getArmor().getArmorReduction();
+            }
+        }
+        return 0;
+    },
     getDefenseValue: function() {
-        // TODO: function should take damageType as input
-        return this._defenseValue;
+        var modifier=0;
+        if(this.hasMixin(Game.EntityMixins.Equipper)) {
+            if(this.getWeapon()) {
+                modifier+=this.getWeapon().getDefenseValue();
+            }
+            if(this.getArmor()) {
+                modifier+=this.getArmor().getDefenseValue();
+            }
+        }
+        return this._defenseValue+modifier;
     },
     takeDamage: function(attacker, damage) {
+        if(this.hasMixin(Game.EntityMixins.Equipper)) {
+            if(this.getArmor()) {
+                damage = this.getArmor().damageArmor(damage);        
+            }
+        }
         this._hp -= damage;
         if(this._hp<=0) {
             Game.sendMessage(attacker,"You destroy the %s!",[this.getName()]);
@@ -122,6 +145,30 @@ Game.EntityMixins.Attacker = {
     groupName: "Attacker",
     init: function(template) {
         this._attackValue = template["attackValue"] || 1;
+        this._strength = template["strength"] || 1;
+        this._unarmedDamageType = template["unarmedAttackType"] || DamageTypes.BLUNT;
+    },
+    getAttackValue: function() {
+        var modifier = 0;
+        // If we can equip items, take them into account
+        if(this.hasMixin(Game.EntityMixins.Equipper)) {
+            if(this.getWeapon()) {
+                modifer+=this.getWeapon().getAttackValue();
+            }
+            if(this.getArmor()) {
+                modifier+=this.getArmor().getAttackValue();
+            }
+        }
+        return this._attackValue+modifier;
+    },
+    getMeleeDamage: function() {
+        var modifier=0;
+        if(this.hasMixin(Game.EntityMixins.Equipper)) {
+            if(this.getWeapon()) {
+                modifier+=this.getWeapon().getDamageValue();
+            }
+        }
+        return this._strength+modifier;
     },
     attack: function(target) { // TODO: also take weapon used as input?
         // Only works on destructibles
@@ -133,7 +180,7 @@ Game.EntityMixins.Attacker = {
             var roll = ROT.RNG.getPercentage();
             if (hitChance >= roll) {
                 // Hit
-                var damage = 1; // TODO: Flat 1 damage for now
+                var damage = this.getMeleeDamage();
                 Game.sendMessage(this, "You strike the %s for %d damage!",[target.getName(), damage]);
                 Game.sendMessage(target, "The %s strikes you for %d damage!",[this.getName(),damage]);
                 target.takeDamage(this, damage); 
@@ -212,6 +259,11 @@ Game.EntityMixins.InventoryHolder = {
         return false; // No empty slot found
     },
     removeItem: function(i) {
+        // First, unequip it
+        if(this._items[i] && this.hasMixin(Game.EntityMixins.Equipper)) {
+            this.unequip(this._items[i]);
+        }
+        // Clear the inventory slot 
         this._items[i] = null;
     },
     canAddItem: function() {
@@ -311,6 +363,41 @@ Game.EntityMixins.CorpseDropper = {
                     name: this._name+" corpse",
                     foreground: this._foreground
                 }));
+        }
+    }
+}
+
+Game.EntityMixins.Equipper = {
+    name: "Equipper",
+    init: function(template) {
+        this._weapon = null;
+        this._armor = null;
+    },
+    wield: function(item) {
+        this._weapon = item;
+    },
+    unwield: function() {
+        this._weapon = null;
+    },
+    wear: function(item) {
+        this._armor = item;
+    },
+    takeOff: function() { // TODO: account for multiple slots
+        this._armor = null;
+    },
+    getWeapon: function() {
+        return this._weapon;
+    },
+    getArmor: function() {
+        return this._armor;
+    },
+    unequip: function(item) {
+        // Helper function called before removing item
+        if(this._weapon===item) {
+            this.unwield();
+        }
+        if(this._armor===item) {
+            this._takeOff();
         }
     }
 }
