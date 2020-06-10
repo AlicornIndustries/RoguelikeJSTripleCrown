@@ -5,10 +5,16 @@ Game.EntityMixins.PlayerActor = {
     name: "PlayerActor",
     groupName: "Actor",
     act: function() {
+        if(this._acting) {
+            // Skip if we're already acting (avoids double-calling things like kill())
+            return;
+        }
+        this._acting = true;
+        this.addTurnHunger();
         // Detect if game is over
-        if(this.getHp() <= 0 ) {
+        if(!this.isAlive()) {
             Game.Screen.playScreen.setGameEnded(true);
-            Game.sendMessage(this, "You have died... Press [ENTER] to continue.");
+            Game.sendMessage(this, "Press [ENTER] to continue.");
         }
         // Re-render the screen on your turn
         Game.refresh();
@@ -16,6 +22,7 @@ Game.EntityMixins.PlayerActor = {
         this.getMap().getEngine().lock();
         // Clear message queue
         this.clearMessages();
+        this._acting = false;
     }
 }
 
@@ -101,14 +108,11 @@ Game.EntityMixins.Destructible = {
         if(this._hp<=0) {
             Game.sendMessage(attacker,"You destroy the %s!",[this.getName()]);
             Game.sendMessage(this, "You die!");
-            this.die();
-        }
-    },
-    die: function() {
-        if(this.hasMixin(Game.EntityMixins.PlayerActor)) {
-            this.act(); // handles the game ending
-        } else {
-            this.getMap().removeEntity(this); // Non-players just die.
+            // Drop a corpse
+            if(this.hasMixin(Game.EntityMixins.CorpseDropper)) {
+                this.tryDropCorpse();
+            }
+            this.kill();
         }
     }
 }
@@ -246,6 +250,67 @@ Game.EntityMixins.InventoryHolder = {
                 this._map.addItem(this.getX(), this.getY(), this.getD(), this._items[i]);
             }
             this.removeItem(i);
+        }
+    }
+}
+
+Game.EntityMixins.FoodConsumer = {
+    name: "FoodConsumer",
+    init: function(template) {
+        this._maxFullness = template["maxFullness"] || 1000;
+        // Start at 50% fullness
+        this._fullness = template["fullness"] || (this._maxFullness/2);
+        // Fullness drain rate per turn
+        this._fullnessDepletionRate = template["fullnessDepletionRate"] || 1;
+    },
+    addTurnHunger: function() {
+        // Reduce fullness by standard rate
+        this.modifyFullnessBy(-this._fullnessDepletionRate);
+    },
+    modifyFullnessBy: function(points) {
+        this._fullness = this._fullness + points;
+        if(this._fullness<=0) {
+            this.kill("You have died of starvation!"); // TODO: Replace with gradual health loss while starving.
+        } else if(this._fullness>this._maxFullness) {
+            this._fullness=this._maxFullness;
+            this.sendMessage("You're absolutely stuffed!");
+        }
+    },
+    getHungerState: function() {
+        // Fullness points per percent of max fullness
+        var perPercent = this._maxFullness / 100;
+        if (this._fullness <= perPercent * 5) {
+            return 'Starving';
+        // 25% of max fullness or less = hungry
+        } else if (this._fullness <= perPercent * 25) {
+            return 'Hungry';
+        // 95% of max fullness or more = oversatiated
+        } else if (this._fullness >= perPercent * 95) {
+            return 'Glutted';
+        // 75% of max fullness or more = full
+        } else if (this._fullness >= perPercent * 75) {
+            return 'Full';
+        // Anything else = not hungry
+        } else {
+            return 'Not Hungry';
+        }
+    }
+}
+
+Game.EntityMixins.CorpseDropper = {
+    name: "CorpseDropper",
+    init: function(template) {
+        // Chance of dropping a corpse
+        this._corpseDropRate = template["corpseDropRate"] || 100;
+    },
+    tryDropCorpse: function() {
+        if(Math.round(Math.random()*100) < this._corpseDropRate) {
+            // Create new corpse item
+            this._map.addItem(this.getX(), this.getY(), this.getD(),
+                Game.ItemRepository.create("corpse", {
+                    name: this._name+" corpse",
+                    foreground: this._foreground
+                }));
         }
     }
 }

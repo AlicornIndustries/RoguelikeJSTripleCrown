@@ -12,7 +12,8 @@ Game.PlayerTemplate = {
     inventorySlots: 22,
     mixins: [Game.EntityMixins.PlayerActor, Game.EntityMixins.Attacker,
              Game.EntityMixins.Destructible, Game.EntityMixins.Sight,
-             Game.EntityMixins.MessageRecipient, Game.EntityMixins.InventoryHolder]
+             Game.EntityMixins.MessageRecipient, Game.EntityMixins.InventoryHolder,
+             Game.EntityMixins.FoodConsumer]
 }
 
 // Non-player templates are held in repositories
@@ -37,7 +38,7 @@ Game.EntityRepository.define("timberwolf", {
     attackValue: 50,
     defenseValue: 0,
     mixins: [Game.EntityMixins.WanderActor, Game.EntityMixins.Attacker,
-        Game.EntityMixins.Destructible]
+        Game.EntityMixins.Destructible, Game.EntityMixins.CorpseDropper]
 });
 Game.EntityRepository.define("dire timberwolf", {
     name: "dire timberwolf",
@@ -48,5 +49,5 @@ Game.EntityRepository.define("dire timberwolf", {
     attackValue: 60,
     defenseValue: 0,
     mixins: [Game.EntityMixins.WanderActor, Game.EntityMixins.Attacker,
-        Game.EntityMixins.Destructible]
+        Game.EntityMixins.Destructible, Game.EntityMixins.CorpseDropper]
 });

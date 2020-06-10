@@ -118,6 +118,9 @@ Game.Screen.playScreen = {
         var stats = "%c{white}%b{black}";
         stats += vsprintf("HP: %d/%d",[this._player.getHp(), this._player.getMaxHp()]);
         display.drawText(0, screenHeight, stats);
+        // Render hunger stat
+        var hungerState = this._player.getHungerState();
+        display.drawText(screenWidth-hungerState.length, screenHeight, hungerState);
     },
     handleInput: function(inputType, inputData) {
         // If game is over, enter will bring them to the lose screen
@@ -154,27 +157,30 @@ Game.Screen.playScreen = {
                 } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD1) {
                     this.move(-1,1,0);
                 } else if(inputData.keyCode === ROT.KEYS.VK_I) {
-                    if(this._player.getItems().length===0) {
-                        // If the player has no items, send a message and don't take a turn
-                        // TODO: streamline that if?
-                        Game.sendMessage(this._player,"You are not carrying anything!");
-                        Game.refresh();
-                    } else {
-                        // Show inventory
-                        Game.Screen.inventoryScreen.setup(this._player, this._player.getItems());
+                    // Inventory
+                    if(Game.Screen.inventoryScreen.setup(this._player, this._player.getItems())) {
                         this.setSubscreen(Game.Screen.inventoryScreen);
+                    } else {
+                        Game.sendMessage(this._player, "You are not carrying anything!");
+                        Game.refresh();
                     }
                     return;
                 } else if(inputData.keyCode===ROT.KEYS.VK_D) {
                     // Drop items
-                    if (this._player.getItems().filter(function(x){return x;}).length === 0) {
-                        // Player has no items
+                    if(Game.Screen.dropScreen.setup(this._player, this._player.getItems())) {
+                        this.setSubscreen(Game.Screen.dropScreen);
+                    } else {
                         Game.sendMessage(this._player, "You have nothing to drop!");
                         Game.refresh();
+                    }
+                    return;
+                } else if(inputData.keyCode===ROT.KEYS.VK_E) {
+                    // Eat items
+                    if(Game.Screen.eatScreen.setup(this._player, this._player.getItems())) {
+                        this.setSubscreen(Game.Screen.eatScreen);
                     } else {
-                        // Show the drop screen
-                        Game.Screen.dropScreen.setup(this._player, this._player.getItems());
-                        this.setSubscreen(Game.Screen.dropScreen);
+                        Game.sendMessage(this._player, "You have nothing to eat!");
+                        Game.refresh();
                     }
                     return;
                 } else if(inputData.keyCode===ROT.KEYS.VK_COMMA) {
@@ -262,16 +268,33 @@ Game.Screen.ItemListScreen = function(template) {
     // Setup based on template
     this._caption = template['caption'];
     this._okFunction = template['ok'];
-    // Can the user select items?
+
+    // Filter out some items (don't show non-edible on an "eat" screen, e.g.).
+    this._isAcceptableFunction = template["isAcceptable"] || function(x){return x;} // By default, use identity function
+    // Can the user select items on this screen?
     this._canSelectItem = template['canSelect'];
     this._canSelectMultipleItems = template['canSelectMultipleItems'];
 };
 Game.Screen.ItemListScreen.prototype.setup = function(player, items) {
+    // Returns count of acceptable items
     // Call this before switching to the screen
     this._player = player;
-    this._items = items;
+    // Number of acceptable items
+    var count = 0;
+    // Keep only acceptable items
+    var that = this;
+    this._items = items.map(function(item) {
+        // Null item if it's not acceptable
+        if(that._isAcceptableFunction(item)) {
+            count++;
+            return item;
+        } else {
+            return null;
+        }
+    });
     // Clean set of selected indices
     this._selectedIndices = {};
+    return count;
 };
 
 
@@ -366,3 +389,22 @@ Game.Screen.dropScreen = new Game.Screen.ItemListScreen({
         return true;
     }
 });
+Game.Screen.eatScreen = new Game.Screen.ItemListScreen({
+    caption: "Choose the item you wish to eat",
+    canSelect: true,
+    canSelectMultipleItems: false,
+    isAcceptable: function(item) {
+        return item && item.hasMixin("Edible");
+    },
+    ok: function(selectedItems) {
+        // Eat item. Remove it if no consumptions remain
+        var key = Object.keys(selectedItems)[0];
+        var item = selectedItems[key];
+        Game.sendMessage(this._player, 'You eat %s.',[item.describeThe()]);
+        item.eat(this._player);
+        if(!item.hasRemainingConsumptions()) {
+            this._player.removeItem(key);
+        }
+        return true;
+    }
+})
