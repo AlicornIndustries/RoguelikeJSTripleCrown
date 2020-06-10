@@ -67,7 +67,8 @@ Game.ItemMixins.Equippable = {
         // Return bleed-through damage transferred to the armor's wearer
         
         // Apply damage reduction
-        damage = Math.min(1,damage-this._armorReduction);
+        damage = Math.max(1,damage-this._armorReduction);
+        console.log(damage);
 
         // For now, armor absorbs all damage while it's above 70% AD, falling off below that. TODO: replace with smooth curve, perhaps.
         var percentDurability = this._armorDurability * 1.0 / this._maxArmorDurability;
