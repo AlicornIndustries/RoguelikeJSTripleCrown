@@ -180,7 +180,7 @@ Game.Screen.playScreen = {
                         return;
                     } else {
                         // Wield screen
-                        this.showItemsSubscreen(Game.Screen.wieldScreen, this._player.getItems(), "You have nothing to wield!");
+                        this.showItemsSubscreen(Game.Screen.wieldScreen, this._player.getItems(), "You have nothing to wield.");
                     }
                     return;
                 } else if(inputData.keyCode===ROT.KEYS.VK_COMMA) {
@@ -333,7 +333,7 @@ Game.Screen.ItemListScreen.prototype.render = function(display) {
                 suffix=" (wielding)";
             }
             // Add two to row to account for the caption and blank space
-            display.drawText(0,2+row,letter+" "+selectionState+""+this._items[i].describe()+suffix);
+            display.drawText(0,2+row,letter+" "+selectionState+" "+this._items[i].describe()+suffix);
             row++;
         }
     }
@@ -471,8 +471,8 @@ Game.Screen.wearScreen = new Game.Screen.ItemListScreen({
         // Check if we selected 'no item'
         var keys = Object.keys(selectedItems);
         if (keys.length === 0) {
-            this._player.unwield();
-            Game.sendMessage(this._player, "You are not wearing anthing.")
+            this._player.unwear();
+            Game.sendMessage(this._player, "You are not wearing anything.")
         } else {
             // Make sure to unequip the item first in case it is also being wielded as a weapon or something
             var item = selectedItems[keys[0]];

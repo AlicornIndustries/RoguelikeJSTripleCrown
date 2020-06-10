@@ -382,7 +382,7 @@ Game.EntityMixins.Equipper = {
     wear: function(item) {
         this._armor = item;
     },
-    takeOff: function() { // TODO: account for multiple slots
+    unwear: function() { // TODO: account for multiple slots
         this._armor = null;
     },
     getWeapon: function() {
@@ -397,7 +397,7 @@ Game.EntityMixins.Equipper = {
             this.unwield();
         }
         if(this._armor===item) {
-            this._takeOff();
+            this.unwear();
         }
     }
 }

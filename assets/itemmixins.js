@@ -6,7 +6,7 @@ Game.ItemMixins.Edible = {
         // Number of points to add to fullness
         this._foodValue = template['foodValue'] || 5;
         // Number of times item can be consumed
-        this._maxConsumptions = template["maxConsumptions"] || 1;
+        this._maxConsumptions = template["consumptions"] || 1;
         this._remainingConsumptions = this._maxConsumptions;
     },
     eat: function(entity) {
