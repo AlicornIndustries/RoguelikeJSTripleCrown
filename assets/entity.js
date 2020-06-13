@@ -43,7 +43,7 @@ Game.Entity.prototype.getD = function() {return this._d;}
 Game.Entity.prototype.getKey = function() {
     return this.getX()+","+this.getY()+","+this.getD();
 }
-Game.Entity.prototype.getMap = function(map) {return this._map;}
+Game.Entity.prototype.getMap = function() {return this._map;}
 Game.Entity.prototype.isAlive = function() {return this._alive;}
 Game.Entity.prototype.getSpeed = function() {
     return this._speed;
@@ -67,7 +67,6 @@ Game.Entity.prototype.kill = function(message) {
         this.getMap().removeEntity(this);
     }
 }
-
 Game.Entity.prototype.tryMove = function(x,y,d,map) {
     // True if successful move/attack
     var map = this.getMap();
@@ -84,7 +83,10 @@ Game.Entity.prototype.tryMove = function(x,y,d,map) {
             return true;
         }
     } else if(d>this.getD()) {
-        if(tile != Game.Tile.stairsDownTile) {
+        if(tile===Game.Tile.holeToCavernTile && this.hasMixin(Game.EntityMixins.PlayerActor)) {
+            // Switch entity to a different map, the boss cavern
+            this.switchMap(new Game.Map.BossCavern);
+        } else if(tile != Game.Tile.stairsDownTile) {
             Game.sendMessage(this, "You can't go down here!");
             return false;
         } else {
@@ -102,7 +104,7 @@ Game.Entity.prototype.tryMove = function(x,y,d,map) {
         } else {
             return false; // Nothing we can do, but we can't move there
         }
-    } else if (tile.isWalkable()) {     // If no other entity there, check if we can move there
+    } else if (tile.isWalkable()) { // If no other entity there, check if we can move there
         // Update our position
         this.setPosition(x,y,d);
         // If there are items on the tile, send message
@@ -120,4 +122,14 @@ Game.Entity.prototype.tryMove = function(x,y,d,map) {
         return true;
     }
     return false;
+}
+Game.Entity.prototype.switchMap = function(newMap) {
+    if(newMap===this.getMap()) {
+        return;
+    }
+    this.getMap().removeEntity(this);
+    // Clear position
+    this._x=0; this._y=0; this._d=0;
+    // Add to new map
+    newMap.addEntity(this);
 }

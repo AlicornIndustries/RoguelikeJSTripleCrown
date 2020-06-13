@@ -134,12 +134,12 @@ Game.EntityMixins.FungusActor = {
         this._growthsRemaining = 5;
     },
     act: function() {
-        // console.log("Fungus is trying to act at: "+this.getX()+","+this.getY()+". It has "+this._growthsRemaining+" growths remaining.");
         // Random chance to spread
         if(this._growthsRemaining>0) {
-            var growthChance = 0.02 // Not exact, since can't grow on own tile
+            var growthChance = 0.02 // Not exact, since can't grow on own tile, simulating overcrowding
             if(Math.random() <= growthChance) {
                 // Coords of random adj tile. Generate offset of [-1 0 1] by picking random number 0~2, then subtracting 1
+                // TODO: swap with ROT.RNG.getItem(ROT.DIRS["8"])
                 var xOffset = Math.floor(Math.random() * 3) - 1;
                 var yOffset = Math.floor(Math.random() * 3) - 1;
                 // Can't spawn on our own tile
@@ -169,6 +169,10 @@ Game.EntityMixins.Destructible = {
     },
     getHp: function() {return this._hp;},
     getMaxHp: function() {return this._maxHp;},
+    getHpPercent: function() {
+        // Returns as e.g. 0.7, not 70%
+        return (this._hp * 1.0 / this._maxHp);
+    },
     setHp: function(hp) {this._hp = hp;},
     increaseMaxHp: function(value) {
         value = value | 10; // Default to 10
@@ -580,16 +584,6 @@ Game.EntityMixins.RandomStatGainer = {
         
         }
     }
-    // onGainLevel: function() {
-    //     var statOptions = this.getStatOptions();
-    //     // Randomly pick a stat, execute its callback for each stat point
-        // while(this.getStatPoints()>0) {
-        //     var stat = ROT.RNG.getItem(statOptions);
-        //     stat[1].call(this); // Call stat increasing function with "this" as context
-        //     //statOptions.random()[1].call(this); // use getItem for current ROT.JS RNG
-        //     this.setStatPoints(this.getStatPoints()-1);
-    //     }
-    // }
 };
 
 Game.EntityMixins.PlayerStatGainer = {
@@ -602,6 +596,59 @@ Game.EntityMixins.PlayerStatGainer = {
         }
     }
 };
+
+Game.EntityMixins.WindigoActor = Game.extend(Game.EntityMixins.TaskActor, {
+    init: function(template) {
+        // Call TaskActor init with predefined tasks
+        Game.EntityMixins.TaskActor.init.call(this, Game.extend(template, {
+            "tasks": ["becomeEnraged", "spawnSpitesprite", "hunt", "wander"]
+        }));
+        this._hasBecomeEnraged = false;
+        this._enragedThreshold = 0.4; // enraged below this % HP
+        this._spitespriteSpawnChance = 10;
+    },
+    canDoTask: function(task) {
+        // If we haven't become enraged and our HP<=threshold%, do so
+        if(task==="becomeEnraged") {
+            console.log("Windigo's HP%: "+this.getHpPercent()+" Threshold: "+this._enragedThreshold);
+            return this.getHpPercent()<=this._enragedThreshold && !this._hasBecomeEnraged;
+        // Spawn spitespite only 10% of the time
+        } else if(task==="spawnSpitesprite") {
+            return Math.round(Math.random()*100) <= this._spitespriteSpawnChance;
+        // Call parent canDoTask if one of these special actions are available
+        } else {
+            return Game.EntityMixins.TaskActor.canDoTask.call(this,task);
+        }
+    },
+    becomeEnraged: function() {
+        this._hasBecomeEnraged = true;
+        this.increaseStrength(7);
+        Game.sendMessageNearby(this.getMap(),
+            this.getX(), this.getY(), this.getD(), "The windigo whips itself into a fury!");
+    },
+    spawnSpitesprite: function() {
+        // Random position nearby
+        var adjPosition = ROT.RNG.getItem(ROT.DIRS["8"]);
+        // Check if we can spawn at that position
+        if(!this.getMap().isEmptyFloor(this.getX()+adjPosition[0], this.getY()+adjPosition[1], this.getD())) {
+            return; // Do nothing if position occupied
+        }
+        // Create the entity
+        var spitesprite = Game.EntityRepository.create("spitesprite");
+        spitesprite.setX(this.getX()+adjPosition[0]);
+        spitesprite.setY(this.getY()+adjPosition[1]);
+        spitesprite.setD(this.getD());
+        this.getMap().addEntity(spitesprite);
+        Game.sendMessageNearby(this.getMap(),
+        this.getX(), this.getY(), this.getD(), "Icy whirlwinds spin off the windigo!");
+    },
+    listeners: {
+        onDeath: function(attacker) {
+            // Switch to win screen when killed
+            Game.switchScreen(Game.Screen.winScreen);
+        }
+    }
+})
 
 Game.EntityMixins.SkillHaver = {
     name: "SkillHaver",

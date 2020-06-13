@@ -23,18 +23,18 @@ Game.Screen.startScreen = {
     }
 }
 Game.Screen.playScreen = {
-    _map: null, // All screen logic and data is in the screen's class, so the map is here
     _player: null,
     _gameEnded: false,
     _subscreen: null,
     enter: function() {
         console.log("Entered play screen.");
-        var mapWidth=100; var mapHeight=48; var mapDepth=6;
+        var mapWidth=100; var mapHeight=48; var mapDepth=2;
         // Create map
         var tiles = new Game.Builder(mapWidth,mapHeight,mapDepth).getTiles();
         this._player = new Game.Entity(Game.PlayerTemplate);
-        this._map = new Game.Map(tiles, this._player);
-        this._map.getEngine().start();
+        var map = new Game.Map.Cave(tiles, this._player);
+        // Start map's engine
+        map.getEngine().start();
     },
     exit: function() {console.log("Exited play screen."); },
     render: function(display) {
@@ -43,24 +43,26 @@ Game.Screen.playScreen = {
             this._subscreen.render(display);
             return;
         }
+
+        var map = this._player.getMap();
+
         var screenWidth = Game.getScreenWidth();
         var screenHeight = Game.getScreenHeight();
         // Keep it centered on player (st. top-left corner is half a screen away from player)
         // Ensure x axis doesn't exceed left bound
         var topLeftX = Math.max(0, this._player.getX()-(screenWidth/2));
         // Ensure we have enough space to fit an entire screenWidth. If not, stop scrolling
-        topLeftX = Math.min(topLeftX, this._map.getWidth()-screenWidth);
+        topLeftX = Math.min(topLeftX, map.getWidth()-screenWidth);
         // Ensure y axis doesn't exceed top bound
         var topLeftY = Math.max(0, this._player.getY()-(screenHeight/2));
-        topLeftY = Math.min(topLeftY, this._map.getHeight()-screenHeight);
+        topLeftY = Math.min(topLeftY, map.getHeight()-screenHeight);
 
         // Cells in FOV
         var visibleCells = {};
-        // Store this._map and player's depth to avoid losing it in callbacks.
-        var map = this._map;
+        // Store player's depth to avoid losing it in callbacks.
         var currentDepth = this._player.getD();
         // Find all visible cells
-        this._map.getFov(this._player.getD()).compute(
+        map.getFov(this._player.getD()).compute(
             this._player.getX(), this._player.getY(),
             this._player.getSightRadius(),
             function(x,y,radius,visibility) {
@@ -73,7 +75,7 @@ Game.Screen.playScreen = {
         for (var x=topLeftX; x<topLeftX+screenWidth; x++) {
             for (var y=topLeftY; y<topLeftY+screenHeight; y++) {
                 if(map.isExplored(x,y,currentDepth)) {
-                    var glyph = this._map.getTile(x,y,currentDepth);
+                    var glyph = map.getTile(x,y,currentDepth);
                     var foreground = glyph.getForeground();
                     // Use different foreground color if tile is explored but not visible
                     //var foreground = visibleCells[x+","+y] ? tile.getForeground() : "darkGray";
@@ -143,79 +145,75 @@ Game.Screen.playScreen = {
             return;
         }
         if (inputType === "keydown") {
-            if(inputData.keyCode === ROT.KEYS.VK_RETURN) {
-                Game.switchScreen(Game.Screen.winScreen);
-            } else {
-                // Movement
-                if ((inputData.keyCode === ROT.KEYS.VK_LEFT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD4)) {
-                    this.move(-1,0,0);
-                } else if ((inputData.keyCode == ROT.KEYS.VK_RIGHT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD6)) {
-                    this.move(1,0,0);
-                } else if ((inputData.keyCode === ROT.KEYS.VK_UP) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD8)) {
-                    this.move(0,-1,0);
-                } else if ((inputData.keyCode === ROT.KEYS.VK_DOWN) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD2)) {
-                    this.move(0,1,0);
-                } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD7) {
-                    this.move(-1,-1,0);
-                } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD9) {
-                    this.move(1,-1,0);
-                } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD3) {
-                    this.move(1,1,0);
-                } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD1) {
-                    this.move(-1,1,0);
-                } else if(inputData.keyCode === ROT.KEYS.VK_I) {
-                    // Inventory
-                    this.showItemsSubscreen(Game.Screen.inventoryScreen, this._player.getItems(), "You are not carrying anything.");
+            // Movement
+            if ((inputData.keyCode === ROT.KEYS.VK_LEFT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD4)) {
+                this.move(-1,0,0);
+            } else if ((inputData.keyCode == ROT.KEYS.VK_RIGHT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD6)) {
+                this.move(1,0,0);
+            } else if ((inputData.keyCode === ROT.KEYS.VK_UP) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD8)) {
+                this.move(0,-1,0);
+            } else if ((inputData.keyCode === ROT.KEYS.VK_DOWN) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD2)) {
+                this.move(0,1,0);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD7) {
+                this.move(-1,-1,0);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD9) {
+                this.move(1,-1,0);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD3) {
+                this.move(1,1,0);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD1) {
+                this.move(-1,1,0);
+            } else if(inputData.keyCode === ROT.KEYS.VK_I) {
+                // Inventory
+                this.showItemsSubscreen(Game.Screen.inventoryScreen, this._player.getItems(), "You are not carrying anything.");
+                return;
+            } else if(inputData.keyCode===ROT.KEYS.VK_D) {
+                // Drop items
+                this.showItemsSubscreen(Game.Screen.dropScreen, this._player.getItems(), "You have nothing to drop.");
+                return;
+            } else if(inputData.keyCode===ROT.KEYS.VK_E) {
+                // Eat items
+                this.showItemsSubscreen(Game.Screen.eatScreen, this._player.getItems(), "You have nothing to eat.");
+                return;
+            } else if(inputData.keyCode===ROT.KEYS.VK_W) {
+                if(inputData.shiftKey) {
+                    // Wear screen
+                    this.showItemsSubscreen(Game.Screen.wearScreen, this._player.getItems(), "You have nothing to wear. Rarity would be ashamed!"); // TODO: Make "Rarity would be ashamed!" a random chance to get.
                     return;
-                } else if(inputData.keyCode===ROT.KEYS.VK_D) {
-                    // Drop items
-                    this.showItemsSubscreen(Game.Screen.dropScreen, this._player.getItems(), "You have nothing to drop.");
-                    return;
-                } else if(inputData.keyCode===ROT.KEYS.VK_E) {
-                    // Eat items
-                    this.showItemsSubscreen(Game.Screen.eatScreen, this._player.getItems(), "You have nothing to eat.");
-                    return;
-                } else if(inputData.keyCode===ROT.KEYS.VK_W) {
-                    if(inputData.shiftKey) {
-                        // Wear screen
-                        this.showItemsSubscreen(Game.Screen.wearScreen, this._player.getItems(), "You have nothing to wear. Rarity would be ashamed!"); // TODO: Make "Rarity would be ashamed!" a random chance to get.
-                        return;
-                    } else {
-                        // Wield screen
-                        this.showItemsSubscreen(Game.Screen.wieldScreen, this._player.getItems(), "You have nothing to wield.");
-                    }
-                    return;
-                } else if(inputData.keyCode===ROT.KEYS.VK_COMMA) {
-                    // Pick up items
-                    var items = this._map.getItemsAt(this._player.getX(), this._player.getY(), this._player.getD());
-                    if(!items) {
-                        Game.sendMessage(this._player, "There is nothing to pick up here.");
-                    } else if(items.length===1) {
-                        // If only one item, try to pick it up
-                        var item = items[0];
-                        if(this._player.pickupItems([0])) {
-                            Game.sendMessage(this._player, "You pick up %s.",[item.describeA()]);
-                        } else {
-                            Game.sendMessage(this._player, "Your inventory is full! Nothing was picked up.");
-                        }
-                    } else {
-                        // Show pickup screen
-                        this.showItemsSubscreen(Game.Screen.pickupScreen, items, "There is nothing to pick up here.")
-                        //Game.Screen.pickupScreen.setup(this._player, items);
-                        //this.setSubscreen(Game.Screen.pickupScreen);
-                        return;
-                    }
-
-                } else if (inputData.keyCode === ROT.KEYS.VK_Q) {
-                    // For testing
-                    console.log("Q pressed");
                 } else {
-                    // Not a valid key
+                    // Wield screen
+                    this.showItemsSubscreen(Game.Screen.wieldScreen, this._player.getItems(), "You have nothing to wield.");
+                }
+                return;
+            } else if(inputData.keyCode===ROT.KEYS.VK_COMMA) {
+                // Pick up items
+                var items = this._player.getMap().getItemsAt(this._player.getX(), this._player.getY(), this._player.getD());
+                if(!items) {
+                    Game.sendMessage(this._player, "There is nothing to pick up here.");
+                } else if(items.length===1) {
+                    // If only one item, try to pick it up
+                    var item = items[0];
+                    if(this._player.pickupItems([0])) {
+                        Game.sendMessage(this._player, "You pick up %s.",[item.describeA()]);
+                    } else {
+                        Game.sendMessage(this._player, "Your inventory is full! Nothing was picked up.");
+                    }
+                } else {
+                    // Show pickup screen
+                    this.showItemsSubscreen(Game.Screen.pickupScreen, items, "There is nothing to pick up here.")
+                    //Game.Screen.pickupScreen.setup(this._player, items);
+                    //this.setSubscreen(Game.Screen.pickupScreen);
                     return;
                 }
-                // Unlock the engine after moving/using item screen
-                this._map.getEngine().unlock();
+
+            } else if (inputData.keyCode === ROT.KEYS.VK_Q) {
+                // For testing
+                console.log("Q pressed");
+            } else {
+                // Not a valid key
+                return;
             }
+            // Unlock the engine after moving/using item screen
+            this._player.getMap().getEngine().unlock();
         }
         else if (inputType === "keypress") {
             var keyChar = String.fromCharCode(inputData.charCode);
@@ -228,7 +226,7 @@ Game.Screen.playScreen = {
                 return;
             }
             // Unlock engine after stairs
-            this._map.getEngine().unlock();
+            this._player.getMap().getEngine().unlock();
         }
     },
     move: function(dX, dY, dD) { // Move the player
@@ -236,7 +234,7 @@ Game.Screen.playScreen = {
         var newX = this._player.getX() + dX;
         var newY = this._player.getY() + dY;
         var newD = this._player.getD() + dD;
-        this._player.tryMove(newX, newY, newD, this._map);
+        this._player.tryMove(newX, newY, newD, this._player.getMap());
     },
     setGameEnded: function(gameEnded) {
         this._gameEnded = gameEnded;

@@ -1,6 +1,6 @@
 // Map: 2D array of Tiles. XY coords are indices in 1st [0] and 2nd [1] dimensions, e.g. tiles[x][y]
 
-Game.Map = function(tiles, player) {
+Game.Map = function(tiles) {
     this._tiles = tiles;
     // Cache based on dimensions
     this._depth = tiles.length;
@@ -15,38 +15,7 @@ Game.Map = function(tiles, player) {
     // Create engine and scheduler
     this._scheduler = new ROT.Scheduler.Speed();
     this._engine = new ROT.Engine(this._scheduler);
-    // Add the player
-    this._player = player;
-    this.addEntityAtRandomPosition(player,0);
-    // Add random monsters
-    //var templates = [Game.FungusTemplate, Game.TimberwolfTemplate, Game.DireTimberwolfTemplate];
-    
-    var entitiesPerFloor = 25;
-    var itemsPerFloor = 10;
-    for(var d=0; d<this._depth; d++) {
-        for (var i=0; i<entitiesPerFloor; i++) {
-            // Pick a random entity template to create
-            //var template = templates[Math.floor(Math.random() * templates.length)];
-            //this.addEntityAtRandomPosition(new Game.Entity(template), d);
-            //this.addEntityAtRandomPosition(Game.EntityRepository.createRandom(), d);
-            var entity = Game.EntityRepository.createRandom();
-            this.addEntityAtRandomPosition(entity, d);
-            // Level up entity based on the floor
-            if(entity.hasMixin("ExperienceGainer")) {
-                for(var level=0; level<d; level++) {
-                    entity.gainExperience(entity.getNextLevelExperience()-entity.getExperience());
-                }
-            }        
-        }
-        for(var i=0; i<itemsPerFloor; i++) {
-            this.addItemAtRandomPosition(Game.ItemRepository.createRandom(), d);
-        }
-    }
-    // Add weapons and armor to the map in random positions and depths
-    var gearTemplates = ["stiletto","sword","staff","padded barding","chain mail barding","crude plate barding","orichalcum plate barding","sword","sword","sword","sword","sword","sword","sword","sword","sword","sword","sword","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding","chain mail barding",];
-    for(var i=0; i<gearTemplates.length;i++) {
-        this.addItemAtRandomPosition(Game.ItemRepository.create(gearTemplates[i]), Math.floor(this._depth*Math.random()));
-    }
+
     // Setup the explored array
     this._explored = new Array(this._depth);
     this._setupExploredArray();
@@ -79,7 +48,7 @@ Game.Map.prototype.getEntityAt = function(x,y,d) {
     // Get entity with position index
     return this._entities[x+","+y+","+d];
 }
-Game.Map.prototype.getEntitiesWithinRadius = function(centerX, centerY, radius) {
+Game.Map.prototype.getEntitiesWithinRadius = function(centerX, centerY, depth, radius) {
     // This is actually a square, not a circle.
     // Unlike the tutorial, this does *not* work across depth levels.
     results = [];
@@ -93,7 +62,7 @@ Game.Map.prototype.getEntitiesWithinRadius = function(centerX, centerY, radius) 
         var entity = this._entities[key];
         if (entity.getX() >= leftX && entity.getX() <= rightX && 
             entity.getY() >= topY && entity.getY() <= bottomY &&
-            entity.getZ() == centerZ) {
+            entity.getD() == depth) {
             results.push(entity);
         }
     }
@@ -116,6 +85,10 @@ Game.Map.prototype.addEntity = function(entity) {
     if (entity.hasMixin('Actor')) {
        this._scheduler.add(entity, true);
        // console.log("Entity added to scheduler at: "+entity.getX()+","+entity.getY());
+    }
+    // If the entity is the player, make it the map's player
+    if(entity.hasMixin(Game.EntityMixins.PlayerActor)) {
+        this._player = entity;
     }
 }
 Game.Map.prototype.addEntityAtRandomPosition = function(entity, d) {
@@ -160,6 +133,10 @@ Game.Map.prototype.removeEntity = function(entity) {
     if (entity.hasMixin("Actor")) {
         this._scheduler.remove(entity);
     }
+    // If the entity is a player, update the map's player field
+    if(entity.hasMixin(Game.EntityMixins.PlayerActor)) {
+        this._player = undefined;
+    }
 }
 Game.Map.prototype.dig = function(x,y,d) {
     // If the tile is diggable, update it to a floor
@@ -178,7 +155,7 @@ Game.Map.prototype.setupFov = function() {
                 // DiscreteShadowcasting is obsoleted by PreciseShadowcasting, but so be it.
                 new ROT.FOV.DiscreteShadowcasting(function(x, y) {
                     return !map.getTile(x,y,depth).isBlockingLight();
-                }, {topology: 4}));
+                }, {topology: 8})); // Switched from guide's topology: 4
         })();
     }
 }

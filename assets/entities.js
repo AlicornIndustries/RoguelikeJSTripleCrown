@@ -5,9 +5,9 @@ Game.PlayerTemplate = {
     character: "@",
     foreground: "white",
     background: "black",
-    maxHp: 100,
+    maxHp: 1000, // 100
     attackValue: 100,
-    strength: 4,
+    strength: 40, // 4
     unarmedDamageType: DamageTypes.BLUNT,
     defenseValue: 20,
     sightRadius: 6,
@@ -82,4 +82,39 @@ Game.EntityRepository.define("vampire bat", {
     mixins: [Game.EntityMixins.TaskActor, Game.EntityMixins.Sight, Game.EntityMixins.Attacker,
         Game.EntityMixins.Destructible, Game.EntityMixins.CorpseDropper,
         Game.EntityMixins.ExperienceGainer, Game.EntityMixins.RandomStatGainer]
+});
+Game.EntityRepository.define("windigo", {
+    name: "windigo",
+    character: "w",
+    foreground: "lightBlue",
+    maxHp: 200,
+    attackValue: 70,
+    strength: 15,
+    unarmedDamageType: DamageTypes.PIERCING,
+    defenseValue: 15,
+    level: 10,
+    sightRadius: 6,
+    mixins: [Game.EntityMixins.WindigoActor, Game.EntityMixins.Sight,
+             Game.EntityMixins.Attacker, Game.EntityMixins.Destructible,
+             Game.EntityMixins.CorpseDropper, Game.EntityMixins.ExperienceGainer],
+             // It doesn't actually do anything with its level, it's just for XP.
+    }, {
+    disableRandomCreation: true
+});
+Game.EntityRepository.define("spitesprite", {
+    name: "spitesprite",
+    character: "B",
+    foreground: "lightBlue",
+    maxHp: 25,
+    attackValue: 50,
+    strength: 4,
+    unarmedDamageType: DamageTypes.PIERCING,
+    defenseValue: 10,
+    sightRadius: 4,
+    tasks: ["hunt", "wander"],
+    mixins: [Game.EntityMixins.TaskActor, Game.EntityMixins.Sight,
+        Game.EntityMixins.Attacker, Game.EntityMixins.Destructible,
+        Game.EntityMixins.CorpseDropper, Game.EntityMixins.ExperienceGainer, Game.EntityMixins.RandomStatGainer]
+    }, {
+    disableRandomCreation: true
 });

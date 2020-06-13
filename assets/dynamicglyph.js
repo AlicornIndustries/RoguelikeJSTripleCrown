@@ -33,12 +33,12 @@ Game.DynamicGlyph = function(properties) {
                 if(!this._listeners[key]) {
                     this._listeners[key] = [];
                 }
-                // Add the listener
-                this._listeners[key].push(mixins[i].listeners[key]);
+                // Add the listener, if we don't already know about it
+                if(this._listeners[key].indexOf(mixins[i].listeners[key]===-1)) {
+                    this._listeners[key].push(mixins[i].listeners[key]);
+                }
             }
         }
-
-
 
         // Finally, call init of mixin
         if(mixins[i].init) {
