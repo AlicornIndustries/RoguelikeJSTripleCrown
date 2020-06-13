@@ -580,7 +580,7 @@ Game.EntityMixins.RandomStatGainer = {
     onGainLevel: function() {
         var statOptions = this.getStatOptions();
         // Randomly pick a stat, execute its callback for each stat point
-        while(this.getStatPoints>0) {
+        while(this.getStatPoints()>0) {
             // TODO: Not working.
             var stat = ROT.RNG.getItem(statOptions);
             stat[1].call(this); // Call stat increasing function with "this" as context
