@@ -8,6 +8,8 @@ Game.DynamicGlyph = function(properties) {
     
     this._attachedMixins = {};
     this._attachedMixinGroups = {};
+    this._listeners = {};
+
     // Setup mixins
     var mixins = properties["mixins"] || [];
     for(var i=0; i<mixins.length; i++) {
@@ -24,6 +26,20 @@ Game.DynamicGlyph = function(properties) {
         if(mixins[i].groupName) {
             this._attachedMixinGroups[mixins[i].groupName] = true;
         }
+        // Add listeners
+        if(mixins[i].listeners) {
+            for(var key in mixins[i].listeners) {
+                // If we don't already track a key for this event in listeners array, add it
+                if(!this._listeners[key]) {
+                    this._listeners[key] = [];
+                }
+                // Add the listener
+                this._listeners[key].push(mixins[i].listeners[key]);
+            }
+        }
+
+
+
         // Finally, call init of mixin
         if(mixins[i].init) {
             mixins[i].init.call(this,properties);
@@ -56,4 +72,17 @@ Game.DynamicGlyph.prototype.describeA = function(capitalize) {
 Game.DynamicGlyph.prototype.describeThe = function(capitalize) {
     var prefix = capitalize ? "The" : "the";
     return prefix+" "+this.describe();
+};
+Game.DynamicGlyph.prototype.raiseEvent = function(event) {
+    // Sig: raiseEvent(eventName, arg1, arg2...argn)
+    // Ensure we have a listener
+    if(!this._listeners[event]) {
+        return;
+    }
+    // Extract an args passed, removing the event name
+    var args = Array.prototype.slice.call(arguments, 1);
+    // Invoke each listener, with this entity as context, and the args
+    for(var i=0; i<this._listeners[event].length; i++) {
+        this._listeners[event][i].apply(this,args);
+    }
 }

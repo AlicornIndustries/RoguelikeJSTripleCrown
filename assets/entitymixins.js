@@ -214,30 +214,20 @@ Game.EntityMixins.Destructible = {
         if(this._hp<=0) {
             Game.sendMessage(attacker,"You destroy the %s!",[this.getName()]);
             Game.sendMessage(this, "You die!");
-            // Drop a corpse
-            if(this.hasMixin(Game.EntityMixins.CorpseDropper)) {
-                this.tryDropCorpse();
-            }
+            
+            this.raiseEvent("onDeath", attacker);
+            attacker.raiseEvent("onKill", this);
             this.kill();
-
-            // Give attacker experience
-            if(attacker.hasMixin("ExperienceGainer")) {
-                var xp = this.getMaxHp(); // TODO: Replace with better equation
-                if(this.hasMixin("Attacker")) {
-                    xp+=this.getStrength();
-                }
-                // Account for level differences
-                if(this.hasMixin("ExperienceGainer")) {
-                    xp-=(attacker.getLevel() - this.getLevel())*3;
-                }
-                if(xp>0) {
-                    attacker.gainExperience(xp);
-                }
-            }
+        }
+    },
+    listeners: {
+        onGainLevel: function() {
+            // Destructible entities heal to full hp
+            Game.sendMessage(this,"You feel strangely invigorated."); // FUTURE: Replace with alignment-based phrases, "You feel your heart beat in harmony with the world."
+            this.setHp(this.getMaxHp());
         }
     }
 }
-
 Game.EntityMixins.Attacker = {
     name: "Attacker",
     groupName: "Attacker",
@@ -309,7 +299,6 @@ Game.EntityMixins.Attacker = {
         Game.sendMessage(this,"You feel stronger!");
     }
 }
-
 Game.EntityMixins.MessageRecipient = {
     name: "MessageRecipient",
     init: function(template) {
@@ -346,7 +335,6 @@ Game.sendMessageNearby = function(map, centerX, centerY, radius, message, args) 
         }
     }
 }
-
 Game.EntityMixins.InventoryHolder = {
     name:"InventoryHolder",
     init: function(template) {
@@ -416,7 +404,6 @@ Game.EntityMixins.InventoryHolder = {
         }
     }
 }
-
 Game.EntityMixins.FoodConsumer = {
     name: "FoodConsumer",
     init: function(template) {
@@ -459,25 +446,22 @@ Game.EntityMixins.FoodConsumer = {
         }
     }
 }
-
 Game.EntityMixins.CorpseDropper = {
     name: "CorpseDropper",
     init: function(template) {
         // Chance of dropping a corpse
         this._corpseDropRate = template["corpseDropRate"] || 100;
     },
-    tryDropCorpse: function() {
-        if(Math.round(Math.random()*100) < this._corpseDropRate) {
-            // Create new corpse item
-            this._map.addItem(this.getX(), this.getY(), this.getD(),
-                Game.ItemRepository.create("corpse", {
-                    name: this._name+" corpse",
-                    foreground: this._foreground
-                }));
+    listeners: {
+        onDeath: function(attacker) {
+            if(Math.round(Math.random()*100) < this._corpseDropRate) {
+                // Create new corpse item
+                this._map.addItem(this.getX(), this.getY(), this.getD(),Game.ItemRepository.create("corpse", {name: this._name+" corpse",foreground: this._foreground}));
+
+            }
         }
     }
 }
-
 Game.EntityMixins.Equipper = {
     name: "Equipper",
     init: function(template) {
@@ -539,7 +523,7 @@ Game.EntityMixins.ExperienceGainer = {
     setStatPoints: function(statPoints) {this._statPoints = statPoints},
     getStatOptions: function() {return this._statOptions},
     gainExperience: function(xp) {
-        var statPointsGained = 0; // But we never return this value? TODO
+        var statPointsGained = 0; // TODO: But we never really use this value?
         var levelsGained = 0;
         // Loop until all xp allocated
         while(xp>0) {
@@ -561,13 +545,22 @@ Game.EntityMixins.ExperienceGainer = {
         }
         if(levelsGained>0) {
             Game.sendMessage(this,"You advance to level %d.",[this._level]);
-            // Heal entity if possible
-            if(this.hasMixin("Destructible")) {
-                this.setHp(this.getMaxHp());
-                Game.sendMessage(this,"You feel strangely invigorated."); // Replace with alignment-based phrases, "You feel your heart beat in harmony with the world."
+            this.raiseEvent("onGainLevel");
+        }
+    },
+    listeners: {
+        onKill: function(victim) {
+            var xp = victim.getMaxHp(); // TODO: replace with better equation, base xp value in entity template
+            if(victim.hasMixin("Attacker")) {
+                xp += victim.getStrength();
             }
-            if(this.hasMixin("StatGainer")) {
-                this.onGainLevel();
+            // Account for level differences
+            if(victim.hasMixin("ExperienceGainer")) {
+                xp -= (this.getLevel() - victim.getLevel()) * 3;
+            }
+            // Only give experience if greater than 0
+            if(xp>0) {
+                this.gainExperience(xp);
             }
         }
     }
@@ -577,25 +570,36 @@ Game.EntityMixins.ExperienceGainer = {
 Game.EntityMixins.RandomStatGainer = {
     name: "RandomStatGainer",
     groupName: "StatGainer",
-    onGainLevel: function() {
-        var statOptions = this.getStatOptions();
-        // Randomly pick a stat, execute its callback for each stat point
-        while(this.getStatPoints()>0) {
-            // TODO: Not working.
+    listeners: {
+        onGainLevel: function() {
+            var statOptions = this.getStatOptions();
+            // Randomly pick a stat, execute its callback for each stat point
             var stat = ROT.RNG.getItem(statOptions);
             stat[1].call(this); // Call stat increasing function with "this" as context
-            //statOptions.random()[1].call(this); // use getItem for current ROT.JS RNG
             this.setStatPoints(this.getStatPoints()-1);
+        
         }
     }
+    // onGainLevel: function() {
+    //     var statOptions = this.getStatOptions();
+    //     // Randomly pick a stat, execute its callback for each stat point
+        // while(this.getStatPoints()>0) {
+        //     var stat = ROT.RNG.getItem(statOptions);
+        //     stat[1].call(this); // Call stat increasing function with "this" as context
+        //     //statOptions.random()[1].call(this); // use getItem for current ROT.JS RNG
+        //     this.setStatPoints(this.getStatPoints()-1);
+    //     }
+    // }
 };
 
 Game.EntityMixins.PlayerStatGainer = {
     name: "PlayerStatGainer",
     groupName: "StatGainer",
-    onGainLevel: function() {
-        Game.Screen.gainStatScreen.setup(this);
-        Game.Screen.playScreen.setSubscreen(Game.Screen.gainStatScreen);
+    listeners: {
+        onGainLevel: function() {
+            Game.Screen.gainStatScreen.setup(this);
+            Game.Screen.playScreen.setSubscreen(Game.Screen.gainStatScreen);
+        }
     }
 };
 
