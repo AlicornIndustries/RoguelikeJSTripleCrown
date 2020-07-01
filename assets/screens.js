@@ -600,12 +600,19 @@ Game.Screen.TargetBasedScreen.prototype.setup = function(player, startX, startY,
 Game.Screen.TargetBasedScreen.prototype.render = function(display) {
     // Use playScreen to render
     Game.Screen.playScreen.renderTiles.call(Game.Screen.playScreen, display);
+    
+    /* BUG: removed for testing
     // Draw a line from start to cursor
     var points = Game.Geometry.getLine(this._startX, this._startY, this._cursorX, this._cursorY);
-    console.log(points);
+    //console.log(points);
     for(var i=0, l=points.length; i<l; i++) {
         display.drawText(points[i].x, points[i].y, "%c{magenta}*");
     }
+    */
+
+    // Only draw on the point we're targeting
+    display.drawText(this._cursorX, this._cursorY, "%c{magenta}*");
+
     // Render caption at bottom
     display.drawText(0, Game.getScreenHeight()-1,
         this._captionFunction(this._cursorX+this._offsetX, this._cursorY+this._offsetY));
@@ -661,26 +668,27 @@ Game.Screen.lookScreen = new Game.Screen.TargetBasedScreen({
                 var items = map.getItemsAt(x,y,d);
                 // Topmost item
                 if(items) {
-                    //var item = items[items.length-1];
-                    return "dingle";
+                    var item = items[items.length-1];
+                    // TODO: fix formating
                     //return String.format("%s - %s",item.getRepresentation(),item.describeA(true));
-                } else if(map.getEntityAt(x,y,d)) {
+                    return item.getRepresentation()+" - "+item.describeA(true);
+                } 
+                else if(map.getEntityAt(x,y,d)) {
                     // Else check if there's an entity (TODO: shouldn't we do this first?)
                     // TODO: Wouldn't it be faster to save the getEntity from the if() statement?
-                    //var entity = map.getEntityAt(x,y,d)
-                    return "dingle";
+                    var entity = map.getEntityAt(x,y,d)
                     //return String.format("%s - %s",entity.getRepresentation(),entity.describeA(true));
+                    return entity.getRepresentation()+" - "+entity.describeA(true);
+
                 }
             }
             // If no entity/item visible, use tile information
-            return "dingle";
             //return String.format("%s - %s", map.getTile(x,y,d).getRepresentation(), map.getTile(x,y,d).getDescription());
-            //return `${map.getTile(x,y,d).getRepresentation()} - ${map.getTile(x,y,d).getDescription()}`;
+            return `${map.getTile(x,y,d).getRepresentation()} - ${map.getTile(x,y,d).getDescription()}`;
         } else {
             // If tile not explored, show null tile description
-            return "dingle";
             //return String.format('%s - %s',Game.Tile.nullTile.getRepresentation(),Game.Tile.nullTile.getDescription());
-            //return `${Game.Tile.nullTile.getRepresentation()} - ${Game.Tile.nullTile.getDescription()}`;
+            return `${Game.Tile.nullTile.getRepresentation()} - ${Game.Tile.nullTile.getDescription()}`;
 
         }
     }

@@ -21,5 +21,5 @@ Game.Glyph.prototype.getBackground = function(){return this._background;}
 Game.Glyph.prototype.getForeground = function(){ return this._foreground; }
 // Colored glyph representation (character and fore/back colors)
 Game.Glyph.prototype.getRepresentation = function() {
-    return "%c{"+this._foreground+"}%b{"+this._background+"}"+this._char+"%c{white}%{black}";
+    return "%c{"+this._foreground+"}%b{"+this._background+"}"+this._char+"%c{white}%b{black}";
 };
