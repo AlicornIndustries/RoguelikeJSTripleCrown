@@ -17,7 +17,7 @@ Game.PlayerTemplate = {
              Game.EntityMixins.MessageRecipient, Game.EntityMixins.InventoryHolder,
              Game.EntityMixins.FoodConsumer, Game.EntityMixins.Equipper,
              Game.EntityMixins.SkillHaver, Game.EntityMixins.ExperienceGainer,
-             Game.EntityMixins.PlayerStatGainer]
+             Game.EntityMixins.PlayerStatGainer, Game.EntityMixins.Classy]
 }
 
 // Non-player templates are held in repositories

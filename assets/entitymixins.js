@@ -702,7 +702,13 @@ Game.EntityMixins.Classy = {
     init: function(template) {
         this._charClass = template["charClass"];
     },
-    hasClass: function(charClass) {
+    hasCharClass: function(charClass) {
         return this._charClass===charClass;
+    },
+    getCharClass: function() {
+        return this._charClass;
+    },
+    setCharClass: function(charClass) {
+        this._charClass = charClass;
     }
 }

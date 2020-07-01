@@ -5,10 +5,10 @@ Game.Screen = {};
 
 // Define the screens (start, play, win, loss)
 Game.Screen.startScreen = {
-    enter: function() {console.log("Entered start screen."); },
-    exit: function() {console.log("Exited start screen."); },
+    enter: function() {/*console.log("Entered start screen.");*/ },
+    exit: function() {/*console.log("Exited start screen.");*/ },
     render: function(display) {
-        display.drawText(1,1,"%c{yellow}GAMETITLE");
+        display.drawText(1,1,"%c{yellow}CATACOMBS OF DOOM");
         display.drawText(1,2,"Press [Enter] to start!");
     },
     handleInput: function(inputType, inputData) {
@@ -17,7 +17,8 @@ Game.Screen.startScreen = {
         if(inputType==="keydown") {
             if(inputData.keyCode === ROT.KEYS.VK_RETURN) { // NOTE: Unlike the older guide, use ROT.KEYS.VK_RETURN, not ROT.VK_RETURN (likewise for other keycodes)
                 console.log("Enter pressed");
-                Game.switchScreen(Game.Screen.playScreen);
+                //Game.switchScreen(Game.Screen.playScreen);
+                Game.switchScreen(Game.Screen.raceSelectionScreen);
             }
         }
     }
@@ -31,7 +32,7 @@ Game.Screen.playScreen = {
         var mapWidth=100; var mapHeight=48; var mapDepth=2;
         // Create map
         var tiles = new Game.Builder(mapWidth,mapHeight,mapDepth).getTiles();
-        this._player = new Game.Entity(Game.PlayerTemplate);
+        //this._player = new Game.Entity(Game.PlayerTemplate);
         var map = new Game.Map.Cave(tiles, this._player);
         // Start map's engine
         map.getEngine().start();
@@ -279,6 +280,14 @@ Game.Screen.playScreen = {
             Game.sendMessage(this._player, emptyMessage);
             Game.refresh();
         }
+    },
+    createPlayer: function(playerName, playerRace, playerCharClass) {
+        this._player = new Game.Entity(Game.PlayerTemplate);
+        this._player.setName = playerName;
+        if(this._player.hasMixin("Classy")) {
+            this._player.setCharClass(playerCharClass);
+        }
+        // TODO: Add player race
     }
 }
 Game.Screen.winScreen = {
@@ -460,7 +469,6 @@ Game.Screen.eatScreen = new Game.Screen.ItemListScreen({
         return true;
     }
 })
-
 Game.Screen.wieldScreen = new Game.Screen.ItemListScreen({
     caption: "Choose the item you wish to wield",
     canSelect: true,
@@ -526,7 +534,6 @@ Game.Screen.examineScreen = new Game.Screen.ItemListScreen({
         return true;
     }
 })
-
 Game.Screen.gainStatScreen = {
     setup: function(entity) {
         // Must be called before rendering
@@ -656,7 +663,6 @@ Game.Screen.TargetBasedScreen.prototype.executeOkFunction = function() {
         this._player.getMap().getEngine().unlock();
     }
 };
-
 Game.Screen.lookScreen = new Game.Screen.TargetBasedScreen({
     captionFunction: function(x,y) {
         var d = this._player.getD();
@@ -693,7 +699,6 @@ Game.Screen.lookScreen = new Game.Screen.TargetBasedScreen({
         }
     }
 });
-
 // Help screen TODO: Move the text into a better file for this?
 Game.Screen.helpScreen = {
     render: function(display) {
@@ -721,3 +726,151 @@ Game.Screen.helpScreen = {
         Game.Screen.playScreen.setSubscreen(undefined);
     }
 };
+// Character creation screens
+Game.Screen.raceSelectionScreen = {
+    _races: [],
+    _selectedIndex: null,
+    _selectedRace: null,
+    enter: function() {
+        // Populate array of races based on the enum
+        var that = this;
+        Object.keys(Races.PonyRaces).forEach(function(race) {
+            that._races.push(Races.PonyRaces[race]);
+        })
+    },
+    exit: function() {/*console.log("Exited race selection screen.");*/ },
+    render: function(display) {
+        text = "What race are you, courageous adventurer?"; // FUTURE: random epithet (brave/loyal...)
+        var border = '--------------';
+        var y=0;
+        display.drawText(Game.getScreenWidth()/2-text.length/2,y++,text);
+        display.drawText(Game.getScreenWidth() / 2 - border.length / 2, y++, border);
+
+        var letters = 'abcdefghijklmnopqrstuvwxyz';
+        for(var i=0; i<this._races.length; i++) {
+            var letter = letters.substring(i,i+1);
+            var selectionState = this._selectedIndex==i ? "+" : "-";
+            display.drawText(0,2+y,letter+" "+selectionState+" "+this._races[i].name);
+            y++;
+        }
+        // Print race description
+        if(this._selectedIndex!=null) {
+            var leftSide = 20;
+            var topSide = 4;
+            display.drawText(leftSide,topSide,this._races[this._selectedIndex].raceSelectionDescription);    
+        }
+    },
+    handleInput: function(inputType, inputData) {
+        if(inputType==="keydown") {
+            if((inputData.keyCode===ROT.KEYS.VK_RETURN) && this._selectedRace!=null) {
+                // If race selected, proceed to class selection screen
+                Game.Screen.classSelectionScreen.setPreviousSelections(this._selectedRace);
+                Game.switchScreen(Game.Screen.classSelectionScreen);
+            }
+            else if(inputData.keyCode>=ROT.KEYS.VK_A && inputData.keyCode<=ROT.KEYS.VK_Z) {
+                var index = inputData.keyCode-ROT.KEYS.VK_A;
+                if(this._races[index]) {
+                    this._selectedIndex = index;
+                    this._selectedRace = this._races[index];
+                    // Redraw screen to show selection status
+                    Game.refresh();
+                }
+            }
+        }
+    },
+};
+Game.Screen.classSelectionScreen = {
+    _charClasses: [],
+    _selectedIndex: null,
+    _selectedCharClass: null,
+    _selectedRace: null, // set by raceSelectionScreen TODO: Get cleaner method
+    enter: function() {
+        // Populate class array based on allowed races for each class
+        var that = this;
+        Object.keys(CharClasses.PlayerClasses).forEach(function(charClass) {
+            if(CharClasses.PlayerClasses[charClass].races.includes(that._selectedRace)) {
+                that._charClasses.push(CharClasses.PlayerClasses[charClass]);
+            }
+        })
+    },
+    exit: function() { },
+    render: function(display) {
+        // FUTURE/TODO: fix a/an
+        text = ROT.Util.format("What class will you choose, %s?",this._selectedRace.name);
+        var border = '--------------';
+        var y=0;
+        display.drawText(Game.getScreenWidth()/2-text.length/2,y++,text);
+        display.drawText(Game.getScreenWidth() / 2 - border.length / 2, y++, border);
+
+        var letters = 'abcdefghijklmnopqrstuvwxyz';
+        for(var i=0; i<this._charClasses.length; i++) {
+            var letter = letters.substring(i,i+1);
+            var selectionState = this._selectedIndex==i ? "+" : "-";
+            display.drawText(0,2+y,letter+" "+selectionState+" "+this._charClasses[i].name);
+            y++;
+        }
+    },
+    handleInput: function(inputType, inputData) {
+        if(inputType==="keydown") {
+            if((inputData.keyCode===ROT.KEYS.VK_RETURN) && this._selectedCharClass!=null) {
+                Game.Screen.nameSelectionScreen.setPreviousSelections(this._selectedRace,this._selectedCharClass);
+                Game.switchScreen(Game.Screen.nameSelectionScreen);
+            }
+            else if(inputData.keyCode>=ROT.KEYS.VK_A && inputData.keyCode<=ROT.KEYS.VK_Z) {
+                var index = inputData.keyCode-ROT.KEYS.VK_A;
+                if(this._charClasses[index]) {
+                    this._selectedIndex = index;
+                    this._selectedCharClass = this._charClasses[index];
+                    // Redraw screen to show selection status
+                    Game.refresh();
+                }
+            }
+        }
+    },
+    setPreviousSelections: function(race) {
+        this._selectedRace = race;
+    }
+};
+Game.Screen.nameSelectionScreen = {
+    _selectedCharClass: null,
+    _selectedRace: null,
+    _name: "",
+    enter: function() {
+    },
+    exit: function() { },
+    render: function(display) {
+        text = "Finally, what is your name?";
+        var border = '--------------';
+        var y=0;
+        display.drawText(Game.getScreenWidth()/2-text.length/2,y++,text);
+        display.drawText(Game.getScreenWidth() / 2 - border.length / 2, y++, border);
+        
+        var nameString = "%c{blue}"+this._name;
+        display.drawText(4,2+y,nameString);
+    },
+    handleInput: function(inputType, inputData) {
+        if(inputType==="keydown") {
+            if((inputData.keyCode===ROT.KEYS.VK_RETURN) && this._name!=null) {
+                Game.Screen.playScreen.createPlayer(this._name,this._selectedRace,this._selectedCharClass);
+                Game.switchScreen(Game.Screen.playScreen);
+            }
+            else if(inputData.keyCode===ROT.KEYS.VK_BACK_SPACE) {
+                this._name = this._name.slice(0,-1);
+                Game.refresh();
+            }
+        }
+        else if(inputType==="keypress") {
+            var code = inputData.charCode;
+            // a-z, A-Z
+            if((code>=97 && code<=122) || (code>=65 && code<=90)) {
+                var ch = String.fromCharCode(code);
+                this._name+=ch;
+                Game.refresh();
+            }
+        }
+    },
+    setPreviousSelections: function(race,charClass) {
+        this._selectedRace = race;
+        this._selectedCharClass = charClass;
+    }
+}
