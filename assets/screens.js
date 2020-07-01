@@ -44,11 +44,37 @@ Game.Screen.playScreen = {
             return;
         }
 
-        var map = this._player.getMap();
-
+        this.renderTiles(display);
         var screenWidth = Game.getScreenWidth();
         var screenHeight = Game.getScreenHeight();
-        // Keep it centered on player (st. top-left corner is half a screen away from player)
+
+        // Render messages.
+        var messages = this._player.getMessages();
+        var messageY = 0;
+        for(var i=0; i<messages.length; i++) {
+            // Draw each message, moving down each line
+            messageY += display.drawText(0, messageY, "%c{white}%b{black}"+messages[i]);
+        }
+
+        // Render player stats on last row of screen
+        var stats = "%c{white}%b{black}";
+        stats += vsprintf("HP: %d/%d",[this._player.getHp(), this._player.getMaxHp()]);
+        if(this._player.getArmor()) {
+            stats+=vsprintf("\nAD: %d/%d",[this._player.getArmor().getArmorDurability(),this._player.getArmor().getMaxArmorDurability()]);
+        }
+        display.drawText(0, screenHeight, stats);
+        // Render hunger stat
+        var hungerState = this._player.getHungerState();
+        display.drawText(screenWidth-hungerState.length, screenHeight, hungerState);
+        // Render level
+        var levelStr = '%c{white}%b{black}';
+        levelStr += vsprintf("L: %d XP: %d", [this._player.getLevel(), this._player.getExperience()]);
+        display.drawText(screenWidth-15, screenHeight+1, levelStr);
+    },
+    getScreenOffsets: function() {
+        var map = this._player.getMap();
+        var screenWidth = Game.getScreenWidth();
+        var screenHeight = Game.getScreenHeight();
         // Ensure x axis doesn't exceed left bound
         var topLeftX = Math.max(0, this._player.getX()-(screenWidth/2));
         // Ensure we have enough space to fit an entire screenWidth. If not, stop scrolling
@@ -57,6 +83,17 @@ Game.Screen.playScreen = {
         var topLeftY = Math.max(0, this._player.getY()-(screenHeight/2));
         topLeftY = Math.min(topLeftY, map.getHeight()-screenHeight);
 
+        return {x: topLeftX, y: topLeftY};
+
+    },
+    renderTiles: function(display) {
+        var map = this._player.getMap();
+        var screenWidth = Game.getScreenWidth();
+        var screenHeight = Game.getScreenHeight();
+        // Keep it centered on player (st. top-left corner is half a screen away from player)
+        var offsets = this.getScreenOffsets();
+        var topLeftX = offsets.x;
+        var topLeftY = offsets.y;
         // Cells in FOV
         var visibleCells = {};
         // Store player's depth to avoid losing it in callbacks.
@@ -107,29 +144,6 @@ Game.Screen.playScreen = {
                 }
             }
         }
-
-        // Render messages. TODO: Move to proper message box instead of top left
-        var messages = this._player.getMessages();
-        var messageY = 0;
-        for(var i=0; i<messages.length; i++) {
-            // Draw each message, moving down each line
-            messageY += display.drawText(0, messageY, "%c{white}%b{black}"+messages[i]);
-        }
-
-        // Render player stats on last row of screen
-        var stats = "%c{white}%b{black}";
-        stats += vsprintf("HP: %d/%d",[this._player.getHp(), this._player.getMaxHp()]);
-        if(this._player.getArmor()) {
-            stats+=vsprintf("\nAD: %d/%d",[this._player.getArmor().getArmorDurability(),this._player.getArmor().getMaxArmorDurability()]);
-        }
-        display.drawText(0, screenHeight, stats);
-        // Render hunger stat
-        var hungerState = this._player.getHungerState();
-        display.drawText(screenWidth-hungerState.length, screenHeight, hungerState);
-        // Render level
-        var levelStr = '%c{white}%b{black}';
-        levelStr += vsprintf("L: %d XP: %d", [this._player.getLevel(), this._player.getExperience()]);
-        display.drawText(screenWidth-15, screenHeight+1, levelStr);
     },
     handleInput: function(inputType, inputData) {
         // If game is over, enter will bring them to the lose screen
@@ -184,6 +198,10 @@ Game.Screen.playScreen = {
                     this.showItemsSubscreen(Game.Screen.wieldScreen, this._player.getItems(), "You have nothing to wield.");
                 }
                 return;
+            } else if(inputData.keyCode===ROT.KEYS.VK_X) {
+                // Examine
+                this.showItemsSubscreen(Game.Screen.examineScreen, this._player.getItems(), "You have nothing to examine.");
+                return;
             } else if(inputData.keyCode===ROT.KEYS.VK_COMMA) {
                 // Pick up items
                 var items = this._player.getMap().getItemsAt(this._player.getX(), this._player.getY(), this._player.getD());
@@ -221,6 +239,16 @@ Game.Screen.playScreen = {
                 this.move(0,0,1);
             } else if (keyChar === "<") {
                 this.move(0,0,-1);
+            } else if(keyChar === ";") {
+                // Look screen
+                var offsets = this.getScreenOffsets();
+                Game.Screen.lookScreen.setup(this._player, this._player.getX(), this._player.getY(), offsets.x, offsets.y);
+                this.setSubscreen(Game.Screen.lookScreen);
+                return;
+            } else if(keyChar === "?") {
+                // Help screen
+                this.setSubscreen(Game.Screen.helpScreen);
+                return;
             } else {
                 // Not a valid key
                 return;
@@ -307,8 +335,6 @@ Game.Screen.ItemListScreen.prototype.setup = function(player, items) {
     this._selectedIndices = {};
     return count;
 };
-
-
 Game.Screen.ItemListScreen.prototype.render = function(display) {
     var letters = 'abcdefghijklmnopqrstuvwxyz';
     // Render caption in top row
@@ -483,6 +509,24 @@ Game.Screen.wearScreen = new Game.Screen.ItemListScreen({
         return true;
     }
 });
+Game.Screen.examineScreen = new Game.Screen.ItemListScreen({
+    caption: "Choose the item you wish to examine",
+    canSelect: true,
+    canSelectMultipleItems: false,
+    isAcceptable: function(item) {
+        return true;
+    },
+    ok: function(selectedItems) {
+        var keys = Object.keys(selectedItems);
+        if(keys.length>0) {
+            var item = selectedItems[keys[0]];
+            Game.sendMessage(this._player, "It's %s (%s).",
+                [item.describeA(false), item.details()])
+        }
+        return true;
+    }
+})
+
 Game.Screen.gainStatScreen = {
     setup: function(entity) {
         // Must be called before rendering
@@ -519,5 +563,153 @@ Game.Screen.gainStatScreen = {
                 }
             }
         }
+    }
+};
+// Target-based screens (look)
+Game.Screen.TargetBasedScreen = function(template) {
+    template = template || {};
+    // By default, ok does nothing and does not consume a turn
+    // CHANGED
+    //this._isAcceptableFunction = template['okFunction'] || function(x,y) {return false;}
+    this._okFunction = template['okFunction'] || function(x,y) {return false;}
+    // Default caption function returns an empty string. Use for showing caption at the bottom of screen
+    this._captionFunction = template['captionFunction'] || function(x,y) {return "";}
+};
+Game.Screen.TargetBasedScreen.prototype.setup = function(player, startX, startY, offsetX, offsetY) {
+    // FUTURE: Implement screen scrolling
+    this._player = player;
+    // Store original position. Subtract screen offset so we don't have to later
+    this._startX = startX - offsetX;
+    this._startY = startY - offsetY;
+    // Store current cursor position
+    this._cursorX = this._startX;
+    this._cursorY = this._startY;
+    // Store map offsets
+    this._offsetX = offsetX;
+    this._offsetY = offsetY;
+    // Cache the FOV
+    var visibleCells = {};
+    this._player.getMap().getFov(this._player.getD()).compute(
+        this._player.getX(), this._player.getY(),
+        this._player.getSightRadius(),
+        function(x,y,radius,visibility) {
+            visibleCells[x+","+y] = true;
+        });
+    this._visibleCells = visibleCells;
+};
+Game.Screen.TargetBasedScreen.prototype.render = function(display) {
+    // Use playScreen to render
+    Game.Screen.playScreen.renderTiles.call(Game.Screen.playScreen, display);
+    // Draw a line from start to cursor
+    var points = Game.Geometry.getLine(this._startX, this._startY, this._cursorX, this._cursorY);
+    console.log(points);
+    for(var i=0, l=points.length; i<l; i++) {
+        display.drawText(points[i].x, points[i].y, "%c{magenta}*");
+    }
+    // Render caption at bottom
+    display.drawText(0, Game.getScreenHeight()-1,
+        this._captionFunction(this._cursorX+this._offsetX, this._cursorY+this._offsetY));
+};
+Game.Screen.TargetBasedScreen.prototype.handleInput = function(inputType, inputData) {
+    // Move the cursor
+    if(inputType=="keydown") {
+        if ((inputData.keyCode === ROT.KEYS.VK_LEFT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD4)) {
+            this.moveCursor(-1,0);
+        } else if ((inputData.keyCode === ROT.KEYS.VK_RIGHT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD6)) {
+            this.moveCursor(1,0);
+        } else if ((inputData.keyCode === ROT.KEYS.VK_UP) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD8)) {
+            this.moveCursor(0,-1);
+        } else if ((inputData.keyCode === ROT.KEYS.VK_DOWN) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD2)) {
+            this.moveCursor(0,1);
+        } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD7) {
+            this.moveCursor(-1,-1);
+        } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD9) {
+            this.moveCursor(1,-1);
+        } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD3) {
+            this.moveCursor(1,1);
+        } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD1) {
+            this.moveCursor(-1,1);
+        } else if(inputData.keyCode===ROT.KEYS.VK_RETURN) {
+            this.executeOkFunction();
+        }
+    }
+    Game.refresh();
+};
+Game.Screen.TargetBasedScreen.prototype.moveCursor = function(dx,dy) {
+    // Ensure we stay within bounds
+    this._cursorX = Math.max(0, Math.min(this._cursorX+dx, Game.getScreenWidth()));
+    // Save the last line for the caption
+    this._cursorY = Math.max(0, Math.min(this._cursorY+dy, Game.getScreenHeight()-1)); 
+};
+Game.Screen.TargetBasedScreen.prototype.executeOkFunction = function() {
+    // Switch back to play screen
+    Game.Screen.playScreen.setSubscreen(undefined);
+    // Call OK function and end player's turn if return true
+    if(this._okFunction(this._cursorX+this._offsetX, this._cursorY+this._offsetY)) {
+        this._player.getMap().getEngine().unlock();
+    }
+};
+
+Game.Screen.lookScreen = new Game.Screen.TargetBasedScreen({
+    captionFunction: function(x,y) {
+        var d = this._player.getD();
+        var map = this._player.getMap();
+        // If tile is explored, give a better caption
+        if(map.isExplored(x,y,d)) {
+            // If tile explored, check if we can see it
+            if(this._visibleCells[x+","+y]) {
+                var items = map.getItemsAt(x,y,d);
+                // Topmost item
+                if(items) {
+                    //var item = items[items.length-1];
+                    return "dingle";
+                    //return String.format("%s - %s",item.getRepresentation(),item.describeA(true));
+                } else if(map.getEntityAt(x,y,d)) {
+                    // Else check if there's an entity (TODO: shouldn't we do this first?)
+                    // TODO: Wouldn't it be faster to save the getEntity from the if() statement?
+                    //var entity = map.getEntityAt(x,y,d)
+                    return "dingle";
+                    //return String.format("%s - %s",entity.getRepresentation(),entity.describeA(true));
+                }
+            }
+            // If no entity/item visible, use tile information
+            return "dingle";
+            //return String.format("%s - %s", map.getTile(x,y,d).getRepresentation(), map.getTile(x,y,d).getDescription());
+            //return `${map.getTile(x,y,d).getRepresentation()} - ${map.getTile(x,y,d).getDescription()}`;
+        } else {
+            // If tile not explored, show null tile description
+            return "dingle";
+            //return String.format('%s - %s',Game.Tile.nullTile.getRepresentation(),Game.Tile.nullTile.getDescription());
+            //return `${Game.Tile.nullTile.getRepresentation()} - ${Game.Tile.nullTile.getDescription()}`;
+
+        }
+    }
+});
+
+// Help screen TODO: Move the text into a better file for this?
+Game.Screen.helpScreen = {
+    render: function(display) {
+        var text = "Help"
+        var border = '--------------';
+        var y=0;
+        display.drawText(Game.getScreenWidth() / 2 - text.length / 2, y++, text);
+        display.drawText(Game.getScreenWidth() / 2 - border.length / 2, y++, border);
+        display.drawText(0, y++, 'You have been chosen to root out the evil lurking beneath the Everfree Forest.');
+        display.drawText(0, y++, 'Descend into its depths and vanquish that which dwells below.');
+        y += 3;
+        display.drawText(0, y++, '[,] to pick up items');
+        display.drawText(0, y++, '[d] to drop items');
+        display.drawText(0, y++, '[e] to eat items');
+        display.drawText(0, y++, '[w] to wield items');
+        display.drawText(0, y++, '[W] to wield items');
+        display.drawText(0, y++, '[x] to examine items');
+        display.drawText(0, y++, '[;] to look around you');
+        display.drawText(0, y++, '[?] to show this help screen');
+        y += 3;
+        text = '--- press any key to continue ---';
+        display.drawText(Game.getScreenWidth() / 2 - text.length / 2, y++, text);
+    },
+    handleInput: function(inputType, inputData) {
+        Game.Screen.playScreen.setSubscreen(undefined);
     }
 };

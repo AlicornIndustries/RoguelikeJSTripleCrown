@@ -19,6 +19,8 @@ const SkillTerms = Object.freeze({
 
 });
 
+// Make an enum for classes?
+
 // Another way to do it???:
 /*
 Game.Enums = {

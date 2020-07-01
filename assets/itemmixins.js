@@ -26,6 +26,17 @@ Game.ItemMixins.Edible = {
         } else {
             return this._name;
         }
+    },
+    listeners: {
+        details: function() {
+            console.log("details was called");
+            //console.log({key: "food", value: this._foodValue});
+            //return [{key: "test", value: 69}]; // This still returns a blank array
+            results = {key: "test", value: 69};
+            //results = 420; // Even this still returns a blank array
+            return results;
+            //return [{key: "food", value: this._foodValue}];
+        }
     }
 }
 
@@ -121,5 +132,20 @@ Game.ItemMixins.Equippable = {
     },
     isWearable: function() {
         return this._wearable;
+    },
+    listeners: {
+        details: function() {
+            var results = [];
+            if(this._wieldable) {
+                results.push({key: "damage value", value: this._damageValue});
+                results.push({key: "damage type", value: this._damageType});
+                results.push({key: "attack value", value: this._attackValue});
+            }
+            if(this._wearable) {
+                results.push({key: "durability", value: (this._armorDurability.toString()+"/"+this._maxArmorDurability.toString())});
+                results.push({key: "damage reduction", value: this._armorReduction});
+                results.push({key: "defense value", value: this._defenseValue});
+            }
+        }
     }
 }

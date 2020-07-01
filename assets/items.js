@@ -99,7 +99,7 @@ Game.ItemRepository.define("chain mail barding", {
 Game.ItemRepository.define("crude plate barding", {
     name: "crude plate barding",
     character: "[",
-    foreground: "DimGrey", // change color to something more visible. TODO
+    foreground: "dimGrey", // change color to something more visible. TODO
     defenseValue: -20, // Reduces dodge chance
     armorDurability: 60,
     armorReduction: 4,
@@ -111,7 +111,7 @@ Game.ItemRepository.define("crude plate barding", {
 Game.ItemRepository.define("orichalcum plate barding", {
     name: "orichalcum plate barding",
     character: "[",
-    foreground: "AntiqueWhite",
+    foreground: "firebrick",
     defenseValue: -10,
     armorDurability: 300,
     armorReduction: 10,

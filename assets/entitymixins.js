@@ -229,6 +229,12 @@ Game.EntityMixins.Destructible = {
             // Destructible entities heal to full hp
             Game.sendMessage(this,"You feel strangely invigorated."); // FUTURE: Replace with alignment-based phrases, "You feel your heart beat in harmony with the world."
             this.setHp(this.getMaxHp());
+        },
+        details: function() {
+            return [
+                {key: "HP", value: (this.getHp().toString()+"/"+this._maxHp().toString())},
+                {key: "defense value", value: this.getDefenseValue()}
+            ];
         }
     }
 }
@@ -301,6 +307,14 @@ Game.EntityMixins.Attacker = {
         value = value || 1; // Default increase value
         this._strength += value;
         Game.sendMessage(this,"You feel stronger!");
+    },
+    listeners: {
+        details: function() {
+            var results = [];
+            results.push({key: "attack value", value: this._attackValue});
+            results.push({key: "strength", value: this._strength});
+            return results;
+        }
     }
 }
 Game.EntityMixins.MessageRecipient = {
@@ -566,6 +580,9 @@ Game.EntityMixins.ExperienceGainer = {
             if(xp>0) {
                 this.gainExperience(xp);
             }
+        },
+        details: function() {
+            return [{key: "level", value: this.getLevel()}];
         }
     }
 }
@@ -585,7 +602,6 @@ Game.EntityMixins.RandomStatGainer = {
         }
     }
 };
-
 Game.EntityMixins.PlayerStatGainer = {
     name: "PlayerStatGainer",
     groupName: "StatGainer",
@@ -596,7 +612,6 @@ Game.EntityMixins.PlayerStatGainer = {
         }
     }
 };
-
 Game.EntityMixins.WindigoActor = Game.extend(Game.EntityMixins.TaskActor, {
     init: function(template) {
         // Call TaskActor init with predefined tasks
@@ -679,5 +694,15 @@ Game.EntityMixins.SkillHaver = {
         } else {
             return this._skills[obj]
         }
+    }
+}
+// For entities with character classes
+Game.EntityMixins.Classy = {
+    name: "Classy",
+    init: function(template) {
+        this._charClass = template["charClass"];
+    },
+    hasClass: function(charClass) {
+        return this._charClass===charClass;
     }
 }

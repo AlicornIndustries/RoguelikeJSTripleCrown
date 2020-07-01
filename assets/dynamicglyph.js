@@ -82,7 +82,34 @@ Game.DynamicGlyph.prototype.raiseEvent = function(event) {
     // Extract an args passed, removing the event name
     var args = Array.prototype.slice.call(arguments, 1);
     // Invoke each listener, with this entity as context, and the args
+    /* REMOVED: I think this .apply is doubling up the one in the for loop below
     for(var i=0; i<this._listeners[event].length; i++) {
         this._listeners[event][i].apply(this,args);
     }
+    */
+    // Invoke each listener to see if they have something to return
+    var results = [];
+    for(var i=0; i<this.listeners.length; i++) {
+        results.push(this._listeners[event][i].apply(this, args));
+    }
+    return results;
+};
+Game.DynamicGlyph.prototype.details = function() {
+    // TODO: This doesn't work; even if I confirm the details function has the right stuff, it always returns an empty array
+    var details = [];
+    var detailGroups = this.raiseEvent('details');
+    console.log(detailGroups);
+    // Iterate through each returned value, grabbing details
+    if(detailGroups) {
+        for(var i=0; i<detailGroups.length; i++) {
+            for(var j=0; j<detailGroups[i].length; i++) {
+                details.push(detailGroups[i][j].key+": "+detailGroups[i][j].value);
+            }
+        }
+    }
+    console.log(details.join(", "));
+    return details.join(", ");
+    // TODO: Provide some kind of sort order
+    // Probably hardcode it somewhere, group combat stats in order
+    // Probably best to have the mixin know the correct order, and just return in that format.
 }

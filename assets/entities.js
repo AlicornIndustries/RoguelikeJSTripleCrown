@@ -5,9 +5,9 @@ Game.PlayerTemplate = {
     character: "@",
     foreground: "white",
     background: "black",
-    maxHp: 1000, // 100
+    maxHp: 100,
     attackValue: 100,
-    strength: 40, // 4
+    strength: 4,
     unarmedDamageType: DamageTypes.BLUNT,
     defenseValue: 20,
     sightRadius: 6,
