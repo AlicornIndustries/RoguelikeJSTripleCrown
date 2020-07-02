@@ -16,8 +16,6 @@ Game.Screen.startScreen = {
         // On press Enter, go to play screen
         if(inputType==="keydown") {
             if(inputData.keyCode === ROT.KEYS.VK_RETURN) { // NOTE: Unlike the older guide, use ROT.KEYS.VK_RETURN, not ROT.VK_RETURN (likewise for other keycodes)
-                console.log("Enter pressed");
-                //Game.switchScreen(Game.Screen.playScreen);
                 Game.switchScreen(Game.Screen.raceSelectionScreen);
             }
         }
@@ -182,7 +180,10 @@ Game.Screen.playScreen = {
                 this.move(-1,1,0);
             } else if(inputData.keyCode===ROT.KEYS.VK_F) {
                 if(this._player.getProjectileLauncher()!=null) {
-                    console.log("tried to fire");
+                    var offsets = this.getScreenOffsets();
+                    Game.Screen.fireScreen.setup(this._player, this._player.getX(), this._player.getY(), offsets.x, offsets.y);
+                    this.setSubscreen(Game.Screen.fireScreen);
+                    return;
                 }
                 else {
                     Game.sendMessage(this._player,"You can't fire without a projectile weapon equipped.");
@@ -611,6 +612,31 @@ Game.Screen.TargetBasedScreen = function(template) {
     this._okFunction = template['okFunction'] || function(x,y) {return false;}
     // Default caption function returns an empty string. Use for showing caption at the bottom of screen
     this._captionFunction = template['captionFunction'] || function(x,y) {return "";}
+    this.handleInput = template['handleInput'] || function(inputType,inputData) {
+        // Move the cursor
+        if(inputType=="keydown") {
+            if ((inputData.keyCode === ROT.KEYS.VK_LEFT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD4)) {
+                this.moveCursor(-1,0);
+            } else if ((inputData.keyCode === ROT.KEYS.VK_RIGHT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD6)) {
+                this.moveCursor(1,0);
+            } else if ((inputData.keyCode === ROT.KEYS.VK_UP) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD8)) {
+                this.moveCursor(0,-1);
+            } else if ((inputData.keyCode === ROT.KEYS.VK_DOWN) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD2)) {
+                this.moveCursor(0,1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD7) {
+                this.moveCursor(-1,-1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD9) {
+                this.moveCursor(1,-1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD3) {
+                this.moveCursor(1,1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD1) {
+                this.moveCursor(-1,1);
+            } else if(inputData.keyCode===ROT.KEYS.VK_RETURN) {
+                this.executeOkFunction();
+            }
+        }
+        Game.refresh();
+    }
 };
 Game.Screen.TargetBasedScreen.prototype.setup = function(player, startX, startY, offsetX, offsetY) {
     // FUTURE: Implement screen scrolling
@@ -654,6 +680,7 @@ Game.Screen.TargetBasedScreen.prototype.render = function(display) {
     display.drawText(0, Game.getScreenHeight()-1,
         this._captionFunction(this._cursorX+this._offsetX, this._cursorY+this._offsetY));
 };
+/*
 Game.Screen.TargetBasedScreen.prototype.handleInput = function(inputType, inputData) {
     // Move the cursor
     if(inputType=="keydown") {
@@ -679,6 +706,7 @@ Game.Screen.TargetBasedScreen.prototype.handleInput = function(inputType, inputD
     }
     Game.refresh();
 };
+*/
 Game.Screen.TargetBasedScreen.prototype.moveCursor = function(dx,dy) {
     // Ensure we stay within bounds
     this._cursorX = Math.max(0, Math.min(this._cursorX+dx, Game.getScreenWidth()));
@@ -727,6 +755,31 @@ Game.Screen.lookScreen = new Game.Screen.TargetBasedScreen({
             return `${Game.Tile.nullTile.getRepresentation()} - ${Game.Tile.nullTile.getDescription()}`;
 
         }
+    },
+    handleInput: function(inputType, inputData) {
+        // Move the cursor
+        if(inputType=="keydown") {
+            if ((inputData.keyCode === ROT.KEYS.VK_LEFT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD4)) {
+                this.moveCursor(-1,0);
+            } else if ((inputData.keyCode === ROT.KEYS.VK_RIGHT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD6)) {
+                this.moveCursor(1,0);
+            } else if ((inputData.keyCode === ROT.KEYS.VK_UP) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD8)) {
+                this.moveCursor(0,-1);
+            } else if ((inputData.keyCode === ROT.KEYS.VK_DOWN) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD2)) {
+                this.moveCursor(0,1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD7) {
+                this.moveCursor(-1,-1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD9) {
+                this.moveCursor(1,-1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD3) {
+                this.moveCursor(1,1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD1) {
+                this.moveCursor(-1,1);
+            } else if(inputData.keyCode===ROT.KEYS.VK_RETURN) {
+                this.executeOkFunction();
+            }
+        }
+        Game.refresh();
     }
 });
 // Help screen TODO: Move the text into a better file for this?
@@ -904,3 +957,70 @@ Game.Screen.nameSelectionScreen = {
         this._selectedCharClass = charClass;
     }
 }
+// Projectile weapon firing screen
+Game.Screen.fireScreen = new Game.Screen.TargetBasedScreen( {
+    captionFunction: function(x,y) {
+        var d = this._player.getD();
+        var map = this._player.getMap();
+        // If tile is explored, give a better caption
+        if(map.isExplored(x,y,d)) {
+            // If tile explored, check if we can see it
+            if(this._visibleCells[x+","+y]) {
+                var items = map.getItemsAt(x,y,d);
+                // Topmost item
+                if(items) {
+                    var item = items[items.length-1];
+                    // TODO: fix formating
+                    //return String.format("%s - %s",item.getRepresentation(),item.describeA(true));
+                    return item.getRepresentation()+" - "+item.describeA(true);
+                } 
+                else if(map.getEntityAt(x,y,d)) {
+                    // Else check if there's an entity (TODO: shouldn't we do this first?)
+                    // TODO: Wouldn't it be faster to save the getEntity from the if() statement?
+                    var entity = map.getEntityAt(x,y,d)
+                    //return String.format("%s - %s",entity.getRepresentation(),entity.describeA(true));
+                    return entity.getRepresentation()+" - "+entity.describeA(true);
+
+                }
+            }
+            // If no entity/item visible, use tile information
+            //return String.format("%s - %s", map.getTile(x,y,d).getRepresentation(), map.getTile(x,y,d).getDescription());
+            return `${map.getTile(x,y,d).getRepresentation()} - ${map.getTile(x,y,d).getDescription()}`;
+        } else {
+            // If tile not explored, show null tile description
+            //return String.format('%s - %s',Game.Tile.nullTile.getRepresentation(),Game.Tile.nullTile.getDescription());
+            return `${Game.Tile.nullTile.getRepresentation()} - ${Game.Tile.nullTile.getDescription()}`;
+
+        }
+    },
+    handleInput: function(inputType, inputData) {
+        // Move the cursor
+        if(inputType=="keydown") {
+            if ((inputData.keyCode === ROT.KEYS.VK_LEFT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD4)) {
+                this.moveCursor(-1,0);
+            } else if ((inputData.keyCode === ROT.KEYS.VK_RIGHT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD6)) {
+                this.moveCursor(1,0);
+            } else if ((inputData.keyCode === ROT.KEYS.VK_UP) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD8)) {
+                this.moveCursor(0,-1);
+            } else if ((inputData.keyCode === ROT.KEYS.VK_DOWN) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD2)) {
+                this.moveCursor(0,1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD7) {
+                this.moveCursor(-1,-1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD9) {
+                this.moveCursor(1,-1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD3) {
+                this.moveCursor(1,1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD1) {
+                this.moveCursor(-1,1);
+            } else if((inputData.keyCode===ROT.KEYS.VK_RETURN) || (inputData.keyCode===ROT.KEYS.VK_F)) {
+                // Fire at the target
+
+                // TODO
+
+                console.log("fired");
+                this.executeOkFunction();
+            }
+        }
+        Game.refresh();
+    }
+})
