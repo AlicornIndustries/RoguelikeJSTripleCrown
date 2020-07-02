@@ -154,6 +154,16 @@ Game.ItemMixins.MaterialHaver = {
     name: "MaterialHaver",
     init: function(template) {
         this._material = template["material"]
+    },
+    getMaterial: function() {
+        return this._material;
+    },
+    setMaterial: function(material) {
+        if(material in Game.Enums.Materials) {
+            this._material = material;
+        }
+        else {
+            console.log("Failed to set to nonexistent material: "+material.name);
+        }
     }
-    // TODO: system to auto-rename, based on material, so sword becomes "steel sword", or have a fullname attribute
 }

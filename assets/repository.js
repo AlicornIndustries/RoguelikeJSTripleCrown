@@ -29,11 +29,21 @@ Game.Repository.prototype.create = function(name, extraProperties) {
     // TODO: Fix how this works with materials (see the code used in playScreen createPlayer)
     if(extraProperties) {
         for(var key in extraProperties) {
-            template[key] = extraProperties[key];
+            if(key=="material") {
+                continue;
+            } else {
+                template[key] = extraProperties[key];
+            }
         }
     }
-    // Create the object
-    return new this._ctor(template);
+
+    var newItem = new this._ctor(template);
+    // Apply mixin things
+    if(newItem.hasMixin("MaterialHaver") && extraProperties["material"]!=null) {
+        newItem.material = extraProperties["material"];
+    }
+    return newItem;
+
 };
 // Create an object based on a random template in the repository
 Game.Repository.prototype.createRandom = function() {

@@ -294,11 +294,7 @@ Game.Screen.playScreen = {
         var that = this;
         if(this._player.hasMixin("InventoryHolder") && this._player.hasMixin("Classy")) {
             playerCharClass.startingItems.forEach(function(item) {
-                newItem = Game.ItemRepository.create(item.name);
-                // TODO: move this into general object generation code
-                if(newItem.hasMixin("MaterialHaver")) {
-                    newItem.material = item.material;
-                }
+                newItem = Game.ItemRepository.create(item.name,{material:item.material});
                 that._player.addItem(newItem);
                 // Equip weapons and armor
                 if(newItem.hasMixin("Equippable")) {
