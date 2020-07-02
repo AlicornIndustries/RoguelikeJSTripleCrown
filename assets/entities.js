@@ -2,13 +2,14 @@
 
 // Player template.
 Game.PlayerTemplate = {
+    name: "pony (you)",
     character: "@",
     foreground: "white",
     background: "black",
     maxHp: 100,
     attackValue: 100,
     strength: 4,
-    unarmedDamageType: DamageTypes.BLUNT,
+    unarmedDamageType: Game.Enums.DamageTypes.BLUNT,
     defenseValue: 20,
     sightRadius: 6,
     inventorySlots: 22,
@@ -17,7 +18,7 @@ Game.PlayerTemplate = {
              Game.EntityMixins.MessageRecipient, Game.EntityMixins.InventoryHolder,
              Game.EntityMixins.FoodConsumer, Game.EntityMixins.Equipper,
              Game.EntityMixins.SkillHaver, Game.EntityMixins.ExperienceGainer,
-             Game.EntityMixins.PlayerStatGainer, Game.EntityMixins.Classy]
+             Game.EntityMixins.PlayerStatGainer, Game.EntityMixins.Classy, Game.EntityMixins.RaceHaver]
 }
 
 // Non-player templates are held in repositories
@@ -44,7 +45,7 @@ Game.EntityRepository.define("timberwolf", {
     maxHp: 20,
     attackValue: 70,
     strength: 5,
-    unarmedDamageType: DamageTypes.SLASHING,
+    unarmedDamageType: Game.Enums.DamageTypes.SLASHING,
     defenseValue: 0,
     tasks: ["hunt", "wander"],
     mixins: [Game.EntityMixins.TaskActor, Game.EntityMixins.Sight, Game.EntityMixins.Attacker,
@@ -60,7 +61,7 @@ Game.EntityRepository.define("dire timberwolf", {
     maxHp: 35,
     attackValue: 80,
     strength: 7,
-    unarmedDamageType: DamageTypes.SLASHING,
+    unarmedDamageType: Game.Enums.DamageTypes.SLASHING,
     defenseValue: 0,
     tasks: ["hunt", "wander"],
     mixins: [Game.EntityMixins.TaskActor, Game.EntityMixins.Sight, Game.EntityMixins.Attacker,
@@ -76,7 +77,7 @@ Game.EntityRepository.define("vampire bat", {
     maxHp: 10,
     attackValue: 60,
     strength: 1,
-    unarmedDamageType: DamageTypes.PIERCING,
+    unarmedDamageType: Game.Enums.DamageTypes.PIERCING,
     defenseValue: 0,
     tasks: ["hunt", "wander"],
     mixins: [Game.EntityMixins.TaskActor, Game.EntityMixins.Sight, Game.EntityMixins.Attacker,
@@ -90,7 +91,7 @@ Game.EntityRepository.define("windigo", {
     maxHp: 200,
     attackValue: 70,
     strength: 15,
-    unarmedDamageType: DamageTypes.PIERCING,
+    unarmedDamageType: Game.Enums.DamageTypes.PIERCING,
     defenseValue: 15,
     level: 10,
     sightRadius: 6,
@@ -108,7 +109,7 @@ Game.EntityRepository.define("spitesprite", {
     maxHp: 25,
     attackValue: 50,
     strength: 4,
-    unarmedDamageType: DamageTypes.PIERCING,
+    unarmedDamageType: Game.Enums.DamageTypes.PIERCING,
     defenseValue: 10,
     sightRadius: 4,
     tasks: ["hunt", "wander"],

@@ -37,13 +37,43 @@ Game.ItemRepository.define("corpse", {
 });
 
 // Weapons
+Game.ItemRepository.define("shortsword", {
+    name:"shortsword",
+    character: ")",
+    foreground: "white",
+    attackValue: 5,
+    damageValue: 5,
+    damageType: Game.Enums.DamageTypes.SLASHING,
+    wieldable: true,
+    possibleMaterials: [
+        Game.Enums.Materials.IRON, Game.Enums.Materials.STEEL, Game.Enums.Materials.BRONZE, Game.Enums.Materials.SILVER
+    ],
+    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver]},
+    {disableRandomCreation: true
+});
+Game.ItemRepository.define("staff", {
+    name: "staff",
+    character: ")",
+    foreground: "yellow",
+    attackValue: 5,
+    damageValue: 2,
+    damageType: Game.Enums.DamageTypes.BLUNT,
+    wieldable: true,
+    possibleMaterials: [
+        Game.Enums.Materials.WOOD
+    ],
+    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver]},
+    {disableRandomCreation: true
+});
+
+
 Game.ItemRepository.define("stiletto", { // TODO: better chance to ignore armor
     name: "dagger",
     character: ")",
     foreground: "grey",
     attackValue: 5,
     damageValue: 3,
-    damageType: DamageTypes.PIERCING,
+    damageType: Game.Enums.DamageTypes.PIERCING,
     wieldable: true,
     mixins: [Game.ItemMixins.Equippable]},
     {disableRandomCreation: true
@@ -54,18 +84,7 @@ Game.ItemRepository.define("sword", {
     foreground: "white",
     attackValue: 5,
     damageValue: 5,
-    damageType: DamageTypes.SLASHING,
-    wieldable: true,
-    mixins: [Game.ItemMixins.Equippable]},
-    {disableRandomCreation: true
-});
-Game.ItemRepository.define("staff", {
-    name: "staff",
-    character: ")",
-    foreground: "yellow",
-    attackValue: 5,
-    damageValue: 2,
-    damageType: DamageTypes.BLUNT,
+    damageType: Game.Enums.DamageTypes.SLASHING,
     wieldable: true,
     mixins: [Game.ItemMixins.Equippable]},
     {disableRandomCreation: true
@@ -79,7 +98,7 @@ Game.ItemRepository.define("padded barding", {
     defenseValue: 0,
     armorDurability: 25,
     armorReduction: 2,
-    armorType: ArmorTypes.LIGHT,
+    armorType: Game.Enums.ArmorTypes.LIGHT,
     wearable: true,
     mixins: [Game.ItemMixins.Equippable]},
     {disableRandomCreation: true
@@ -91,7 +110,7 @@ Game.ItemRepository.define("chain mail barding", {
     defenseValue: 0, // No effect on dodge
     armorDurability: 40,
     armorReduction: 3,
-    armorType: ArmorTypes.CHAINMAIL,
+    armorType: Game.Enums.ArmorTypes.CHAINMAIL,
     wearable: true,
     mixins: [Game.ItemMixins.Equippable]},
     {disableRandomCreation: true
@@ -103,7 +122,7 @@ Game.ItemRepository.define("crude plate barding", {
     defenseValue: -20, // Reduces dodge chance
     armorDurability: 60,
     armorReduction: 4,
-    armorType: ArmorTypes.PLATE,
+    armorType: Game.Enums.ArmorTypes.PLATE,
     wearable: true,
     mixins: [Game.ItemMixins.Equippable]},
     {disableRandomCreation: true
@@ -115,7 +134,7 @@ Game.ItemRepository.define("orichalcum plate barding", {
     defenseValue: -10,
     armorDurability: 300,
     armorReduction: 10,
-    armorType: ArmorTypes.PLATE,
+    armorType: Game.Enums.ArmorTypes.PLATE,
     wearable: true,
     mixins: [Game.ItemMixins.Equippable]},
     {disableRandomCreation: true

@@ -244,7 +244,7 @@ Game.EntityMixins.Attacker = {
     init: function(template) {
         this._attackValue = template["attackValue"] || 1;
         this._strength = template["strength"] || 1;
-        this._unarmedDamageType = template["unarmedAttackType"] || DamageTypes.BLUNT;
+        this._unarmedDamageType = template["unarmedAttackType"] || Game.Enums.DamageTypes.BLUNT;
     },
     getAttackValue: function() {
         var modifier = 0;
@@ -265,7 +265,7 @@ Game.EntityMixins.Attacker = {
             if(this.getWeapon()) {
                 modifier+=this.getWeapon().getDamageValue();
                 // Apply additional bonus if skilled in weapon use
-                var weaponSkill = this.getSkill(SkillTerms.MELEEWEAPONS);
+                var weaponSkill = this.getSkill(Game.Enums.SkillTerms.MELEEWEAPONS);
                 if(weaponSkill) {
                     modifier+=weaponSkill.getDamageValueBoost();
                 }
@@ -674,18 +674,18 @@ Game.EntityMixins.SkillHaver = {
         // Add skill to our attached skills, then call init
 
         if(this.hasMixin("Equipper")) {
-            this._skills[SkillTerms.ARMORER] = Object.create(Game.Skills.Armorer);
-            this._skills[SkillTerms.ARMORER].init();
+            this._skills[Game.Enums.SkillTerms.ARMORER] = Object.create(Game.Skills.Armorer);
+            this._skills[Game.Enums.SkillTerms.ARMORER].init();
             // This should be equivalent to:
-            // this.getSkill(SkillTerms.ARMORER).init();
+            // this.getSkill(Game.Enums.SkillTerms.ARMORER).init();
             if(this.hasMixin("Attacker")) {
-                this._skills[SkillTerms.MELEEWEAPONS] = Object.create(Game.Skills.MeleeWeapons);
-                this._skills[SkillTerms.MELEEWEAPONS].init();
+                this._skills[Game.Enums.SkillTerms.MELEEWEAPONS] = Object.create(Game.Skills.MeleeWeapons);
+                this._skills[Game.Enums.SkillTerms.MELEEWEAPONS].init();
             }
         }
         if(this.hasMixin("Sight")) {
-            this._skills[SkillTerms.SCOUT] = Object.create(Game.Skills.Scout);
-            this._skills[SkillTerms.SCOUT].init();
+            this._skills[Game.Enums.SkillTerms.SCOUT] = Object.create(Game.Skills.Scout);
+            this._skills[Game.Enums.SkillTerms.SCOUT].init();
         }
     },
     getSkill: function(obj) {
@@ -710,5 +710,21 @@ Game.EntityMixins.Classy = {
     },
     setCharClass: function(charClass) {
         this._charClass = charClass;
+    }
+}
+// For entities with races (earth/unicorn/pony etc)
+Game.EntityMixins.RaceHaver = {
+    name: "RaceHaver",
+    init: function(template) {
+        this._race = template["race"];
+    },
+    hasRace: function(race) {
+        return this._race===race;
+    },
+    getRace: function() {
+        return this._race;
+    },
+    setRace: function(race) {
+        this._race = race;
     }
 }

@@ -283,11 +283,22 @@ Game.Screen.playScreen = {
     },
     createPlayer: function(playerName, playerRace, playerCharClass) {
         this._player = new Game.Entity(Game.PlayerTemplate);
-        this._player.setName = playerName;
+        this._player.setName(playerName);
         if(this._player.hasMixin("Classy")) {
             this._player.setCharClass(playerCharClass);
         }
-        // TODO: Add player race
+        if(this._player.hasMixin("RaceHaver")) {
+            this._player.setRace(playerRace);
+        }
+        // Grant starting equipment
+        var that = this;
+        if(this._player.hasMixin("InventoryHolder") && this._player.hasMixin("Classy")) {
+            playerCharClass.startingItems.forEach(function(item) {
+                that._player.addItem(Game.ItemRepository.create(item.name));
+
+
+            })
+        }
     }
 }
 Game.Screen.winScreen = {
@@ -734,8 +745,8 @@ Game.Screen.raceSelectionScreen = {
     enter: function() {
         // Populate array of races based on the enum
         var that = this;
-        Object.keys(Races.PonyRaces).forEach(function(race) {
-            that._races.push(Races.PonyRaces[race]);
+        Object.keys(Game.Enums.Races.PonyRaces).forEach(function(race) {
+            that._races.push(Game.Enums.Races.PonyRaces[race]);
         })
     },
     exit: function() {/*console.log("Exited race selection screen.");*/ },
@@ -787,9 +798,9 @@ Game.Screen.classSelectionScreen = {
     enter: function() {
         // Populate class array based on allowed races for each class
         var that = this;
-        Object.keys(CharClasses.PlayerClasses).forEach(function(charClass) {
-            if(CharClasses.PlayerClasses[charClass].races.includes(that._selectedRace)) {
-                that._charClasses.push(CharClasses.PlayerClasses[charClass]);
+        Object.keys(Game.Enums.CharClasses.PlayerClasses).forEach(function(charClass) {
+            if(Game.Enums.CharClasses.PlayerClasses[charClass].races.includes(that._selectedRace)) {
+                that._charClasses.push(Game.Enums.CharClasses.PlayerClasses[charClass]);
             }
         })
     },
@@ -834,7 +845,7 @@ Game.Screen.classSelectionScreen = {
 Game.Screen.nameSelectionScreen = {
     _selectedCharClass: null,
     _selectedRace: null,
-    _name: "",
+    _name: "PLACEHOLDERNAME",
     enter: function() {
     },
     exit: function() { },

@@ -149,3 +149,11 @@ Game.ItemMixins.Equippable = {
         }
     }
 }
+// For items made of a particular material, such as bronze, steel, or silver
+Game.ItemMixins.MaterialHaver = {
+    name: "MaterialHaver",
+    init: function(template) {
+        this._material = template["material"]
+    }
+    // TODO: system to auto-rename, based on material, so sword becomes "steel sword", or have a fullname attribute
+}

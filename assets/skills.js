@@ -2,7 +2,7 @@ Game.Skills = {};
 
 
 Game.Skills.Armorer = {
-    name: SkillTerms.ARMORER,
+    name: Game.Enums.SkillTerms.ARMORER,
     init: function() {
         this._skillLevel = 0;
         this._armorReductionBoost = 0;
@@ -25,7 +25,7 @@ Game.Skills.Armorer = {
 }
 
 Game.Skills.MeleeWeapons = {
-    name: SkillTerms.MELEEWEAPONS,
+    name: Game.Enums.SkillTerms.MELEEWEAPONS,
     init: function() {
         this._skillLevel = 0;
         this._damageValueBoost = 0;
@@ -48,7 +48,7 @@ Game.Skills.MeleeWeapons = {
 }
 
 Game.Skills.Scout = {
-    name: SkillTerms.Scout,
+    name: Game.Enums.SkillTerms.Scout,
     init: function() {
         this._skillLevel = 0;
         this._sightRadiusBoost = 0;
