@@ -294,9 +294,21 @@ Game.Screen.playScreen = {
         var that = this;
         if(this._player.hasMixin("InventoryHolder") && this._player.hasMixin("Classy")) {
             playerCharClass.startingItems.forEach(function(item) {
-                that._player.addItem(Game.ItemRepository.create(item.name));
-
-
+                newItem = Game.ItemRepository.create(item.name);
+                // TODO: move this into general object generation code
+                if(newItem.hasMixin("MaterialHaver")) {
+                    newItem.material = item.material;
+                }
+                that._player.addItem(newItem);
+                // Equip weapons and armor
+                if(newItem.hasMixin("Equippable")) {
+                    if(newItem.isWieldable) {
+                        that._player.wield(newItem);
+                    }
+                    else if(newItem.isWearable) {
+                        that._player.wear(newItem);
+                    }
+                }
             })
         }
     }
@@ -539,8 +551,9 @@ Game.Screen.examineScreen = new Game.Screen.ItemListScreen({
         var keys = Object.keys(selectedItems);
         if(keys.length>0) {
             var item = selectedItems[keys[0]];
-            Game.sendMessage(this._player, "It's %s (%s).",
-                [item.describeA(false), item.details()])
+            Game.sendMessage(this._player, "It's %s.", // "It's %s (%s)" from back when we used item.details()
+                //[item.describeA(false), item.details()])
+                [item.describeA(false)])
         }
         return true;
     }

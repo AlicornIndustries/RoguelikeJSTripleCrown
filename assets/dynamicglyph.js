@@ -59,13 +59,26 @@ Game.DynamicGlyph.prototype.hasMixin = function(obj) {
 };
 Game.DynamicGlyph.prototype.setName = function(name) {this._name = name;};
 Game.DynamicGlyph.prototype.getName = function() {return this._name;}
-Game.DynamicGlyph.prototype.describe = function() {return this._name;}
+Game.DynamicGlyph.prototype.describe = function() {
+    // If item has a material, mention it ("steel longsword")
+    if(this.hasMixin("MaterialHaver")) {
+        // A wood staff is a "wooden" staff
+        if(this.material.adj!=null) {
+            return this.material.adj+" "+this._name;
+        }
+        else {
+            return this.material.name+" "+this._name;
+        }
+    } else {
+        return this._name;
+    }
+}
 Game.DynamicGlyph.prototype.describeA = function(capitalize) {
     // "a rock", "An apple." Capitalize article if true
     var prefixes = capitalize ? ['A', 'An'] : ['a','an'];
     var nameString = this.describe();
     var firstLetter = nameString.charAt(0).toLowerCase();
-    // If word starts wit a vowel, use a. Else, an. Does not handle e.g. "hour"
+    // If word starts with a vowel, use a. Else, an. Does not handle e.g. "hour"
     var prefix = 'aeiou'.indexOf(firstLetter) >= 0 ? 1 : 0;
     return prefixes[prefix]+" "+nameString;
 };

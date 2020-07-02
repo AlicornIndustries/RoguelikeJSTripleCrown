@@ -13,7 +13,7 @@ Game.Enums = {
         CLOTH: {name: "cloth", value: 5},
         IRON: {name: "iron", value: 10},    // Bonuses vs. magical creatures
         SILVER: {name: "silver", value: 20},    // Bonuses vs. were-creatures, vampires and slimes (poisonous)
-        WOOD: {name: "wood", value: 5},
+        WOOD: {name: "wood", adj: "wooden", value: 5},
         BRONZE: {name: "bronze", value: 8},
         ORICHALCUM: {name: "orichalcum", value: 30},
         MYTHRIL: {name: "mythril", value: 30},

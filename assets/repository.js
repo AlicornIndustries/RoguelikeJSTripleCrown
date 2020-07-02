@@ -26,6 +26,7 @@ Game.Repository.prototype.create = function(name, extraProperties) {
     // Copy the template
     var template = Object.create(this._templates[name]);
     //OLD: var template = this._templates[name];
+    // TODO: Fix how this works with materials (see the code used in playScreen createPlayer)
     if(extraProperties) {
         for(var key in extraProperties) {
             template[key] = extraProperties[key];
