@@ -39,8 +39,13 @@ Game.Repository.prototype.create = function(name, extraProperties) {
 
     var newItem = new this._ctor(template);
     // Apply mixin things
-    if(newItem.hasMixin("MaterialHaver") && extraProperties["material"]!=null) {
-        newItem.material = extraProperties["material"];
+    if(newItem.hasMixin("MaterialHaver")) {
+        if(extraProperties!=null && extraProperties["material"]!=null) {
+            newItem.material = extraProperties["material"];
+        }
+        else {
+            newItem.material = template["defaultMaterial"];
+        }
     }
     return newItem;
 

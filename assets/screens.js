@@ -61,7 +61,7 @@ Game.Screen.playScreen = {
         var stats = "%c{white}%b{black}";
         stats += vsprintf("HP: %d/%d",[this._player.getHp(), this._player.getMaxHp()]);
         if(this._player.getArmor()) {
-            stats+=vsprintf("\nAD: %d/%d",[this._player.getArmor().getArmorDurability(),this._player.getArmor().getMaxArmorDurability()]);
+            stats+=vsprintf("\nAD: %d/%d (%d)",[this._player.getArmor().getArmorDurability(),this._player.getArmor().getMaxArmorDurability(),this._player.getArmor().getArmorReduction()]);
         }
         display.drawText(0, screenHeight, stats);
         // Render hunger stat
@@ -298,10 +298,10 @@ Game.Screen.playScreen = {
                 that._player.addItem(newItem);
                 // Equip weapons and armor
                 if(newItem.hasMixin("Equippable")) {
-                    if(newItem.isWieldable) {
+                    if(newItem.isWieldable()) {
                         that._player.wield(newItem);
                     }
-                    else if(newItem.isWearable) {
+                    else if(newItem.isWearable()) {
                         that._player.wear(newItem);
                     }
                 }

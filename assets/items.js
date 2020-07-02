@@ -48,6 +48,22 @@ Game.ItemRepository.define("shortsword", {
     possibleMaterials: [
         Game.Enums.Materials.IRON, Game.Enums.Materials.STEEL, Game.Enums.Materials.BRONZE, Game.Enums.Materials.SILVER
     ],
+    defaultMaterial: Game.Enums.Materials.STEEL,
+    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver]},
+    {disableRandomCreation: true
+});
+Game.ItemRepository.define("longsword", {
+    name:"longsword",
+    character: ")",
+    foreground: "white",
+    attackValue: 5,
+    damageValue: 8,
+    damageType: Game.Enums.DamageTypes.SLASHING,
+    wieldable: true,
+    possibleMaterials: [
+        Game.Enums.Materials.IRON, Game.Enums.Materials.STEEL, Game.Enums.Materials.BRONZE, Game.Enums.Materials.SILVER
+    ],
+    defaultMaterial: Game.Enums.Materials.STEEL,
     mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver]},
     {disableRandomCreation: true
 });
@@ -62,34 +78,10 @@ Game.ItemRepository.define("staff", {
     possibleMaterials: [
         Game.Enums.Materials.WOOD
     ],
+    defaultMaterial: Game.Enums.Materials.WOOD,
     mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver]},
     {disableRandomCreation: true
 });
-
-
-Game.ItemRepository.define("stiletto", { // TODO: better chance to ignore armor
-    name: "dagger",
-    character: ")",
-    foreground: "grey",
-    attackValue: 5,
-    damageValue: 3,
-    damageType: Game.Enums.DamageTypes.PIERCING,
-    wieldable: true,
-    mixins: [Game.ItemMixins.Equippable]},
-    {disableRandomCreation: true
-});
-Game.ItemRepository.define("sword", {
-    name: "sword",
-    character: ")",
-    foreground: "white",
-    attackValue: 5,
-    damageValue: 5,
-    damageType: Game.Enums.DamageTypes.SLASHING,
-    wieldable: true,
-    mixins: [Game.ItemMixins.Equippable]},
-    {disableRandomCreation: true
-});
-
 // Wearables
 Game.ItemRepository.define("padded barding", {
     name: "padded barding",
@@ -100,9 +92,12 @@ Game.ItemRepository.define("padded barding", {
     armorReduction: 2,
     armorType: Game.Enums.ArmorTypes.LIGHT,
     wearable: true,
-    mixins: [Game.ItemMixins.Equippable]},
+    possibleMaterials: [Game.Enums.Materials.CLOTH],
+    defaultMaterial: Game.Enums.Materials.CLOTH,
+    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver]},
     {disableRandomCreation: true
 });
+/*
 Game.ItemRepository.define("chain mail barding", {
     name: "chain mail barding",
     character: "[",
@@ -139,14 +134,4 @@ Game.ItemRepository.define("orichalcum plate barding", {
     mixins: [Game.ItemMixins.Equippable]},
     {disableRandomCreation: true
 });
-
-/*
-        this._attackValue = template["attackValue"] || 0;
-        this._damageType = template["damageType"] || null;
-        this._defenseValue = template["defenseValue"] || 0;
-        this._maxArmorDurability = template["armorDurability"] || 0;
-        this._armorDurability = _maxArmorDurability;
-        this._armorReduction = template["armorReduction"] || 0;
-        this._wieldable = template["wieldable"] || false;
-        this._wearable = template["wearable"] || false;
 */

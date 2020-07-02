@@ -49,6 +49,7 @@ Game.Enums.CharClasses = Object.freeze({
             //startingItems: ["shortsword","apple"], // Set it up as hash: {{item: shortsword, material: ---, startWielded: true}, {...}   }
             startingItems: [
                 {name: "shortsword", material:Game.Enums.Materials.STEEL},
+                {name:"padded barding"},
                 {name: "apple"}
             ],
         },

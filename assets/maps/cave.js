@@ -27,13 +27,12 @@ Game.Map.Cave = function(tiles, player) {
             this.addItemAtRandomPosition(Game.ItemRepository.createRandom(), d);
         }
     }
-    /*
     // Add weapons and armor to the map in random positions and depths
-    var gearTemplates = ["stiletto","sword","staff","padded barding","chain mail barding","crude plate barding","orichalcum plate barding"];
+    var gearTemplates = ["shortsword","longsword","staff"];
     for(var i=0; i<gearTemplates.length;i++) {
         this.addItemAtRandomPosition(Game.ItemRepository.create(gearTemplates[i]), Math.floor(this._depth*Math.random()));
     }
-    */
+
     // Add a hole to the final cavern on the last level
     var holePosition = this.getRandomFloorPosition(this._depth-1);
     this._tiles[this._depth-1][holePosition.x][holePosition.y] = Game.Tile.holeToCavernTile;
