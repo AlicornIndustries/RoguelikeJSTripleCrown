@@ -72,7 +72,6 @@ Game.Screen.playScreen = {
         var classString = this._player.getCharClass().name;
         classString = classString.charAt(0).toUpperCase() + classString.slice(1); // capitalize first letter of class
         levelStr += vsprintf("%s L: %d XP: %d", [classString, this._player.getLevel(), this._player.getExperience()]);
-        console.log(levelStr);
         // add 18 to account for length of %c{white}%b{black}
         display.drawText(screenWidth-levelStr.length+18, screenHeight+1, levelStr);
     },

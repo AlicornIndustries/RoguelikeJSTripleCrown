@@ -102,7 +102,7 @@ Game.DynamicGlyph.prototype.raiseEvent = function(event) {
     */
     // Invoke each listener to see if they have something to return
     var results = [];
-    for(var i=0; i<this.listeners.length; i++) {
+    for(var i=0; i<this._listeners[event].length; i++) {
         results.push(this._listeners[event][i].apply(this, args));
     }
     return results;
