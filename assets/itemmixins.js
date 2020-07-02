@@ -118,7 +118,7 @@ Game.ItemMixins.Equippable = {
                 return transferredDamage;
             }
         } else if(percentDurability<=0) {
-            return damage; // All damage is transferred. TODO: this still has damage reduction, though.
+            return damage+this._armorReduction; // All damage is transferred, and armor reduction does nothing (add it in to cancel out when we subtracted)
         }
     },
     getArmorReduction: function() {
@@ -149,6 +149,28 @@ Game.ItemMixins.Equippable = {
         }
     }
 }
+// For projectile weapons (bows, crossbows)
+Game.ItemMixins.ProjectileLauncher = {
+    name: "ProjectileLauncher",
+    groupName: "ProjectileLauncher",
+    init: function(template) {
+        this._rangedAttackValue = template["rangedAttackValue"] || 50;
+        this._rangedDamageValue = template["rangedDamageValue"] || 1;
+        this._rangedDamageType = Game.Enums.DamageTypes.PIERCING; // TODO: get this from the ammo
+    },
+    getRangedAttackValue: function() {
+        return this._rangedAttackValue;
+    },
+    getRangedDamageValue: function() {
+        return this._rangedDamageValue;
+    },
+    getRangedDamageType: function() {
+        return this._rangedDamageType; // TODO: get this from the ammo
+    }
+    // FUTURE: add listeners, details
+}
+
+
 // For items made of a particular material, such as bronze, steel, or silver
 Game.ItemMixins.MaterialHaver = {
     name: "MaterialHaver",

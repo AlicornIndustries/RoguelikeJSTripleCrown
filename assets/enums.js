@@ -67,8 +67,15 @@ Game.Enums.CharClasses = Object.freeze({
                 {name: "apple"}
             ],
         },
-        ROGUE: {name: "rogue", races:[Game.Enums.Races.PonyRaces.PEGASUS]},
-        RANGER: {name: "ranger", races:[Game.Enums.Races.PonyRaces.PEGASUS]},
+        //ROGUE: {name: "rogue", races:[Game.Enums.Races.PonyRaces.PEGASUS]},
+        RANGER: {
+            name: "ranger", races:[Game.Enums.Races.PonyRaces.PEGASUS],
+            startingItems: [
+                {name: "shortsword"},
+                {name: "bow"},
+                {name: "apple"}
+            ],
+        },
     }
 });
 

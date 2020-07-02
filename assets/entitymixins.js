@@ -512,6 +512,13 @@ Game.EntityMixins.Equipper = {
         if(this._armor===item) {
             this.unwear();
         }
+    },
+    getProjectileLauncher: function() {
+        if(this._weapon.hasMixin("ProjectileLauncher")) {
+            return this._weapon;
+        } else {
+            return null;
+        }
     }
 }
 

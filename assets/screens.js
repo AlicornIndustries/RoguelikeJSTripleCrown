@@ -69,8 +69,12 @@ Game.Screen.playScreen = {
         display.drawText(screenWidth-hungerState.length, screenHeight, hungerState);
         // Render level
         var levelStr = '%c{white}%b{black}';
-        levelStr += vsprintf("L: %d XP: %d", [this._player.getLevel(), this._player.getExperience()]);
-        display.drawText(screenWidth-15, screenHeight+1, levelStr);
+        var classString = this._player.getCharClass().name;
+        classString = classString.charAt(0).toUpperCase() + classString.slice(1); // capitalize first letter of class
+        levelStr += vsprintf("%s L: %d XP: %d", [classString, this._player.getLevel(), this._player.getExperience()]);
+        console.log(levelStr);
+        // add 18 to account for length of %c{white}%b{black}
+        display.drawText(screenWidth-levelStr.length+18, screenHeight+1, levelStr);
     },
     getScreenOffsets: function() {
         var map = this._player.getMap();
@@ -177,6 +181,13 @@ Game.Screen.playScreen = {
                 this.move(1,1,0);
             } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD1) {
                 this.move(-1,1,0);
+            } else if(inputData.keyCode===ROT.KEYS.VK_F) {
+                if(this._player.getProjectileLauncher()!=null) {
+                    console.log("tried to fire");
+                }
+                else {
+                    Game.sendMessage(this._player,"You can't fire without a projectile weapon equipped.");
+                }
             } else if(inputData.keyCode === ROT.KEYS.VK_I) {
                 // Inventory
                 this.showItemsSubscreen(Game.Screen.inventoryScreen, this._player.getItems(), "You are not carrying anything.");

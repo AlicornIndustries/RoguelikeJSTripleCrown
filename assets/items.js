@@ -82,6 +82,21 @@ Game.ItemRepository.define("staff", {
     mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver]},
     {disableRandomCreation: true
 });
+Game.ItemRepository.define("bow", {
+    name: "bow",
+    character: ")",
+    foreground: "yellow",
+    attackValue: 0,
+    damageValue: 1,
+    damageType: Game.Enums.DamageTypes.BLUNT,
+    wieldable: true,
+    possibleMaterials: [
+        Game.Enums.Materials.WOOD
+    ],
+    defaultMaterial: Game.Enums.Materials.WOOD,
+    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver,Game.ItemMixins.ProjectileLauncher]},
+    {disableRandomCreation: true
+});
 // Wearables
 Game.ItemRepository.define("padded barding", {
     name: "padded barding",
