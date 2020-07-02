@@ -157,6 +157,7 @@ Game.ItemMixins.ProjectileLauncher = {
         this._rangedAttackValue = template["rangedAttackValue"] || 50;
         this._rangedDamageValue = template["rangedDamageValue"] || 1;
         this._rangedDamageType = Game.Enums.DamageTypes.PIERCING; // TODO: get this from the ammo
+        this._range = template['range'] || 5;
     },
     getRangedAttackValue: function() {
         return this._rangedAttackValue;
@@ -166,6 +167,9 @@ Game.ItemMixins.ProjectileLauncher = {
     },
     getRangedDamageType: function() {
         return this._rangedDamageType; // TODO: get this from the ammo
+    },
+    getRange: function() {
+        return this._range;
     }
     // FUTURE: add listeners, details
 }

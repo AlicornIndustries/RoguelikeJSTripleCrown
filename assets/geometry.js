@@ -38,5 +38,18 @@ Game.Geometry = {
             }
         }
         return points;
+    },
+    getFilledCircle: function(xc,yc,radius) {
+        // xc, yc: center coords. https://stackoverflow.com/questions/1201200/fast-algorithm-for-drawing-filled-circles
+        // Returns array of points
+        rsquared = radius*radius;
+        var points = [];
+        for(var y=-radius; y<=radius; y++) {
+            for(var x=-radius; x<=radius; x++) {
+                if(x*x+y*y <= rsquared) {
+                    points.push({x: x, y: y});
+                }
+            }
+        }
     }
 };

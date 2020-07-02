@@ -340,7 +340,6 @@ Game.Screen.loseScreen = {
         // Nothing here yet. Add restart button.
     }
 }
-
 Game.Screen.ItemListScreen = function(template) {
     // Setup based on template
     this._caption = template['caption'];
@@ -603,7 +602,7 @@ Game.Screen.gainStatScreen = {
         }
     }
 };
-// Target-based screens (look)
+// Target-based screens (look, fire, zap)
 Game.Screen.TargetBasedScreen = function(template) {
     template = template || {};
     // By default, ok does nothing and does not consume a turn
@@ -637,81 +636,54 @@ Game.Screen.TargetBasedScreen = function(template) {
         }
         Game.refresh();
     }
-};
-Game.Screen.TargetBasedScreen.prototype.setup = function(player, startX, startY, offsetX, offsetY) {
-    // FUTURE: Implement screen scrolling
-    this._player = player;
-    // Store original position. Subtract screen offset so we don't have to later
-    this._startX = startX - offsetX;
-    this._startY = startY - offsetY;
-    // Store current cursor position
-    this._cursorX = this._startX;
-    this._cursorY = this._startY;
-    // Store map offsets
-    this._offsetX = offsetX;
-    this._offsetY = offsetY;
-    // Cache the FOV
-    var visibleCells = {};
-    this._player.getMap().getFov(this._player.getD()).compute(
-        this._player.getX(), this._player.getY(),
-        this._player.getSightRadius(),
-        function(x,y,radius,visibility) {
-            visibleCells[x+","+y] = true;
-        });
-    this._visibleCells = visibleCells;
-};
-Game.Screen.TargetBasedScreen.prototype.render = function(display) {
-    // Use playScreen to render
-    Game.Screen.playScreen.renderTiles.call(Game.Screen.playScreen, display);
-    
-    /* BUG: removed for testing
-    // Draw a line from start to cursor
-    var points = Game.Geometry.getLine(this._startX, this._startY, this._cursorX, this._cursorY);
-    //console.log(points);
-    for(var i=0, l=points.length; i<l; i++) {
-        display.drawText(points[i].x, points[i].y, "%c{magenta}*");
+    this.setup = template['setup'] || function(player, startX, startY, offsetX, offsetY) {
+        // FUTURE: Implement screen scrolling
+        this._player = player;
+        // Store original position. Subtract screen offset so we don't have to later
+        this._startX = startX - offsetX;
+        this._startY = startY - offsetY;
+        // Store current cursor position
+        this._cursorX = this._startX;
+        this._cursorY = this._startY;
+        // Store map offsets
+        this._offsetX = offsetX;
+        this._offsetY = offsetY;
+        // Cache the FOV
+        var visibleCells = {};
+        this._player.getMap().getFov(this._player.getD()).compute(
+            this._player.getX(), this._player.getY(),
+            this._player.getSightRadius(),
+            function(x,y,radius,visibility) {
+                visibleCells[x+","+y] = true;
+            });
+        this._visibleCells = visibleCells;
     }
-    */
-
-    // Only draw on the point we're targeting
-    display.drawText(this._cursorX, this._cursorY, "%c{magenta}*");
-
-    // Render caption at bottom
-    display.drawText(0, Game.getScreenHeight()-1,
-        this._captionFunction(this._cursorX+this._offsetX, this._cursorY+this._offsetY));
-};
-/*
-Game.Screen.TargetBasedScreen.prototype.handleInput = function(inputType, inputData) {
-    // Move the cursor
-    if(inputType=="keydown") {
-        if ((inputData.keyCode === ROT.KEYS.VK_LEFT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD4)) {
-            this.moveCursor(-1,0);
-        } else if ((inputData.keyCode === ROT.KEYS.VK_RIGHT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD6)) {
-            this.moveCursor(1,0);
-        } else if ((inputData.keyCode === ROT.KEYS.VK_UP) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD8)) {
-            this.moveCursor(0,-1);
-        } else if ((inputData.keyCode === ROT.KEYS.VK_DOWN) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD2)) {
-            this.moveCursor(0,1);
-        } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD7) {
-            this.moveCursor(-1,-1);
-        } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD9) {
-            this.moveCursor(1,-1);
-        } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD3) {
-            this.moveCursor(1,1);
-        } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD1) {
-            this.moveCursor(-1,1);
-        } else if(inputData.keyCode===ROT.KEYS.VK_RETURN) {
-            this.executeOkFunction();
+    this.render = template['render'] || function(display) {
+        // Use playScreen to render
+        Game.Screen.playScreen.renderTiles.call(Game.Screen.playScreen, display);
+        
+        /* BUG: removed for testing
+        // Draw a line from start to cursor
+        var points = Game.Geometry.getLine(this._startX, this._startY, this._cursorX, this._cursorY);
+        //console.log(points);
+        for(var i=0, l=points.length; i<l; i++) {
+            display.drawText(points[i].x, points[i].y, "%c{magenta}*");
         }
+        */
+
+        // Only draw on the point we're targeting
+        display.drawText(this._cursorX, this._cursorY, "%c{magenta}*");
+
+        // Render caption at bottom
+        display.drawText(0, Game.getScreenHeight()-1,
+            this._captionFunction(this._cursorX+this._offsetX, this._cursorY+this._offsetY));
     }
-    Game.refresh();
-};
-*/
-Game.Screen.TargetBasedScreen.prototype.moveCursor = function(dx,dy) {
-    // Ensure we stay within bounds
-    this._cursorX = Math.max(0, Math.min(this._cursorX+dx, Game.getScreenWidth()));
-    // Save the last line for the caption
-    this._cursorY = Math.max(0, Math.min(this._cursorY+dy, Game.getScreenHeight()-1)); 
+    this.moveCursor = template['moveCursor'] || function(dx,dy) {
+        // Ensure we stay within bounds
+        this._cursorX = Math.max(0, Math.min(this._cursorX+dx, Game.getScreenWidth()));
+        // Save the last line for the caption
+        this._cursorY = Math.max(0, Math.min(this._cursorY+dy, Game.getScreenHeight()-1)); 
+    }
 };
 Game.Screen.TargetBasedScreen.prototype.executeOkFunction = function() {
     // Switch back to play screen
@@ -780,7 +752,7 @@ Game.Screen.lookScreen = new Game.Screen.TargetBasedScreen({
             }
         }
         Game.refresh();
-    }
+    },
 });
 // Help screen TODO: Move the text into a better file for this?
 Game.Screen.helpScreen = {
@@ -1014,13 +986,74 @@ Game.Screen.fireScreen = new Game.Screen.TargetBasedScreen( {
                 this.moveCursor(-1,1);
             } else if((inputData.keyCode===ROT.KEYS.VK_RETURN) || (inputData.keyCode===ROT.KEYS.VK_F)) {
                 // Fire at the target
-
+                var x = this._cursorX+this._offsetX;
+                var y = this._cursorY+this._offsetY;
+                var d = this._player.getD();
+                var map = this._player.getMap();
+                target = map.getEntityAt(x,y,d);
+                if(target!=null && target.hasMixin("Destructible")) {
+                    // player does ranged attack at target
+                    console.log("Ranged attacked target");
+                }
+                
                 // TODO
 
-                console.log("fired");
                 this.executeOkFunction();
             }
+            // TODO: else if ESC, cancel w/o using turn
         }
         Game.refresh();
+    },
+    setup: function(player, startX, startY, offsetX, offsetY) {
+        // FUTURE: Implement screen scrolling
+        this._player = player;
+        // Store original position. Subtract screen offset so we don't have to later
+        this._startX = startX - offsetX;
+        this._startY = startY - offsetY;
+        // Store current cursor position
+        this._cursorX = this._startX;
+        this._cursorY = this._startY;
+        // Store map offsets
+        this._offsetX = offsetX;
+        this._offsetY = offsetY;
+        // Cache the FOV
+        var visibleCells = {};
+        this._player.getMap().getFov(this._player.getD()).compute(
+            this._player.getX(), this._player.getY(),
+            this._player.getSightRadius(),
+            function(x,y,radius,visibility) {
+                visibleCells[x+","+y] = true;
+            });
+        this._visibleCells = visibleCells;
+
+        // Get player's ranged weapon
+        this._projectileLauncher = this._player.getProjectileLauncher();
+        this._range = this._projectileLauncher.getRange();
+        this._rangeSquared = this._range*this._range;
+    },
+    render: function(display) {
+        // Use playScreen to render
+        Game.Screen.playScreen.renderTiles.call(Game.Screen.playScreen, display);
+
+        // Draw targeting cursor
+        display.drawText(this._cursorX, this._cursorY, "%c{magenta}*");
+
+        // TODO: Highlight areas within range
+
+        // Render caption at bottom
+        display.drawText(0, Game.getScreenHeight()-1,
+            this._captionFunction(this._cursorX+this._offsetX, this._cursorY+this._offsetY));
+    },
+    moveCursor: function(dx,dy) {
+        // Accounts for weapon range
+        var distanceX = (this._cursorX+dx)-this._startX;
+        var distanceY = (this._cursorY+dy)-this._startY;
+
+        if((distanceX*distanceX + distanceY*distanceY) <= this._rangeSquared) {
+            // Ensure we stay within bounds
+            this._cursorX = Math.max(0, Math.min(this._cursorX+dx, Game.getScreenWidth()));
+            // Save the last line for the caption
+            this._cursorY = Math.max(0, Math.min(this._cursorY+dy, Game.getScreenHeight()-1)); 
+        }
     }
 })

@@ -501,6 +501,14 @@ Game.EntityMixins.Equipper = {
     getWeapon: function() {
         return this._weapon;
     },
+    getProjectileLauncher: function() {
+        if(this._weapon.hasMixin("ProjectileLauncher")) {
+            return this._weapon;
+        }
+        else {
+            return null;
+        }
+    },
     getArmor: function() {
         return this._armor;
     },

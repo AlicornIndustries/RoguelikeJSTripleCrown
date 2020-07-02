@@ -89,6 +89,10 @@ Game.ItemRepository.define("bow", {
     attackValue: 0,
     damageValue: 1,
     damageType: Game.Enums.DamageTypes.BLUNT,
+    rangedAttackValue: 10,
+    rangedDamageValue: 5,
+    rangedDamageType: Game.Enums.DamageTypes.PIERCING,
+    range: 3,
     wieldable: true,
     possibleMaterials: [
         Game.Enums.Materials.WOOD
