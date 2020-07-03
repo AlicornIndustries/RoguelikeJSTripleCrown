@@ -337,6 +337,9 @@ Game.Screen.playScreen = {
                     else if(newItem.isWearable()) {
                         that._player.wear(newItem);
                     }
+                    else if(newItem.isQuiverable()) {
+                        that._player.quiver(newItem);
+                    }
                 }
             })
         }
