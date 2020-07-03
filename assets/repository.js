@@ -47,10 +47,7 @@ Game.Repository.prototype.create = function(name, extraProperties) {
         }
     }
     if(newItem.hasMixin("Stackable")) {
-        console.log(extraProperties);
         if(extraProperties!=null && extraProperties["stackSize"]!=null) {
-            console.log("stack size:");
-            console.log(extraProperties["stackSize"]);
             newItem.setStackSize(extraProperties["stackSize"]);
             //newItem.stackSize = extraProperties["stackSize"];
         }

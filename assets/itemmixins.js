@@ -14,6 +14,8 @@ Game.ItemMixins.Edible = {
             if(this.hasRemainingConsumptions()) {
                 entity.modifyFullnessBy(this._foodValue);
                 this._remainingConsumptions--;
+                // When _remainingConsumptions<=0, gets removed in screen.js by this._player.removeItem(key);
+
             }
         }
     },
@@ -49,11 +51,12 @@ Game.ItemMixins.Stackable = {
     setStackSize: function(newSize) {
         this._stackSize = newSize;
     },
-    addStackSize: function(delta) {
-        this._stackSize = ROT.Util.clamp(this._stackSize+delta,0,maxStackSize);
+    changeStackSize: function(delta) {
+        this._stackSize = ROT.Util.clamp(this._stackSize+delta,0,this._maxStackSize);
+        // Deleting the item when stackSize<=0 is caused by the entity doing the projectileAttack, in Attacker
     },
     splitStack: function() {
-        // TODO
+        // TODO. This might need to be a function of the InventoryHolder.
     },
     getStackSize: function() {
         return this._stackSize;

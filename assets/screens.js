@@ -180,7 +180,8 @@ Game.Screen.playScreen = {
                 this.move(-1,1,0);
             } else if(inputData.keyCode===ROT.KEYS.VK_F) {
                 if(this._player.getProjectileLauncher()!=null) {
-                    if(this._player.getAmmo()!=null) {
+                    var ammo = this._player.getAmmo();
+                    if(ammo!=null) {
                         var offsets = this.getScreenOffsets();
                         Game.Screen.fireScreen.setup(this._player, this._player.getX(), this._player.getY(), offsets.x, offsets.y);
                         this.setSubscreen(Game.Screen.fireScreen);

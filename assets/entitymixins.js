@@ -324,6 +324,18 @@ Game.EntityMixins.Attacker = {
     },
     projectileAttack: function(target, distance) {
         if(target.hasMixin("Destructible")) {
+            // Consume a unit of ammunition
+            var ammo = this.getAmmo();
+            if(ammo.hasMixin("Stackable")) {
+                ammo.changeStackSize(-1);
+                if(ammo.getStackSize()<=0) {
+                    console.log(ammo);
+                    var index = this.getItemIndex(ammo);
+                    console.log(index);
+                    this.removeItem(index);
+                }
+            }
+
             var rangedAttackValue = this.getRangedAttackValue();
             var defenseValue = target.getDefenseValue();
             // Clamp between 10% and 90% chance to hit
@@ -407,6 +419,17 @@ Game.EntityMixins.InventoryHolder = {
     getItem: function(i) {
         return this._items[i];
     },
+    getItemIndex: function(item) {
+        // Converts an item into its index in the inventory
+        // TODO: Refactor this kludge.
+        for(var i=0; i<this._items.length; i++) {
+            if(this._items[i]==item) {
+                return i;
+            }
+        }
+        // If item not in inventory, return null
+        return null;
+    },
     addItem: function(item) {
         // Try to find a slot
         for(var i=0; i<this._items.length; i++) {
@@ -417,7 +440,7 @@ Game.EntityMixins.InventoryHolder = {
         }
         return false; // No empty slot found
     },
-    removeItem: function(i) {
+    removeItem: function(i) { // i: index of item in inventory
         // First, unequip it
         if(this._items[i] && this.hasMixin(Game.EntityMixins.Equipper)) {
             this.unequip(this._items[i]);

@@ -72,7 +72,7 @@ Game.Enums.CharClasses = Object.freeze({
             startingItems: [
                 {name: "shortsword", material: Game.Enums.Materials.STEEL},
                 {name: "bow"},
-                {name: "arrow", material:Game.Enums.Materials.MYTHRIL, stackSize:25},
+                {name: "arrow", stackSize:3},
                 {name: "apple"}
             ],
         },
