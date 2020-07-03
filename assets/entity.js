@@ -113,7 +113,11 @@ Game.Entity.prototype.tryMove = function(x,y,d,map) {
         var items=this.getMap().getItemsAt(x,y,d);
         if(items) {
             if(items.length===1) {
-                Game.sendMessage(this,"There is %s on the floor.",[items[0].describeA()]);
+                if(items[0].hasMixin("Stackable")) {
+                    Game.sendMessage(this,"There is a stack of %s on the floor.",[items[0].describe()])
+                } else {
+                    Game.sendMessage(this,"There is %s on the floor.",[items[0].describeA()]);
+                }
             } else {
                 Game.sendMessage(this, "There are several objects here.");
             }

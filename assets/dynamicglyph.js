@@ -81,7 +81,7 @@ Game.DynamicGlyph.prototype.describe = function() {
     }
     return suffix+" "+name;
 }
-Game.DynamicGlyph.prototype.describeA = function(capitalize) { // A (stack of) 100 arrows
+Game.DynamicGlyph.prototype.describeA = function(capitalize) {
     // "a rock", "An apple." Capitalize article if true
     var prefixes = capitalize ? ['A', 'An'] : ['a','an'];
     var nameString = this.describe();
