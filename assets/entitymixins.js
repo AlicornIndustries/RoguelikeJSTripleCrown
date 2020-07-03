@@ -342,6 +342,7 @@ Game.EntityMixins.Attacker = {
                     var index = this.getItemIndex(ammo);
                     this.removeItem(index);
                 }
+                // TODO: Else, if not stackable, just remove the item. Search for another identical item and quiver it to replace it?
             }
 
             var rangedAttackValue = this.getRangedAttackValue();
@@ -439,6 +440,35 @@ Game.EntityMixins.InventoryHolder = {
         return null;
     },
     addItem: function(item) {
+        var that = this;
+
+        // If the item is stackable, first check to see if we have an item it stacks with
+        if(item.hasMixin("Stackable")) {
+            for(var i=0; i<this._items.length; i++) {
+                if(this._items[i]!=null) {
+                    var ithitem = this._items[i];
+                    if(ithitem.hasMixin("Stackable") && ithitem.stacksWith(item)) {
+                        // Stack items together
+                        // Add to the ith item in inventory, then subtract that from the item to be added to inventory
+                        var initialItemStackSize = item.getStackSize();
+                        var remainingSpace = ithitem.changeStackSize(initialItemStackSize);
+                        item.changeStackSize(-1*initialItemStackSize);
+                        // If remainingSpace>=0, then we've used up the other item with space to spare. Delete the item.
+                        if(remainingSpace<0) {
+                            // Otherwise, if remainingSpace<0, then we can't fit it all into one slot.
+                            // Make a new item and drop it on the ground at our location
+                            var newItem = Game.ItemRepository.create(item.getName(),{material:item.getMaterial(),stackSize:-1*remainingSpace});
+                            that.getMap().addItem(that.getX(),that.getY(),that.getD(),newItem);
+    
+                        }
+                        // The item (the stack we picked up) will be deleted by pickupItems()'s mapItems.splice
+                        // TOOD: might not work when items are granted by methods other than pickupItems()
+                        return true;              
+                    }
+                }
+            }
+        }
+        // Either the item isn't stackable, or the stack in inventory is already full.
         // Try to find a slot
         for(var i=0; i<this._items.length; i++) {
             if(!this._items[i]) {
@@ -457,6 +487,7 @@ Game.EntityMixins.InventoryHolder = {
         this._items[i] = null; // TODO: should I use the filter technique from Affectable's removeEffect here, to get rid of null array elements?
     },
     canAddItem: function() {
+        // TODO: if item is stackable, first see if we have an item we can stack it with
         // Check if we have an empty slot
         for(var i=0; i<this._items.length; i++) {
             if(!this._items[i]) {

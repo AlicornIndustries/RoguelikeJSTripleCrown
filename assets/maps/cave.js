@@ -28,7 +28,7 @@ Game.Map.Cave = function(tiles, player) {
         }
     }
     // Add weapons and armor to the map in random positions and depths
-    var gearTemplates = ["shortsword","longsword","staff"];
+    var gearTemplates = ["shortsword","longsword","staff","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow","arrow"];
     for(var i=0; i<gearTemplates.length;i++) {
         this.addItemAtRandomPosition(Game.ItemRepository.create(gearTemplates[i]), Math.floor(this._depth*Math.random()));
     }

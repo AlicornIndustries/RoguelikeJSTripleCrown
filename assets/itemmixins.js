@@ -77,7 +77,11 @@ Game.ItemMixins.Stackable = {
         this._stackSize = newSize;
     },
     changeStackSize: function(delta) {
-        this._stackSize = ROT.Util.clamp(this._stackSize+delta,0,this._maxStackSize);
+        // Returns remaining capacity (if initial stack is 50, max is 99, and you add 50, returns -1, since 99-100=-1 spaces left)
+        this._stackSize += delta;
+        var excess = this._stackSize-this._maxStackSize;
+        this._stackSize = Math.min(this._stackSize,this._maxStackSize);
+        return excess*-1;
         // Deleting the item when stackSize<=0 is caused by the entity doing the projectileAttack, in Attacker
     },
     splitStack: function() {
@@ -85,6 +89,31 @@ Game.ItemMixins.Stackable = {
     },
     getStackSize: function() {
         return this._stackSize;
+    },
+    getMaxStackSize: function() {
+        return this._maxStackSize
+    },
+    stacksWith: function(item) {
+        // If this stack is already full, can't stack it at all
+        if(this._stackSize == this._maxStackSize) {
+            return false;
+        }
+        // If both items have same name and material, they can be stacked.
+        if(this._name == item.getName()) {
+            // Same name
+            if(this.hasMixin("MaterialHaver") && item.hasMixin("MaterialHaver")) {
+                if(this._material==item.getMaterial()) {
+                    // Same name and material
+                    return true;
+                } else {
+                    // Same name, different material
+                    return false;
+                }
+            }
+        } else {
+            // Different names
+            return false;
+        }
     }
 }
 
