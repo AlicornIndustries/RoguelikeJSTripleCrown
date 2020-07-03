@@ -37,6 +37,35 @@ Game.ItemMixins.Edible = {
         }
     }
 }
+Game.ItemMixins.Quaffable = {
+    name: "Quaffable",
+    init: function(template) {
+        this._toxic = template["toxic"] || false;
+        this._maxQuaffs = template["quaffs"] || 1;
+        this._remainingQuaffs = this._maxQuaffs;
+        this._effect = template["effect"]; // TODO: replace with effects[], apply all of them
+        this._effect.init(template["effectTemplate"]);
+    },
+    getEffects: function() {
+        return this._effect;
+    },
+    isToxic: function() {
+        return this._toxic;
+    },
+    changeRemainingQuaffs: function(delta) {
+        this._remainingQuaffs = Math.max(this._remainingQuaffs+delta,0)
+    },
+    hasRemainingQuaffs: function() {
+        return this._remainingQuaffs>0;
+    },
+    describe: function() {
+        if(this._maxQuaffs!=this._remainingQuaffs) {
+            return 'partly empty '+Game.Item.prototype.describe.call(this);
+        } else {
+            return this._name;
+        }
+    },
+}
 
 Game.ItemMixins.Stackable = {
     name: "Stackable",

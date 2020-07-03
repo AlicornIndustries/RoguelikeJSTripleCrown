@@ -11,6 +11,7 @@ Game.EntityMixins.PlayerActor = {
         }
         this._acting = true;
         this.addTurnHunger();
+        this.updateEffects();
         // Detect if game is over
         if(!this.isAlive()) {
             Game.Screen.playScreen.setGameEnded(true);
@@ -70,6 +71,9 @@ Game.EntityMixins.TaskActor = {
         this._tasks = template["tasks"] || ["wander"];
     },
     act: function() {
+        if(this.hasMixin("Affectable")) {
+            this.updateEffects();
+        }
         // Iterate through our tasks
         for(var i=0; i<this._tasks.length; i++) {
             if(this.canDoTask(this._tasks[i])) {
@@ -134,6 +138,9 @@ Game.EntityMixins.FungusActor = {
         this._growthsRemaining = 5;
     },
     act: function() {
+        if(this.hasMixin("Affectable")) {
+            this.updateEffects();
+        }
         // Random chance to spread
         if(this._growthsRemaining>0) {
             var growthChance = 0.02 // Not exact, since can't grow on own tile, simulating overcrowding
@@ -174,6 +181,9 @@ Game.EntityMixins.Destructible = {
         return (this._hp * 1.0 / this._maxHp);
     },
     setHp: function(hp) {this._hp = hp;},
+    heal: function(hp) {
+        this._hp = Math.min(this._hp+hp, this._maxHp);
+    },
     increaseMaxHp: function(value) {
         value = value | 10; // Default to 10
         this._maxHp += value;
@@ -444,7 +454,7 @@ Game.EntityMixins.InventoryHolder = {
             this.unequip(this._items[i]);
         }
         // Clear the inventory slot 
-        this._items[i] = null;
+        this._items[i] = null; // TODO: should I use the filter technique from Affectable's removeEffect here, to get rid of null array elements?
     },
     canAddItem: function() {
         // Check if we have an empty slot
@@ -537,9 +547,24 @@ Game.EntityMixins.FoodConsumer = {
                 this.removeItem(index);
             }
         }
-
+    },
+    quaff: function(item) {
+        if(!item.hasMixin("Quaffable") || !item.hasRemainingQuaffs()) {
+            Game.sendMessage("You can't drink that!");
+        } else {
+            item.changeRemainingQuaffs(-1);
+            // Apply effects of potion
+            if(this.hasMixin("Affectable")) {
+                this.addEffect(item.getEffects());
+            }
+            if(!item.hasRemainingQuaffs()) {
+                var index = this.getItemIndex(item);
+                this.removeItem(index);
+            }
+        }
     }
 }
+
 Game.EntityMixins.CorpseDropper = {
     name: "CorpseDropper",
     init: function(template) {
@@ -799,7 +824,66 @@ Game.EntityMixins.SkillHaver = {
             return this._skills[obj]
         }
     }
+};
+// for entities that can be affected by effects (most entities are this)
+Game.EntityMixins.Affectable = {
+    name: "Affectable",
+    init: function(template) {
+        this._effects = [];
+    },
+    addEffect: function(effect) {
+        this._effects.push(effect);
+        effect.start(this);
+        // Immediately remove the effect if it's finished
+        if(effect.getDuration()<=0) {
+            this.removeEffect(effect);
+        }
+    },
+    updateEffects: function() {
+        if(this._effects.length>0) {
+            var indicesToRemove = [];
+            for(var i=0; i<this._effects.length; i++) {
+                this._effects[i].update(this);
+                if(this._effects[i].getDuration()<=0) {
+                    indicesToRemove.push(i);
+                }
+            }
+            // Wait to clear effects until after we've finished the loop
+            for(var j=0; j<indicesToRemove.length; j++) {
+                this.removeEffect(indicesToRemove[j]);
+            }
+        }
+    },
+    getEffects: function() {
+        return this._effects;
+    },
+    getEffect: function(index) {
+        return this._effects[index];
+    },
+    getEffectIndex: function(effect) {
+        // TODO: Refactor this kludge, like getItemIndex
+        for(var i=0; i<this._effects.length; i++) {
+            if(this._effects[i]==effect) {
+                return i;
+            }
+        }
+        // If no such effect, return null
+        return null;
+    },
+    removeEffect: function(index) {
+        if(this._effects[index]!=null) {
+            this._effects[index].end(this);
+            this._effects[index] = null;
+            this._effects = this._effects.filter(function(element) {
+                if(element!=null) {
+                    return element;
+                }
+            })
+            console.log("effect removed");
+        }
+    }
 }
+
 // For entities with character classes
 Game.EntityMixins.Classy = {
     name: "Classy",

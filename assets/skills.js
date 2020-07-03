@@ -1,6 +1,5 @@
 Game.Skills = {};
 
-
 Game.Skills.Armorer = {
     name: Game.Enums.SkillTerms.ARMORER,
     init: function() {

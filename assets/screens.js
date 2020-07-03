@@ -254,8 +254,11 @@ Game.Screen.playScreen = {
                 }
             } else if(inputData.keyCode === ROT.KEYS.VK_Q) {
                 if(inputData.shiftKey) {
-                    // Quiver screen
+                    // Q: Quiver screen
                     this.showItemsSubscreen(Game.Screen.quiverScreen, this._player.getItems(), "You have nothing to put in your quiver.");
+                } else {
+                    // q: quaff screen
+                    this.showItemsSubscreen(Game.Screen.quaffScreen, this._player.getItems(), "You have nothing to drink.");
                 }
             } else {
                 // Not a valid key
@@ -513,6 +516,21 @@ Game.Screen.eatScreen = new Game.Screen.ItemListScreen({
         var item = selectedItems[key];
         Game.sendMessage(this._player, 'You eat %s.',[item.describeThe()]);
         this._player.eat(item);
+        return true;
+    }
+});
+Game.Screen.quaffScreen = new Game.Screen.ItemListScreen({
+    caption: "Choose the item you list to quaff",
+    canSelect: true,
+    canSelectMultipleItems: false,
+    isAcceptable: function(item) {
+        return item && item.hasMixin("Quaffable");
+    },
+    ok: function(selectedItems) {
+        var key = Object.keys(selectedItems)[0];
+        var item = selectedItems[key];
+        Game.sendMessage(this._player, 'You drink %s.',[item.describeThe()]);
+        this._player.quaff(item);
         return true;
     }
 });

@@ -115,6 +115,19 @@ Game.ItemRepository.define("arrow", {
     mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.ProjectileAmmo,Game.ItemMixins.MaterialHaver,Game.ItemMixins.Stackable]},
     {disableRandomCreation: true
 });
+// Potions/Quaffables
+Game.ItemRepository.define("potion of healing", {
+    name: "potion of healing",
+    character: "!",
+    foreground: "pink",
+    effect: Game.Effects.Heal,
+    effectTemplate: {
+        healAmount: 5,
+        duration: 3
+    },
+    mixins: [Game.ItemMixins.Quaffable]},
+    {disableRandomCreation: true
+});
 // Wearables
 Game.ItemRepository.define("padded barding", {
     name: "padded barding",

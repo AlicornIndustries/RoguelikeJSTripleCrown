@@ -49,7 +49,8 @@ Game.Enums.CharClasses = Object.freeze({
             name: "soldier", races: [Game.Enums.Races.PonyRaces.EARTH,Game.Enums.Races.PonyRaces.PEGASUS,Game.Enums.Races.PonyRaces.UNICORN],
             startingItems: [
                 {name: "shortsword", material:Game.Enums.Materials.STEEL},
-                {name:"padded barding"},
+                {name: "padded barding"},
+                {name: "potion of healing"},
                 {name: "apple"}
             ],
         },
