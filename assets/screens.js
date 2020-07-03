@@ -232,8 +232,13 @@ Game.Screen.playScreen = {
                 } else if(items.length===1) {
                     // If only one item, try to pick it up
                     var item = items[0];
+                    if(item.hasMixin("Stackable")) {
+                        var itemString = items[0].describe();
+                    } else {
+                        var itemString = items[0].describeA();
+                    }
                     if(this._player.pickupItems([0])) {
-                        Game.sendMessage(this._player, "You pick up %s.",[item.describeA()]);
+                        Game.sendMessage(this._player, "You pick up %s.",[itemString]);
                     } else {
                         Game.sendMessage(this._player, "Your inventory is full! Nothing was picked up.");
                     }

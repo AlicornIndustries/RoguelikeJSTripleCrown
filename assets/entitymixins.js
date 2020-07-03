@@ -456,13 +456,14 @@ Game.EntityMixins.InventoryHolder = {
                         // If remainingSpace>=0, then we've used up the other item with space to spare. Delete the item.
                         if(remainingSpace<0) {
                             // Otherwise, if remainingSpace<0, then we can't fit it all into one slot.
-                            // Make a new item and drop it on the ground at our location
+                            // Make a new item. If it can fit in our inventory, do so. Else, drop it on the ground at our location
                             var newItem = Game.ItemRepository.create(item.getName(),{material:item.getMaterial(),stackSize:-1*remainingSpace});
-                            that.getMap().addItem(that.getX(),that.getY(),that.getD(),newItem);
-    
+                            if(!that.addItem(newItem)) {
+                                that.getMap().addItem(that.getX(),that.getY(),that.getD(),newItem);
+                            }
                         }
                         // The item (the stack we picked up) will be deleted by pickupItems()'s mapItems.splice
-                        // TOOD: might not work when items are granted by methods other than pickupItems()
+                        // TODO: might not work when items are granted by methods other than pickupItems()
                         return true;              
                     }
                 }
