@@ -348,6 +348,17 @@ Game.Screen.playScreen = {
                 }
             })
         }
+        // Testing
+        // console.log(this._player._skills);
+        // for(var s in this._player._skills) {
+        //     if(this._player._skills.hasOwnProperty(s)) {
+        //         console.log(this._player._skills[s])
+        //     }
+        // }
+        // This is still just getting MeleeWeapons (or whichever is last in the entity template)
+        //console.log(this._player.getSkill(Game.Enums.Skills.ARCHERY));
+        //console.log(this._player.getSkill(Game.Enums.Skills.MELEEWEAPONS));
+
     }
 }
 Game.Screen.winScreen = {

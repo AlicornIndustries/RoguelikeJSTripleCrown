@@ -286,7 +286,7 @@ Game.EntityMixins.Attacker = {
             if(this.getWeapon()) {
                 modifier+=this.getWeapon().getDamageValue();
                 // Apply additional bonus if skilled in weapon use
-                var weaponSkill = this.getSkill(Game.Enums.SkillTerms.MELEEWEAPONS);
+                var weaponSkill = this.getSkill(Game.Enums.Skills.MELEEWEAPONS);
                 if(weaponSkill) {
                     modifier+=weaponSkill.getDamageValueBoost();
                 }
@@ -828,34 +828,40 @@ Game.EntityMixins.WindigoActor = Game.extend(Game.EntityMixins.TaskActor, {
 
 Game.EntityMixins.SkillHaver = {
     name: "SkillHaver",
-    init: function(template) {
+    init: function(template) { // SkillHaver init needs to be called last. Or, use a template.
         this._skills = {};
-        // In future, may replace with a template that loads in specific skills (since not all players may have access to the same skills)
-        // Determine what skills we can have based on mixins
-        // Add skill to our attached skills, then call init
+        // This doesn't work: use skillName (string) instead of the actual skill object
+        // for(var i=0; i<template["skills"].length; i++) {
+        //     var skill = template["skills"][i].skill;
+        //     //console.log(skill)
+        //     var skillLevel = template["skills"][i].skillLevel;
+        //     //this._skills[skill] = Game.Skills.createSkill(skill);
+        //     //this._skills[skill].init();
+        //     //this._skills[skill].levelUp(skillLevel);
+        //     this._skills[skill] = Game.Skills.createSkill(skill);
+        //     console.log(this._skills[skill]); // It's correct so far
+        //     this._skills[skill].init();
+        //     this._skills[skill].levelUp(skillLevel);
+        // }
+        //console.log(this.getSkill(Game.Enums.Skills.ARCHERY));
+        //console.log(this.getSkill(Game.Enums.Skills.MELEEWEAPONS));
 
-        if(this.hasMixin("Equipper")) {
-            this._skills[Game.Enums.SkillTerms.ARMORER] = Object.create(Game.Skills.Armorer);
-            this._skills[Game.Enums.SkillTerms.ARMORER].init();
-            // This should be equivalent to:
-            // this.getSkill(Game.Enums.SkillTerms.ARMORER).init();
-            if(this.hasMixin("Attacker")) {
-                this._skills[Game.Enums.SkillTerms.MELEEWEAPONS] = Object.create(Game.Skills.MeleeWeapons);
-                this._skills[Game.Enums.SkillTerms.MELEEWEAPONS].init();
-            }
-        }
-        if(this.hasMixin("Sight")) {
-            this._skills[Game.Enums.SkillTerms.SCOUT] = Object.create(Game.Skills.Scout);
-            this._skills[Game.Enums.SkillTerms.SCOUT].init();
+        for(var i=0; i<template["skills"].length; i++) {
+            var skillName = template["skills"][i].skill.name;
+            var skillLevel = template["skills"][i].skillLevel;
+            this._skills[skillName] = Game.Skills.createSkill(template["skills"][i].skill);
+            this._skills[skillName].init();
+            this._skills[skillName].levelUp(skillLevel);
         }
     },
-    getSkill: function(obj) {
-        if(typeof obj==="object") {
-            return this._skills[obj.name];
+    getSkill: function(skill) {
+        // in: "archery" or Game.Enums.Skill.ARCHERY
+        if(typeof skill === "object") {
+            return this._skills[skill.name];
         } else {
-            return this._skills[obj]
+            return this._skills[skill];
         }
-    }
+    },
 };
 // for entities that can be affected by effects (most entities are this)
 Game.EntityMixins.Affectable = {

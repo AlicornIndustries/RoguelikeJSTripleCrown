@@ -14,6 +14,10 @@ Game.PlayerTemplate = {
     defenseValue: 20,
     sightRadius: 6,
     inventorySlots: 22,
+    skills: [
+        {skill: Game.Enums.Skills.ARCHERY, skillLevel: 1},
+        {skill: Game.Enums.Skills.MELEEWEAPONS, skillLevel: 5},
+    ],
     mixins: [Game.EntityMixins.PlayerActor, Game.EntityMixins.Attacker,
              Game.EntityMixins.Destructible, Game.EntityMixins.Sight,
              Game.EntityMixins.MessageRecipient, Game.EntityMixins.InventoryHolder,

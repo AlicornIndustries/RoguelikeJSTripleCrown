@@ -4,10 +4,11 @@ Game.Enums = {
         BLUNT: "blunt",
         PIERCING: "piercing"
     }),
-    SkillTerms: Object.freeze({
-        ARMORER: "armorer", // could use the "another way to format" to have different names for each level.
-        MELEEWEAPONS: "melee weapons",
-        SCOUT: "scout",
+    Skills: Object.freeze({
+        ARMORER: {name: "armorer"}, // could use the "another way to format" to have different names for each level.
+        ARCHERY: {name: "archery"},
+        MELEEWEAPONS: {name: "melee weapons"}, // "Swordsmareship?" Have skill SubTypes?
+        SCOUTING: {name: "scouting"},
     }),
     Materials: Object.freeze({
         CLOTH: {name: "cloth", value: 5},
@@ -24,6 +25,16 @@ Game.Enums = {
         CLOTH: "cloth",
         PLATE: "plate",
         CHAINMAIL: "chain mail",
+    }),
+    WeaponTypes: Object.freeze({
+        SWORD: {name: "sword"},
+        AXE: {name: "axe"},
+        POLEARM: {name: "polearm"},
+        UNARMED: {name: "unarmed"},
+        BOW: {name: "bow", SubTypes: {
+            BOW: {name: "bow"},
+            CROSSBOW: {name: "crossbow"}
+        }},
     }),
     Races: Object.freeze({
         PonyRaces: {
