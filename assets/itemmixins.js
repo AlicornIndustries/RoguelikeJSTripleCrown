@@ -9,15 +9,11 @@ Game.ItemMixins.Edible = {
         this._maxConsumptions = template["consumptions"] || 1;
         this._remainingConsumptions = this._maxConsumptions;
     },
-    eat: function(entity) {
-        if(entity.hasMixin("FoodConsumer")) {
-            if(this.hasRemainingConsumptions()) {
-                entity.modifyFullnessBy(this._foodValue);
-                this._remainingConsumptions--;
-                // When _remainingConsumptions<=0, gets removed in screen.js by this._player.removeItem(key);
-
-            }
-        }
+    getFoodValue: function() {
+        return this._foodValue;
+    },
+    changeRemainingConsumptions: function(delta) {
+        this._remainingConsumptions = Math.max(this._remainingConsumptions+delta,0)
     },
     hasRemainingConsumptions: function() {
         return this._remainingConsumptions>0;

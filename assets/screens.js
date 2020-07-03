@@ -512,10 +512,7 @@ Game.Screen.eatScreen = new Game.Screen.ItemListScreen({
         var key = Object.keys(selectedItems)[0];
         var item = selectedItems[key];
         Game.sendMessage(this._player, 'You eat %s.',[item.describeThe()]);
-        item.eat(this._player);
-        if(!item.hasRemainingConsumptions()) {
-            this._player.removeItem(key);
-        }
+        this._player.eat(item);
         return true;
     }
 });

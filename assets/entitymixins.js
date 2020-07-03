@@ -329,9 +329,7 @@ Game.EntityMixins.Attacker = {
             if(ammo.hasMixin("Stackable")) {
                 ammo.changeStackSize(-1);
                 if(ammo.getStackSize()<=0) {
-                    console.log(ammo);
                     var index = this.getItemIndex(ammo);
-                    console.log(index);
                     this.removeItem(index);
                 }
             }
@@ -527,6 +525,19 @@ Game.EntityMixins.FoodConsumer = {
         } else {
             return 'Not Hungry';
         }
+    },
+    eat: function(food) {
+        if(!food.hasMixin("Edible") || !food.hasRemainingConsumptions()) {
+            Game.sendMessage(this,"You can't eat that!")
+        } else {
+            this.modifyFullnessBy(food.getFoodValue());
+            food.changeRemainingConsumptions(-1);
+            if(!food.hasRemainingConsumptions()) {
+                var index = this.getItemIndex(food);
+                this.removeItem(index);
+            }
+        }
+
     }
 }
 Game.EntityMixins.CorpseDropper = {
