@@ -8,6 +8,7 @@ Game.PlayerTemplate = {
     background: "black",
     maxHp: 100,
     attackValue: 100,
+    rangedAttackValue: 70,
     strength: 4,
     unarmedDamageType: Game.Enums.DamageTypes.BLUNT,
     defenseValue: 20,

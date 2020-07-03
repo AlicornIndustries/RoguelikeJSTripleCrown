@@ -160,6 +160,7 @@ Game.Screen.playScreen = {
             this._subscreen.handleInput(inputType, inputData);
             return;
         }
+        // TODO: Should this be an "else if?"
         if (inputType === "keydown") {
             // Movement
             if ((inputData.keyCode === ROT.KEYS.VK_LEFT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD4)) {
@@ -234,7 +235,14 @@ Game.Screen.playScreen = {
                     //this.setSubscreen(Game.Screen.pickupScreen);
                     return;
                 }
-
+            } else if(inputData.keyCode === ROT.KEYS.VK_C) {
+                if(inputData.shiftKey) {
+                    // Character screen. For now, this is just used to level up.
+                    if(this._player.hasMixin("PlayerStatGainer") && this._player.getLevelUpEarned()) {
+                        Game.Screen.gainStatScreen.setup(this._player);
+                        Game.Screen.playScreen.setSubscreen(Game.Screen.gainStatScreen);
+                    }
+                }
             } else if (inputData.keyCode === ROT.KEYS.VK_Q) {
                 // For testing
                 console.log("Q pressed");
@@ -675,7 +683,7 @@ Game.Screen.TargetBasedScreen = function(template) {
         display.drawText(this._cursorX, this._cursorY, "%c{magenta}*");
 
         // Render caption at bottom
-        display.drawText(0, Game.getScreenHeight()-1,
+        display.drawText(0, Game.getScreenHeight()-2,
             this._captionFunction(this._cursorX+this._offsetX, this._cursorY+this._offsetY));
     }
     this.moveCursor = template['moveCursor'] || function(dx,dy) {
@@ -766,6 +774,8 @@ Game.Screen.helpScreen = {
         display.drawText(0, y++, 'Descend into its depths and vanquish that which dwells below.');
         y += 3;
         display.drawText(0, y++, '[,] to pick up items');
+        display.drawText(0, y++, '[C] to level up');
+        display.drawText(0, y++, '[f] to fire a weapon');
         display.drawText(0, y++, '[d] to drop items');
         display.drawText(0, y++, '[e] to eat items');
         display.drawText(0, y++, '[w] to wield items');
@@ -988,18 +998,25 @@ Game.Screen.fireScreen = new Game.Screen.TargetBasedScreen( {
                 // Fire at the target
                 var x = this._cursorX+this._offsetX;
                 var y = this._cursorY+this._offsetY;
-                var d = this._player.getD();
-                var map = this._player.getMap();
-                target = map.getEntityAt(x,y,d);
-                if(target!=null && target.hasMixin("Destructible")) {
-                    // player does ranged attack at target
-                    console.log("Ranged attacked target");
+                if((x==this._player.getX()) && (y==this._player.getY())) {
+                    Game.sendMessage(this._player, "Shooting yourself would not be prudent.");
+                    this.executeOkFunction();
+                    return;
+                } else {
+                    var d = this._player.getD();
+                    var map = this._player.getMap();
+                    target = map.getEntityAt(x,y,d);
+                    if(target!=null && target.hasMixin("Destructible")) {
+                        this._player.projectileAttack(target);
+                        this.executeOkFunction();
+                        // Unlock engine after firing
+                        this._player.getMap().getEngine().unlock();
+                        return;
+                    }
                 }
-                
-                // TODO
-
                 this.executeOkFunction();
             }
+            
             // TODO: else if ESC, cancel w/o using turn
         }
         Game.refresh();
@@ -1041,7 +1058,7 @@ Game.Screen.fireScreen = new Game.Screen.TargetBasedScreen( {
         // TODO: Highlight areas within range
 
         // Render caption at bottom
-        display.drawText(0, Game.getScreenHeight()-1,
+        display.drawText(0, Game.getScreenHeight()-2,
             this._captionFunction(this._cursorX+this._offsetX, this._cursorY+this._offsetY));
     },
     moveCursor: function(dx,dy) {

@@ -245,13 +245,14 @@ Game.EntityMixins.Attacker = {
         this._attackValue = template["attackValue"] || 1;
         this._strength = template["strength"] || 1;
         this._unarmedDamageType = template["unarmedAttackType"] || Game.Enums.DamageTypes.BLUNT;
+        this._rangedAttackValue = template['rangedAttackValue'] || 1;
     },
     getAttackValue: function() {
         var modifier = 0;
         // If we can equip items, take them into account
         if(this.hasMixin(Game.EntityMixins.Equipper)) {
             if(this.getWeapon()) {
-                modifer+=this.getWeapon().getAttackValue();
+                modifier+=this.getWeapon().getAttackValue();
             }
             if(this.getArmor()) {
                 modifier+=this.getArmor().getAttackValue();
@@ -259,7 +260,17 @@ Game.EntityMixins.Attacker = {
         }
         return this._attackValue+modifier;
     },
-    getMeleeDamage: function() {
+    getRangedAttackValue: function() {
+        var modifier = 0;
+        if(this.hasMixin(Game.EntityMixins.Equipper)) {
+            var projectileLauncher = this.getProjectileLauncher();
+            if(projectileLauncher) {
+                modifier+=projectileLauncher.getRangedAttackValue();
+            }
+        }
+        return this._rangedAttackValue+modifier;
+    },
+    getMeleeDamage: function() { // TODO: make this name consistent with getRangedDamageValue
         var modifier=0;
         if(this.hasMixin(Game.EntityMixins.Equipper)) {
             if(this.getWeapon()) {
@@ -272,6 +283,16 @@ Game.EntityMixins.Attacker = {
             }
         }
         return this._strength+modifier;
+    },
+    getRangedDamageValue: function() { // FUTURE: will take into account equipped ammo, as well.
+        var modifier = 0;
+        if(this.hasMixin(Game.EntityMixins.Equipper)) {
+            var projectileLauncher = this.getProjectileLauncher();
+            if(projectileLauncher) {
+                modifier+=projectileLauncher.getRangedDamageValue();
+            }
+        }
+        return modifier;
     },
     attack: function(target) { // TODO: also take weapon used as input?
         // Only works on destructibles
@@ -297,8 +318,26 @@ Game.EntityMixins.Attacker = {
             // FUTURE: On miss, drain opponent's stamina or some other "Dodge Meter?"      
         }
     },
-    getAttackValue: function() {
-        return this._attackValue;
+    projectileAttack: function(target, distance) {
+        if(target.hasMixin("Destructible")) {
+            var rangedAttackValue = this.getRangedAttackValue();
+            var rangedDamageValue = this.getRangedDamageValue();
+            var defenseValue = target.getDefenseValue();
+            // Clamp between 10% and 90% chance to hit
+            var hitChance = ROT.Util.clamp(rangedAttackValue-defenseValue, 10, 90);
+            var roll = ROT.RNG.getPercentage();
+            if(hitChance>=roll) {
+                // Hit
+                var damage = this.getRangedDamageValue();
+                Game.sendMessage(this, "You hit the %s for %d damage!",[target.getName(), damage]);
+                Game.sendMessage(target, "The %s hits you for %d damage!",[this.getName(),damage]);
+                target.takeDamage(this, damage); 
+            } else {
+                // Miss
+                Game.sendMessage(this, "You miss the %s.", [target.getName()]);
+                Game.sendMessage(target, "The %s misses you.", [this.getName()]);
+            }
+        }
     },
     getStrength: function() {
         return this._strength;
@@ -537,7 +576,8 @@ Game.EntityMixins.ExperienceGainer = {
         this._experience = template["experience"] || 0;
         this._statPointsPerLevel = template['statPointsPerLevel'] || 1;
         this._statPoints = 0;
-        
+        this._levelUpEarned = false; // onGainLevel listener sets this to true for PlayerStatGainer. NPCs level up immediately.
+
         // Determine what stats can be leveled up
         this._statOptions = [];
         if(this.hasMixin("Attacker")) {
@@ -550,6 +590,9 @@ Game.EntityMixins.ExperienceGainer = {
         // TODO: if hasMixin(SkillHaver), then also earn skill points at level up.
     },
     getLevel: function() {return this._level;},
+    getLevelUpEarned: function() {
+        return this._levelUpEarned;
+    },
     getExperience: function() {return this._experience;},
     getNextLevelExperience: function() {return (this._level*this._level)*10},
     getStatPoints: function() {return this._statPoints},
@@ -622,8 +665,11 @@ Game.EntityMixins.PlayerStatGainer = {
     groupName: "StatGainer",
     listeners: {
         onGainLevel: function() {
+            this._levelUpEarned = true;
+            /* Stopped using this since it didn't work when leveling up in another subscreen (e.g. firing)
             Game.Screen.gainStatScreen.setup(this);
             Game.Screen.playScreen.setSubscreen(Game.Screen.gainStatScreen);
+            */
         }
     }
 };
