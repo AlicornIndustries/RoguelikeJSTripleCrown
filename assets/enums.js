@@ -44,9 +44,9 @@ Game.Enums = {
 // Has to be defined here and added to the enum since it references things (races,materials) in the enum
 Game.Enums.CharClasses = Object.freeze({
     PlayerClasses: {
+        // NOTE: starting items are actually added using screens.js, createPlayer. The extraProperties need to be listed there, as well.
         SOLDIER: {
             name: "soldier", races: [Game.Enums.Races.PonyRaces.EARTH,Game.Enums.Races.PonyRaces.PEGASUS,Game.Enums.Races.PonyRaces.UNICORN],
-            //startingItems: ["shortsword","apple"], // Set it up as hash: {{item: shortsword, material: ---, startWielded: true}, {...}   }
             startingItems: [
                 {name: "shortsword", material:Game.Enums.Materials.STEEL},
                 {name:"padded barding"},
@@ -67,12 +67,12 @@ Game.Enums.CharClasses = Object.freeze({
                 {name: "apple"}
             ],
         },
-        //ROGUE: {name: "rogue", races:[Game.Enums.Races.PonyRaces.PEGASUS]},
         RANGER: {
             name: "ranger", races:[Game.Enums.Races.PonyRaces.PEGASUS],
             startingItems: [
-                {name: "shortsword"},
+                {name: "shortsword", material: Game.Enums.Materials.STEEL},
                 {name: "bow"},
+                {name: "arrow", material:Game.Enums.Materials.MYTHRIL, stackSize:25},
                 {name: "apple"}
             ],
         },

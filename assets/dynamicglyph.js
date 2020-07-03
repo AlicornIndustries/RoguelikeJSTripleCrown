@@ -60,20 +60,28 @@ Game.DynamicGlyph.prototype.hasMixin = function(obj) {
 Game.DynamicGlyph.prototype.setName = function(name) {this._name = name;};
 Game.DynamicGlyph.prototype.getName = function() {return this._name;}
 Game.DynamicGlyph.prototype.describe = function() {
+    var suffix = "";
+    var name = this._name;
+    // If the item is stackable, mention the count ("100 arrows")
+    if(this.hasMixin("Stackable")) {
+        suffix+= (this.getStackSize()+" ");
+        if(this.getStackSize()>1) {
+            name+="s"; // TODO: have a pluralName system, optional, defaults to +"s"
+        }
+    }
     // If item has a material, mention it ("steel longsword")
     if(this.hasMixin("MaterialHaver")) {
         // A wood staff is a "wooden" staff
-        if(this.material.adj!=null) {
-            return this.material.adj+" "+this._name;
+        if(this._material.adj!=null) {
+            suffix+= this._material.adj;
         }
         else {
-            return this.material.name+" "+this._name;
+            suffix+= this._material.name;
         }
-    } else {
-        return this._name;
     }
+    return suffix+" "+name;
 }
-Game.DynamicGlyph.prototype.describeA = function(capitalize) {
+Game.DynamicGlyph.prototype.describeA = function(capitalize) { // A (stack of) 100 arrows
     // "a rock", "An apple." Capitalize article if true
     var prefixes = capitalize ? ['A', 'An'] : ['a','an'];
     var nameString = this.describe();

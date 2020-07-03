@@ -25,11 +25,10 @@ Game.Repository.prototype.create = function(name, extraProperties) {
     }
     // Copy the template
     var template = Object.create(this._templates[name]);
-    //OLD: var template = this._templates[name];
-    // TODO: Fix how this works with materials (see the code used in playScreen createPlayer)
+    // OLD: var template = this._templates[name];
     if(extraProperties) {
         for(var key in extraProperties) {
-            if(key=="material") {
+            if(key=="material" || key=="stackSize") {
                 continue;
             } else {
                 template[key] = extraProperties[key];
@@ -41,10 +40,19 @@ Game.Repository.prototype.create = function(name, extraProperties) {
     // Apply mixin things
     if(newItem.hasMixin("MaterialHaver")) {
         if(extraProperties!=null && extraProperties["material"]!=null) {
-            newItem.material = extraProperties["material"];
+            newItem.setMaterial(extraProperties["material"])
         }
         else {
-            newItem.material = template["defaultMaterial"];
+            newItem.setMaterial(template["defaultMaterial"])
+        }
+    }
+    if(newItem.hasMixin("Stackable")) {
+        console.log(extraProperties);
+        if(extraProperties!=null && extraProperties["stackSize"]!=null) {
+            console.log("stack size:");
+            console.log(extraProperties["stackSize"]);
+            newItem.setStackSize(extraProperties["stackSize"]);
+            //newItem.stackSize = extraProperties["stackSize"];
         }
     }
     return newItem;

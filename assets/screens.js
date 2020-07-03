@@ -26,7 +26,6 @@ Game.Screen.playScreen = {
     _gameEnded: false,
     _subscreen: null,
     enter: function() {
-        console.log("Entered play screen.");
         var mapWidth=100; var mapHeight=48; var mapDepth=2;
         // Create map
         var tiles = new Game.Builder(mapWidth,mapHeight,mapDepth).getTiles();
@@ -181,13 +180,22 @@ Game.Screen.playScreen = {
                 this.move(-1,1,0);
             } else if(inputData.keyCode===ROT.KEYS.VK_F) {
                 if(this._player.getProjectileLauncher()!=null) {
-                    var offsets = this.getScreenOffsets();
-                    Game.Screen.fireScreen.setup(this._player, this._player.getX(), this._player.getY(), offsets.x, offsets.y);
-                    this.setSubscreen(Game.Screen.fireScreen);
-                    return;
+                    if(this._player.getAmmo()!=null) {
+                        var offsets = this.getScreenOffsets();
+                        Game.Screen.fireScreen.setup(this._player, this._player.getX(), this._player.getY(), offsets.x, offsets.y);
+                        this.setSubscreen(Game.Screen.fireScreen);
+                        return;
+                    }
+                    else {
+                        Game.sendMessage(this._player,"You can't fire without ammunition.");
+                        Game.refresh();
+                        return;
+                    }
                 }
                 else {
                     Game.sendMessage(this._player,"You can't fire without a projectile weapon equipped.");
+                    Game.refresh();
+                    return;
                 }
             } else if(inputData.keyCode === ROT.KEYS.VK_I) {
                 // Inventory
@@ -243,9 +251,11 @@ Game.Screen.playScreen = {
                         Game.Screen.playScreen.setSubscreen(Game.Screen.gainStatScreen);
                     }
                 }
-            } else if (inputData.keyCode === ROT.KEYS.VK_Q) {
-                // For testing
-                console.log("Q pressed");
+            } else if(inputData.keyCode === ROT.KEYS.VK_Q) {
+                if(inputData.shiftKey) {
+                    // Quiver screen
+                    this.showItemsSubscreen(Game.Screen.quiverScreen, this._player.getItems(), "You have nothing to put in your quiver.");
+                }
             } else {
                 // Not a valid key
                 return;
@@ -313,7 +323,7 @@ Game.Screen.playScreen = {
         var that = this;
         if(this._player.hasMixin("InventoryHolder") && this._player.hasMixin("Classy")) {
             playerCharClass.startingItems.forEach(function(item) {
-                newItem = Game.ItemRepository.create(item.name,{material:item.material});
+                newItem = Game.ItemRepository.create(item.name,{material:item.material,stackSize:item.stackSize});
                 that._player.addItem(newItem);
                 // Equip weapons and armor
                 if(newItem.hasMixin("Equippable")) {
@@ -403,6 +413,8 @@ Game.Screen.ItemListScreen.prototype.render = function(display) {
                 suffix=" (wearing)";
             } else if(this._items[i]===this._player.getWeapon()) {
                 suffix=" (wielding)";
+            } else if(this._items[i]===this._player.getAmmo()) {
+                suffix=" (quivered)";
             }
             // Add two to row to account for the caption and blank space
             display.drawText(0,2+row,letter+" "+selectionState+" "+this._items[i].describe()+suffix);
@@ -505,7 +517,7 @@ Game.Screen.eatScreen = new Game.Screen.ItemListScreen({
         }
         return true;
     }
-})
+});
 Game.Screen.wieldScreen = new Game.Screen.ItemListScreen({
     caption: "Choose the item you wish to wield",
     canSelect: true,
@@ -529,7 +541,7 @@ Game.Screen.wieldScreen = new Game.Screen.ItemListScreen({
         }
         return true;
     }
-})
+});
 Game.Screen.wearScreen = new Game.Screen.ItemListScreen({
     caption: 'Choose the item you wish to wear',
     canSelect: true,
@@ -543,13 +555,35 @@ Game.Screen.wearScreen = new Game.Screen.ItemListScreen({
         var keys = Object.keys(selectedItems);
         if (keys.length === 0) {
             this._player.unwear();
-            Game.sendMessage(this._player, "You are not wearing anything.")
+            Game.sendMessage(this._player, "You are not wearing anything.");
         } else {
             // Make sure to unequip the item first in case it is also being wielded as a weapon or something
             var item = selectedItems[keys[0]];
             this._player.unequip(item);
             this._player.wear(item);
             Game.sendMessage(this._player, "You are wearing %s.", [item.describeA()]);
+        }
+        return true;
+    }
+});
+Game.Screen.quiverScreen = new Game.Screen.ItemListScreen({
+    caption: "Choose the item you wish to quiver",
+    canSelect: true,
+    canSelectMultipleItems: false,
+    isAcceptable: function(item) {
+        return item && item.hasMixin("Equippable") && item.isQuiverable();
+    },
+    ok: function(selectedItems) {
+        // Check if we selected "no item"
+        var keys = Object.keys(selectedItems);
+        if(keys.length===0) {
+            this._player.unquiver();
+            Game.sendMessage(this._player, "Nothing is in your quiver.");
+        } else {
+            var item = selectedItems[keys[0]];
+            this._player.unequip(item);
+            this._player.quiver(item);
+            Game.sendMessage(this._player, "You have %s in your quiver.", [item.describeA()]);
         }
         return true;
     }
@@ -571,7 +605,10 @@ Game.Screen.examineScreen = new Game.Screen.ItemListScreen({
         }
         return true;
     }
-})
+});
+
+
+
 Game.Screen.gainStatScreen = {
     setup: function(entity) {
         // Must be called before rendering
@@ -994,6 +1031,9 @@ Game.Screen.fireScreen = new Game.Screen.TargetBasedScreen( {
                 this.moveCursor(1,1);
             } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD1) {
                 this.moveCursor(-1,1);
+            } else if(inputData.keyCode === ROT.KEYS.VK_ESCAPE) {
+                this.executeOkFunction();
+                return;
             } else if((inputData.keyCode===ROT.KEYS.VK_RETURN) || (inputData.keyCode===ROT.KEYS.VK_F)) {
                 // Fire at the target
                 var x = this._cursorX+this._offsetX;

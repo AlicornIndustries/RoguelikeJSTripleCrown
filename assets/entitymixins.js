@@ -291,6 +291,10 @@ Game.EntityMixins.Attacker = {
             if(projectileLauncher) {
                 modifier+=projectileLauncher.getRangedDamageValue();
             }
+            var ammo = this.getAmmo()
+            if(ammo!=null) {
+                modifier+=ammo.getRangedDamageValue();
+            }
         }
         return modifier;
     },
@@ -321,17 +325,16 @@ Game.EntityMixins.Attacker = {
     projectileAttack: function(target, distance) {
         if(target.hasMixin("Destructible")) {
             var rangedAttackValue = this.getRangedAttackValue();
-            var rangedDamageValue = this.getRangedDamageValue();
             var defenseValue = target.getDefenseValue();
             // Clamp between 10% and 90% chance to hit
             var hitChance = ROT.Util.clamp(rangedAttackValue-defenseValue, 10, 90);
             var roll = ROT.RNG.getPercentage();
             if(hitChance>=roll) {
                 // Hit
-                var damage = this.getRangedDamageValue();
-                Game.sendMessage(this, "You hit the %s for %d damage!",[target.getName(), damage]);
-                Game.sendMessage(target, "The %s hits you for %d damage!",[this.getName(),damage]);
-                target.takeDamage(this, damage); 
+                var rangedDamageValue = this.getRangedDamageValue();
+                Game.sendMessage(this, "You hit the %s for %d damage!",[target.getName(), rangedDamageValue]);
+                Game.sendMessage(target, "The %s hits you for %d damage!",[this.getName(),rangedDamageValue]);
+                target.takeDamage(this, rangedDamageValue); 
             } else {
                 // Miss
                 Game.sendMessage(this, "You miss the %s.", [target.getName()]);
@@ -524,6 +527,7 @@ Game.EntityMixins.Equipper = {
     init: function(template) {
         this._weapon = null;
         this._armor = null;
+        this._quivered = null;
     },
     wield: function(item) {
         this._weapon = item;
@@ -536,6 +540,12 @@ Game.EntityMixins.Equipper = {
     },
     unwear: function() { // TODO: account for multiple slots
         this._armor = null;
+    },
+    quiver: function(item) {
+        this._quivered = item;
+    },
+    unquiver: function() {
+        this._quivered = null;
     },
     getWeapon: function() {
         return this._weapon;
@@ -551,6 +561,9 @@ Game.EntityMixins.Equipper = {
     getArmor: function() {
         return this._armor;
     },
+    getAmmo: function() {
+        return this._quivered;
+    },
     unequip: function(item) {
         // Helper function called before removing item
         if(this._weapon===item) {
@@ -559,14 +572,10 @@ Game.EntityMixins.Equipper = {
         if(this._armor===item) {
             this.unwear();
         }
-    },
-    getProjectileLauncher: function() {
-        if(this._weapon.hasMixin("ProjectileLauncher")) {
-            return this._weapon;
-        } else {
-            return null;
+        if(this._quivered===item) {
+            this.unquiver();
         }
-    }
+    },
 }
 
 Game.EntityMixins.ExperienceGainer = {

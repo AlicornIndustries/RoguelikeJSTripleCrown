@@ -90,8 +90,7 @@ Game.ItemRepository.define("bow", {
     damageValue: 1,
     damageType: Game.Enums.DamageTypes.BLUNT,
     rangedAttackValue: 10,
-    rangedDamageValue: 5,
-    rangedDamageType: Game.Enums.DamageTypes.PIERCING,
+    rangedDamageValue: 0,
     range: 3,
     wieldable: true,
     possibleMaterials: [
@@ -99,6 +98,21 @@ Game.ItemRepository.define("bow", {
     ],
     defaultMaterial: Game.Enums.Materials.WOOD,
     mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver,Game.ItemMixins.ProjectileLauncher]},
+    {disableRandomCreation: true
+});
+// Ammo
+Game.ItemRepository.define("arrow", {
+    name: "arrow",
+    character: "*",
+    foreground: "yellow",
+    rangedDamageValue: 5,
+    rangedDamageType: Game.Enums.DamageTypes.PIERCING,
+    quiverable: true,
+    possibleMaterials: [
+        Game.Enums.Materials.WOOD
+    ],
+    defaultMaterial: Game.Enums.Materials.WOOD,
+    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.ProjectileAmmo,Game.ItemMixins.MaterialHaver,Game.ItemMixins.Stackable]},
     {disableRandomCreation: true
 });
 // Wearables
