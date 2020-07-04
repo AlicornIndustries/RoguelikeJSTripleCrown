@@ -353,6 +353,8 @@ Game.Screen.playScreen = {
                 }
             })
         }
+        //this._player.gainPower(Game.Powers.TestPower);
+        //this._player._powers["TestPower"].activate(this._player);
     }
 }
 Game.Screen.winScreen = {

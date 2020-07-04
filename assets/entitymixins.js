@@ -1087,3 +1087,20 @@ Game.EntityMixins.RaceHaver = {
         }
     }
 }
+Game.EntityMixins.PowersHaver = {
+    name: "PowersHaver",
+    init: function(template) {
+        this._powers = {};
+        // Populate powers table
+        for(var i=0; i<template["powers"].length; i++) {
+            this.gainPower(template["powers"][i])
+            //this._powers[template["powers"][i].name].activate(this);
+        }
+    },
+    gainPower: function(power) {
+        // Create an instance of the power and assign it to the entity?
+        // Or:
+        this._powers[power.name] = power;
+        console.log(this._powers);
+    }
+}
