@@ -23,9 +23,9 @@ Game.PlayerTemplate = {
         {skill: Game.Enums.Skills.MELEEWEAPONS, skillLevel: 5},
     ],
     powers: [
-        Game.Powers.TestPower
+        Game.Powers.TestAttackPower
     ],
-    mixins: [Game.EntityMixins.PlayerActor, Game.EntityMixins.StatsHaver, Game.EntityMixins.Attacker,
+    mixins: [Game.EntityMixins.PlayerActor, Game.EntityMixins.StatsHaver, Game.EntityMixins.StaminaHaver, Game.EntityMixins.Attacker,
              Game.EntityMixins.Destructible, Game.EntityMixins.Sight,
              Game.EntityMixins.MessageRecipient, Game.EntityMixins.InventoryHolder,
              Game.EntityMixins.FoodConsumer, Game.EntityMixins.Equipper,
@@ -62,7 +62,7 @@ Game.EntityRepository.define("timberwolf", {
     unarmedDamageType: Game.Enums.DamageTypes.SLASHING,
     defenseValue: 0,
     tasks: ["hunt", "wander"],
-    mixins: [Game.EntityMixins.TaskActor, Game.EntityMixins.StatsHaver, Game.EntityMixins.Sight, Game.EntityMixins.Attacker,
+    mixins: [Game.EntityMixins.TaskActor, Game.EntityMixins.StatsHaver, Game.EntityMixins.StaminaHaver, Game.EntityMixins.Sight, Game.EntityMixins.Attacker,
         Game.EntityMixins.Destructible, Game.EntityMixins.CorpseDropper, Game.EntityMixins.Affectable,
         Game.EntityMixins.ExperienceGainer, Game.EntityMixins.RandomStatGainer]
 });
@@ -78,7 +78,7 @@ Game.EntityRepository.define("dire timberwolf", {
     unarmedDamageType: Game.Enums.DamageTypes.SLASHING,
     defenseValue: 0,
     tasks: ["hunt", "wander"],
-    mixins: [Game.EntityMixins.TaskActor, Game.EntityMixins.StatsHaver, Game.EntityMixins.Sight, Game.EntityMixins.Attacker,
+    mixins: [Game.EntityMixins.TaskActor, Game.EntityMixins.StatsHaver, Game.EntityMixins.StaminaHaver, Game.EntityMixins.Sight, Game.EntityMixins.Attacker,
         Game.EntityMixins.Destructible, Game.EntityMixins.CorpseDropper, Game.EntityMixins.Affectable,
         Game.EntityMixins.ExperienceGainer, Game.EntityMixins.RandomStatGainer]
 });
@@ -94,7 +94,7 @@ Game.EntityRepository.define("vampire bat", {
     unarmedDamageType: Game.Enums.DamageTypes.PIERCING,
     defenseValue: 0,
     tasks: ["hunt", "wander"],
-    mixins: [Game.EntityMixins.TaskActor, Game.EntityMixins.StatsHaver, Game.EntityMixins.Sight, Game.EntityMixins.Attacker,
+    mixins: [Game.EntityMixins.TaskActor, Game.EntityMixins.StatsHaver, Game.EntityMixins.StaminaHaver, Game.EntityMixins.Sight, Game.EntityMixins.Attacker,
         Game.EntityMixins.Destructible, Game.EntityMixins.CorpseDropper, Game.EntityMixins.Affectable,
         Game.EntityMixins.ExperienceGainer, Game.EntityMixins.RandomStatGainer]
 });
@@ -109,7 +109,7 @@ Game.EntityRepository.define("windigo", {
     defenseValue: 15,
     level: 10,
     sightRadius: 6,
-    mixins: [Game.EntityMixins.WindigoActor, Game.EntityMixins.StatsHaver, Game.EntityMixins.Sight, Game.EntityMixins.Affectable,
+    mixins: [Game.EntityMixins.WindigoActor, Game.EntityMixins.StatsHaver, Game.EntityMixins.StaminaHaver, Game.EntityMixins.Sight, Game.EntityMixins.Affectable,
              Game.EntityMixins.Attacker, Game.EntityMixins.Destructible,
              Game.EntityMixins.CorpseDropper, Game.EntityMixins.ExperienceGainer],
              // It doesn't actually do anything with its level, it's just for XP.
@@ -127,7 +127,7 @@ Game.EntityRepository.define("spitesprite", {
     defenseValue: 10,
     sightRadius: 4,
     tasks: ["hunt", "wander"],
-    mixins: [Game.EntityMixins.TaskActor, Game.EntityMixins.StatsHaver, Game.EntityMixins.Sight, Game.EntityMixins.Affectable,
+    mixins: [Game.EntityMixins.TaskActor, Game.EntityMixins.StatsHaver, Game.EntityMixins.StaminaHaver, Game.EntityMixins.Sight, Game.EntityMixins.Affectable,
         Game.EntityMixins.Attacker, Game.EntityMixins.Destructible,
         Game.EntityMixins.CorpseDropper, Game.EntityMixins.ExperienceGainer, Game.EntityMixins.RandomStatGainer]
     }, {

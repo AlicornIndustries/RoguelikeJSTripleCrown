@@ -224,6 +224,13 @@ Game.Screen.playScreen = {
                 // Examine
                 this.showItemsSubscreen(Game.Screen.examineScreen, this._player.getItems(), "You have nothing to examine.");
                 return;
+            } else if(inputData.keyCode===ROT.KEYS.VK_A) {
+                // activate a power
+                if(this._player.hasMixin("PowersHaver")) {
+                    Game.Screen.powersScreen.setup(this._player);
+                    Game.Screen.playScreen.setSubscreen(Game.Screen.powersScreen);
+                }
+
             } else if(inputData.keyCode===ROT.KEYS.VK_COMMA) {
                 // Pick up items
                 var items = this._player.getMap().getItemsAt(this._player.getX(), this._player.getY(), this._player.getD());
@@ -353,8 +360,6 @@ Game.Screen.playScreen = {
                 }
             })
         }
-        //this._player.gainPower(Game.Powers.TestPower);
-        //this._player._powers["TestPower"].activate(this._player);
     }
 }
 Game.Screen.winScreen = {
@@ -457,7 +462,7 @@ Game.Screen.ItemListScreen.prototype.executeOkFunction = function() {
 };
 Game.Screen.ItemListScreen.prototype.handleInput = function(inputType, inputData) {
     if(inputType === 'keydown') {
-        // If user hit escape, hit enter and can't select an item, or hit enter w/o items selected, cancel ou
+        // If user hit escape, hit enter and can't select an item, or hit enter w/o items selected, cancel out
         if(inputData.keyCode === ROT.KEYS.VK_ESCAPE || (inputData.keyCode === ROT.KEYS.VK_RETURN && (!this._canSelectItem || Object.keys(this._selectedIndices).length===0))) {
             Game.Screen.playScreen.setSubscreen(undefined);
         } else if(inputData.keyCode===ROT.KEYS.VK_RETURN) {
@@ -636,7 +641,6 @@ Game.Screen.examineScreen = new Game.Screen.ItemListScreen({
         return true;
     }
 });
-
 Game.Screen.gainStatScreen = {
     setup: function(entity) {
         // Must be called before rendering
@@ -693,14 +697,25 @@ Game.Screen.characterScreen = {
         if(this._entity.hasMixin("Classy")) {
             titleString+=ROT.Util.format(" %s",this._entity.getCharClass().name);
         }
-        var statString = "";
         if(this._entity.hasMixin("StatsHaver")) {
             statsString = ROT.Util.format("STR: %s END: %s AGI: %s INT: %s WIL: %s",
             this._entity.getStrength(),this._entity.getEndurance(),this._entity.getAgility(),
             this._entity.getIntelligence(),this._entity.getWillpower()); // TODO: change color if stats!=base stat (e.g. buffed/debuffed)
         }
+        var derivedStatsString = "";
+        if(this._entity.hasMixin("Destructible")) {
+            derivedStatsString+=ROT.Util.format("HP: %s/%s ",this._entity.getHp(),this._entity.getMaxHp());
+        }
+        if(this._entity.hasMixin("StaminaHaver")) {
+            derivedStatsString+=ROT.Util.format("STA: %s/%s",this._entity.getStamina(),this._entity.getStaminaMax());
+        }
         display.drawText(Game.getScreenWidth() / 2 - titleString.length / 2, y++, titleString);
-        display.drawText(Game.getScreenWidth() / 2 - statsString.length / 2, y++, statsString);
+        if(statsString!=null) {
+            display.drawText(Game.getScreenWidth() / 2 - titleString.length / 2, y++, statsString);
+        }
+        if(derivedStatsString!="") {
+            display.drawText(Game.getScreenWidth() / 2 - titleString.length / 2, y++, derivedStatsString);
+        }
         // Display skills
         y+=1;
         if(this._entity.hasMixin("SkillsHaver")) {
@@ -1185,3 +1200,40 @@ Game.Screen.fireScreen = new Game.Screen.TargetBasedScreen( {
         }
     }
 })
+// Powers screen, for selecting which power to use
+Game.Screen.powersScreen = {
+    setup: function(powerUser) {
+        this._powerUser = powerUser; // Presumably, the player
+        // Populate based on your powers
+        this._powerNames = [];
+        for(var power in this._powerUser.getPowers()) {
+            this._powerNames.push(power);
+        }
+    },
+    render: function(display) {
+        var letters = 'abcdefghijklmnopqrstuvwxyz';
+        // Render caption
+        display.drawText(0,0,"Which power do you wish to use?")
+        var row = 0;
+        for(var i=0; i<this._powerNames.length; i++) {
+            if(this._powerNames[i]) {
+                var letter = letters.substring(i,i+1);
+                display.drawText(0,2+row,letter+" - "+this._powerNames[i])
+            }
+        }
+    },
+    handleInput: function(inputType,inputData) {
+        if((inputData.keyCode===ROT.KEYS.VK_ESCAPE) || (inputData.keyCode===ROT.KEYS.VK_RETURN)) {
+            // Switch back to play screen
+            Game.Screen.playScreen.setSubscreen(undefined);
+        } else if(inputData.keyCode>=ROT.KEYS.VK_A && inputData.keyCode<=ROT.KEYS.VK_Z) {
+            var index = inputData.keyCode-ROT.KEYS.VK_A;
+            if(this._powerNames[index]) {
+                // Activate ability
+                console.log(this._powerUser.getPowers());
+                console.log(this._powerNames[index])
+                this._powerUser.activatePower(this._powerNames[index]);
+            }
+        }
+    }
+}

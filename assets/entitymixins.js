@@ -14,6 +14,7 @@ Game.EntityMixins.StatsHaver = {
         this._intelligenceBase = this._intelligence;
         this._willpower = template["willpower"] || 0;
         this._willpowerBase = this._willpower;
+
     },
     getStrength: function() {return this._strength;},
     getStrengthBase: function() {return this._strengthBase;},
@@ -25,6 +26,14 @@ Game.EntityMixins.StatsHaver = {
     getIntelligenceBase: function() {return this._intelligenceBase},
     getWillpower: function() {return this._willpower},
     getWillpowerBase: function() {return this._willpowerBase},
+    recalcDerivedStats: function(restoreToFull=false) {
+        if(this.hasMixin("Destructible")) {
+            this.recalcMaxHp(restoreToFull);
+        }
+        if(this.hasMixin("StaminaHaver")) {
+            this.recalcStamina(restoreToFull);
+        }
+    },
     changeStrength: function(value=1, temporary=false) {
         // If temporary, don't change the base value
         this._strength += value;
@@ -36,6 +45,7 @@ Game.EntityMixins.StatsHaver = {
         } else {
             Game.sendMessage(this,"You feel weaker!");
         }
+        // Recalculate derived statistics
     },
     changeEndurance: function(value=1, temporary=false) {
         // If temporary, don't change the base value
@@ -48,9 +58,8 @@ Game.EntityMixins.StatsHaver = {
         } else {
             Game.sendMessage(this,"You feel sicklier!");
         }
-        if(this.hasMixin("Destructible")) {
-            this.recalcMaxHp(true);
-        }
+        this.recalcDerivedStats(false);
+
     },
     changeAgility: function(value=1, temporary=false) {
         // If temporary, don't change the base value
@@ -63,6 +72,7 @@ Game.EntityMixins.StatsHaver = {
         } else {
             Game.sendMessage(this,"You feel clumsier!");
         }
+        // Recalculate derived statistics
     },
     changeIntelligence: function(value=1, temporary=false) {
         // If temporary, don't change the base value
@@ -75,6 +85,7 @@ Game.EntityMixins.StatsHaver = {
         } else {
             Game.sendMessage(this,"You feel dumber!");
         }
+        // Recalculate derived statistics
     },
     changeWillpower: function(value=1, temporary=false) {
         // If temporary, don't change the base value
@@ -86,6 +97,24 @@ Game.EntityMixins.StatsHaver = {
             Game.sendMessage(this,"You are filled with determination!");
         } else {
             Game.sendMessage(this,"You feel dispirited!");
+        }
+        // Recalculate derived statistics TODO: put MP here
+    },
+}
+Game.EntityMixins.StaminaHaver = {
+    // Requires StatsHaver
+    name: "StaminaHaver",
+    init: function(template) {
+        this._stamina = 0;
+        this._staminaMax = 0;
+        this.recalcStamina(true);
+    },
+    getStamina: function() {return this._stamina},
+    getStaminaMax: function() {return this._staminaMax},
+    recalcStamina: function(restoreToFull=false) {
+        this._staminaMax = 10*this.getEndurance();
+        if(restoreToFull) {
+            this._stamina = this._staminaMax;
         }
     },
 }
@@ -276,7 +305,7 @@ Game.EntityMixins.Destructible = {
         // Updates max HP after e.g. changing endurance. If healToFull=true, also fully heal
         // FUTURE: add in all other hp effecting things, like skills
         if(this.hasMixin("StatsHaver")) {
-            this._maxHp = this._maxHpBase + (this.getEndurance()-1)*10;
+            this._maxHp = this._maxHpBase + this.getEndurance()*10;
         } else {
             this._maxHp = this._maxHpBase;
         }
@@ -1084,6 +1113,7 @@ Game.EntityMixins.RaceHaver = {
                     this.changeWillpower(this._race.statBonuses.willpower);
                 }
             }
+            this.recalcDerivedStats(true);
         }
     }
 }
@@ -1094,13 +1124,19 @@ Game.EntityMixins.PowersHaver = {
         // Populate powers table
         for(var i=0; i<template["powers"].length; i++) {
             this.gainPower(template["powers"][i])
-            //this._powers[template["powers"][i].name].activate(this);
+            // Ex: this._powers[template["powers"][i].name].activate(this);
         }
+    },
+    getPowers: function() {
+        return this._powers;
     },
     gainPower: function(power) {
         // Create an instance of the power and assign it to the entity?
         // Or:
         this._powers[power.name] = power;
-        console.log(this._powers);
+    },
+    activatePower: function(power) {
+        // Call powers by name, e.g. "TestAttackPower"
+        this._powers[power].activate(this);
     }
 }

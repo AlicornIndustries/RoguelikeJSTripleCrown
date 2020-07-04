@@ -3,7 +3,7 @@
 Game.Powers = {};
 
 Game.Powers.createPower = function(power) {
-    // What if, unlike createSkill, this took in: Game.Powers.TestPower?
+    // in: Game.Powers.TestPower
 }
 
 Game.Powers.TestPower = {
@@ -12,6 +12,23 @@ Game.Powers.TestPower = {
     activate: function(activator) {
         console.log("TestPower activated!");
         Game.sendMessage(activator,"You activate TestPower!");
+    },
+    canActivate: function(activator) {
+        if(activator.getStamina()>=this.staminaCost) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+
+Game.Powers.TestAttackPower = {
+    name: "TestAttackPower",
+    staminaCost: 10,
+    activate: function(activator) {
+        // Deals STR*5 damage to target
+        console.log("Str*5="+activator.getStrength());
+        // TODO: switch to targetting subscreen with range=1
     },
     canActivate: function(activator) {
         if(activator.getStamina()>=this.staminaCost) {
