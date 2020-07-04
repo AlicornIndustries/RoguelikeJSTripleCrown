@@ -11,8 +11,8 @@ Game.EntityMixins.StatsHaver = {
         this._agilityBase = this._agility;
         this._intelligence = template["intelligence"] || 0;
         this._intelligenceBase = this._intelligence;
-        this._wisdom = template["wisdom"] || 0;
-        this._wisdomBase = this._wisdom;
+        this._willpower = template["willpower"] || 0;
+        this._willpowerBase = this._willpower;
     },
     getStrength: function() {return this._strength;},
     getStrengthBase: function() {return this._strengthBase;},
@@ -22,8 +22,8 @@ Game.EntityMixins.StatsHaver = {
     getAgilityBase: function() {return this._agilityBase;},
     getIntelligence: function() {return this._intelligence},
     getIntelligenceBase: function() {return this._intelligenceBase},
-    getWisdom: function() {return this._wisdom},
-    getWisdomBase: function() {return this._wisdomBase},
+    getWillpower: function() {return this._willpower},
+    getWillpowerBase: function() {return this._willpowerBase},
     changeStrength: function(value, temporary) {
         value = value || 1; // Default increase value
         // If temporary, don't change the base value
@@ -76,12 +76,12 @@ Game.EntityMixins.StatsHaver = {
             Game.sendMessage(this,"You feel dumber!");
         }
     },
-    changeWisdom: function(value, temporary) {
+    changeWillpower: function(value, temporary) {
         value = value || 1; // Default increase value
         // If temporary, don't change the base value
-        this._wisdom += value;
+        this._willpower += value;
         if(!temporary) {
-            this._wisdomBase += value;
+            this._willpowerBase += value;
         }
         if(value>0) {
             Game.sendMessage(this,"You feel wiser!");
@@ -776,8 +776,8 @@ Game.EntityMixins.ExperienceGainer = {
             if(this.getIntelligenceBase()>0) {
                 this._statOptions.push(["Increase intelligence", this.changeIntelligence]);
             }
-            if(this.getWisdomBase()>0) {
-                this._statOptions.push(["Increase wisdom", this.changeWisdom]);
+            if(this.getWillpowerBase()>0) {
+                this._statOptions.push(["Increase willpower", this.changeWillpower]);
             }
         }
         // this._statOptions = [];
@@ -787,7 +787,7 @@ Game.EntityMixins.ExperienceGainer = {
         // if(this.hasMixin("Destructible")) {
         //     this._statOptions.push(["Increase endurance",this.increaseMaxHp]);
         // }
-        // TODO: if hasMixin(SkillHaver), then also earn skill points at level up.
+        // TODO: if hasMixin(SkillsHaver), then also earn skill points at level up.
     },
     getLevel: function() {return this._level;},
     getLevelUpEarned: function() {
@@ -926,9 +926,9 @@ Game.EntityMixins.WindigoActor = Game.extend(Game.EntityMixins.TaskActor, {
     }
 })
 
-Game.EntityMixins.SkillHaver = {
-    name: "SkillHaver",
-    init: function(template) { // SkillHaver init needs to be called last. Or, use a template.
+Game.EntityMixins.SkillsHaver = {
+    name: "SkillsHaver",
+    init: function(template) { // SkillsHaver init needs to be called last. Or, use a template.
         this._skills = {};
         // This doesn't work: use skillName (the string) instead of the actual skill object
         // for(var i=0; i<template["skills"].length; i++) {
@@ -962,6 +962,9 @@ Game.EntityMixins.SkillHaver = {
             return this._skills[skill];
         }
     },
+    getSkills: function() {
+        return this._skills;
+    }
 };
 // for entities that can be affected by effects (most entities are this)
 Game.EntityMixins.Affectable = {

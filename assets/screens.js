@@ -684,10 +684,28 @@ Game.Screen.characterScreen = {
         if(this._entity.hasMixin("ExperienceGainer")) {
             titleString+=ROT.Util.format(", the level %s",this._entity.getLevel());
         }
+        if(this._entity.hasMixin("RaceHaver")) {
+            titleString+=ROT.Util.format(" %s",this._entity.getRace().name);
+        }
         if(this._entity.hasMixin("Classy")) {
             titleString+=ROT.Util.format(" %s",this._entity.getCharClass().name);
         }
+        var statString = "";
+        if(this._entity.hasMixin("StatsHaver")) {
+            statsString = ROT.Util.format("STR: %s END: %s AGI: %s INT: %s WIS: %s",
+            this._entity.getStrength(),this._entity.getEndurance(),this._entity.getAgility(),
+            this._entity.getIntelligence(),this._entity.getWillpower()); // TODO: change color if stats!=base stat (e.g. buffed/debuffed)
+        }
         display.drawText(Game.getScreenWidth() / 2 - titleString.length / 2, y++, titleString);
+        display.drawText(Game.getScreenWidth() / 2 - statsString.length / 2, y++, statsString);
+        // Display skills
+        y+=1;
+        if(this._entity.hasMixin("SkillsHaver")) {
+            var skills = this._entity.getSkills();
+            for(var key in skills) {
+                display.drawText(0,y++,ROT.Util.format("%s: %s",skills[key].name,skills[key].getSkillLevel()))
+            }
+        }
     },
     handleInput: function(inputType, inputData) {
         if(inputType==="keydown") {

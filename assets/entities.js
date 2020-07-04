@@ -13,7 +13,7 @@ Game.PlayerTemplate = {
     endurance: 1,
     agility: 1,
     intelligence: 1,
-    wisdom: 1,
+    willpower: 1,
     unarmedDamageType: Game.Enums.DamageTypes.BLUNT,
     defenseValue: 20,
     sightRadius: 6,
@@ -27,7 +27,7 @@ Game.PlayerTemplate = {
              Game.EntityMixins.MessageRecipient, Game.EntityMixins.InventoryHolder,
              Game.EntityMixins.FoodConsumer, Game.EntityMixins.Equipper,
              Game.EntityMixins.Affectable,
-             Game.EntityMixins.SkillHaver, Game.EntityMixins.ExperienceGainer,
+             Game.EntityMixins.SkillsHaver, Game.EntityMixins.ExperienceGainer,
              Game.EntityMixins.PlayerStatGainer, Game.EntityMixins.Classy, Game.EntityMixins.RaceHaver]
 }
 
