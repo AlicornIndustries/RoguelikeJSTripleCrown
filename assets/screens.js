@@ -664,6 +664,7 @@ Game.Screen.gainStatScreen = {
                     this._entity.setStatPoints(this._entity.getStatPoints()-1);
                     // If no stat points left, leave screen. Else, refresh.
                     if(this._entity.getStatPoints()==0) {
+                        this._entity.setLevelUpEarned(false);
                         Game.Screen.playScreen.setSubscreen(undefined);
                     } else {
                         Game.refresh();
@@ -692,7 +693,7 @@ Game.Screen.characterScreen = {
         }
         var statString = "";
         if(this._entity.hasMixin("StatsHaver")) {
-            statsString = ROT.Util.format("STR: %s END: %s AGI: %s INT: %s WIS: %s",
+            statsString = ROT.Util.format("STR: %s END: %s AGI: %s INT: %s WIL: %s",
             this._entity.getStrength(),this._entity.getEndurance(),this._entity.getAgility(),
             this._entity.getIntelligence(),this._entity.getWillpower()); // TODO: change color if stats!=base stat (e.g. buffed/debuffed)
         }

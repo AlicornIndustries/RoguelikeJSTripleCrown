@@ -3,6 +3,7 @@ Game.EntityMixins = {};
 Game.EntityMixins.StatsHaver = {
     name: "StatsHaver",
     init: function(template) {
+        // FUTURE: Currently, only Strength and Endurance affect anything.
         this._strength = template["strength"] || 1;
         this._strengthBase = this._strength;
         this._endurance = template["endurance"] || 1;
@@ -24,8 +25,7 @@ Game.EntityMixins.StatsHaver = {
     getIntelligenceBase: function() {return this._intelligenceBase},
     getWillpower: function() {return this._willpower},
     getWillpowerBase: function() {return this._willpowerBase},
-    changeStrength: function(value, temporary) {
-        value = value || 1; // Default increase value
+    changeStrength: function(value=1, temporary=false) {
         // If temporary, don't change the base value
         this._strength += value;
         if(!temporary) {
@@ -37,8 +37,7 @@ Game.EntityMixins.StatsHaver = {
             Game.sendMessage(this,"You feel weaker!");
         }
     },
-    changeEndurance: function(value, temporary) {
-        value = value || 1; // Default increase value
+    changeEndurance: function(value=1, temporary=false) {
         // If temporary, don't change the base value
         this._endurance += value;
         if(!temporary) {
@@ -49,9 +48,11 @@ Game.EntityMixins.StatsHaver = {
         } else {
             Game.sendMessage(this,"You feel sicklier!");
         }
+        if(this.hasMixin("Destructible")) {
+            this.recalcMaxHp(true);
+        }
     },
-    changeAgility: function(value, temporary) {
-        value = value || 1; // Default increase value
+    changeAgility: function(value=1, temporary=false) {
         // If temporary, don't change the base value
         this._agility += value;
         if(!temporary) {
@@ -63,8 +64,7 @@ Game.EntityMixins.StatsHaver = {
             Game.sendMessage(this,"You feel clumsier!");
         }
     },
-    changeIntelligence: function(value, temporary) {
-        value = value || 1; // Default increase value
+    changeIntelligence: function(value=1, temporary=false) {
         // If temporary, don't change the base value
         this._intelligence += value;
         if(!temporary) {
@@ -76,17 +76,16 @@ Game.EntityMixins.StatsHaver = {
             Game.sendMessage(this,"You feel dumber!");
         }
     },
-    changeWillpower: function(value, temporary) {
-        value = value || 1; // Default increase value
+    changeWillpower: function(value=1, temporary=false) {
         // If temporary, don't change the base value
         this._willpower += value;
         if(!temporary) {
             this._willpowerBase += value;
         }
         if(value>0) {
-            Game.sendMessage(this,"You feel wiser!");
+            Game.sendMessage(this,"You are filled with determination!");
         } else {
-            Game.sendMessage(this,"You feel duller!");
+            Game.sendMessage(this,"You feel dispirited!");
         }
     },
 }
@@ -257,12 +256,14 @@ Game.EntityMixins.Destructible = {
     name: "Destructible",
     init: function(template) {
         this._maxHp = template["maxHp"] || 1;
+        this._maxHpBase = this._maxHp;
         this._hp = template["hp"] || this._maxHp;
         // Defense (dodge) values
         this._defenseValue = template["defenseValue"] || 0;
     },
     getHp: function() {return this._hp;},
     getMaxHp: function() {return this._maxHp;},
+    getHpBase: function() {return this._hpBase;},
     getHpPercent: function() {
         // Returns as e.g. 0.7, not 70%
         return (this._hp * 1.0 / this._maxHp);
@@ -270,6 +271,18 @@ Game.EntityMixins.Destructible = {
     setHp: function(hp) {this._hp = hp;},
     heal: function(hp) {
         this._hp = Math.min(this._hp+hp, this._maxHp);
+    },
+    recalcMaxHp: function(healToFull=false) {
+        // Updates max HP after e.g. changing endurance. If healToFull=true, also fully heal
+        // FUTURE: add in all other hp effecting things, like skills
+        if(this.hasMixin("StatsHaver")) {
+            this._maxHp = this._maxHpBase + (this.getEndurance()-1)*10;
+        } else {
+            this._maxHp = this._maxHpBase;
+        }
+        if(healToFull) {
+            this.setHp(this._maxHp);
+        }
     },
     increaseMaxHp: function(value) {
         value = value | 10; // Default to 10
@@ -762,6 +775,7 @@ Game.EntityMixins.ExperienceGainer = {
 
         // Determine what stats can be leveled up
         // Any non-zero stats are eligible
+        // In future, use a different system for NPCs (a Timberwolf may have Willpower, but not level it up)
         this._statOptions = [];
         if(this.hasMixin("StatsHaver")) {
             if(this.getStrengthBase()>0) {
@@ -780,18 +794,13 @@ Game.EntityMixins.ExperienceGainer = {
                 this._statOptions.push(["Increase willpower", this.changeWillpower]);
             }
         }
-        // this._statOptions = [];
-        // if(this.hasMixin("Attacker")) {
-        //     this._statOptions.push(["Increase strength", this.increaseStrength]);
-        // }
-        // if(this.hasMixin("Destructible")) {
-        //     this._statOptions.push(["Increase endurance",this.increaseMaxHp]);
-        // }
-        // TODO: if hasMixin(SkillsHaver), then also earn skill points at level up.
     },
     getLevel: function() {return this._level;},
     getLevelUpEarned: function() {
         return this._levelUpEarned;
+    },
+    setLevelUpEarned: function(value) {
+        this._levelUpEarned = value;
     },
     getExperience: function() {return this._experience;},
     getNextLevelExperience: function() {return (this._level*this._level)*10},
@@ -856,7 +865,7 @@ Game.EntityMixins.RandomStatGainer = {
             var stat = ROT.RNG.getItem(statOptions);
             stat[1].call(this); // Call stat increasing function with "this" as context
             this.setStatPoints(this.getStatPoints()-1);
-        
+            this.setLevelUpEarned(false); // TODO: Make this work when earning multiple levels at once
         }
     }
 };
@@ -1046,6 +1055,9 @@ Game.EntityMixins.RaceHaver = {
     name: "RaceHaver",
     init: function(template) {
         this._race = template["race"];
+        if(this._race!=null) {
+            this.applyRaceBonuses();
+        }
     },
     hasRace: function(race) {
         return this._race===race;
@@ -1055,5 +1067,23 @@ Game.EntityMixins.RaceHaver = {
     },
     setRace: function(race) {
         this._race = race;
+        this.applyRaceBonuses();
+    },
+    applyRaceBonuses: function() {
+        if(this.hasMixin("StatsHaver")) {
+            for(var key in this._race.statBonuses) {
+                if(key==="strength") {
+                    this.changeStrength(this._race.statBonuses.strength);
+                } else if(key==="endurance") {
+                    this.changeEndurance(this._race.statBonuses.endurance);
+                } else if(key==="agility") {
+                    this.changeAgility(this._race.statBonuses.agility);
+                } else if(key==="intelligence") {
+                    this.changeIntelligence(this._race.statBonuses.intelligence);
+                } else if(key==="willpower") {
+                    this.changeWillpower(this._race.statBonuses.willpower);
+                }
+            }
+        }
     }
 }

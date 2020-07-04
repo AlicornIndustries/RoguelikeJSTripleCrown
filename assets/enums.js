@@ -9,6 +9,7 @@ Game.Enums = {
         ARCHERY: {name: "archery"},
         MELEEWEAPONS: {name: "melee weapons"}, // "Swordsmareship?" Have skill SubTypes?
         SCOUTING: {name: "scouting"},
+        THAUMATURGY: {name: "thaumaturgy"}
     }),
     Materials: Object.freeze({
         CLOTH: {name: "cloth", value: 5},
@@ -40,9 +41,19 @@ Game.Enums = {
         PonyRaces: {
             EARTH: {
                 name: "earth pony", 
-                raceSelectionDescription: "Sturdy and brave, earth ponies are ideal warriors. Their knack for nature makes them powerful druids, as well.",},
-            UNICORN: {name: "unicorn", raceSelectionDescription: "Unicorns make up for their physical frailty with a capacity for magic unparalleled among the pony races."},
-            PEGASUS: {name: "pegasus", raceSelectionDescription: "The noblest of the nimble pegasi serve as champions of the Royal Sisters sky cavalry or control the weather of Equestria, while pegasi lowlifes exploit their speed and unique capacity for flight to carry out grand larcenies."}
+                raceSelectionDescription: "Sturdy and brave, earth ponies are ideal warriors. Their knack for nature makes them powerful druids, as well.",
+                statBonuses: {strength:1,endurance:1,agility:0,intelligence:0,willpower:1},
+            },
+            UNICORN: {
+                name: "unicorn",
+                raceSelectionDescription: "Unicorns make up for their physical frailty with a capacity for magic unparalleled among the pony races.",
+                statBonuses: {strength:0,endurance:0,agility:1,intelligence:1,willpower:0},
+            },
+            PEGASUS: {
+                name: "pegasus",
+                raceSelectionDescription: "The noblest of the nimble pegasi serve as champions of the Royal Sisters sky cavalry or control the weather of Equestria, while pegasi lowlifes exploit their speed and unique capacity for flight to carry out grand larcenies.",
+                statBonuses: {strength:0,endurance:0,agility:1,intelligence:0,willpower:1},
+            },
         },
         SingularMonsterRaces: {
             // For monsters with only one race
