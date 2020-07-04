@@ -1,5 +1,96 @@
 Game.EntityMixins = {};
 
+Game.EntityMixins.StatsHaver = {
+    name: "StatsHaver",
+    init: function(template) {
+        this._strength = template["strength"] || 1;
+        this._strengthBase = this._strength;
+        this._endurance = template["endurance"] || 1;
+        this._enduranceBase = this._endurance;
+        this._agility = template["agility"] || 1;
+        this._agilityBase = this._agility;
+        this._intelligence = template["intelligence"] || 0;
+        this._intelligenceBase = this._intelligence;
+        this._wisdom = template["wisdom"] || 0;
+        this._wisdomBase = this._wisdom;
+    },
+    getStrength: function() {return this._strength;},
+    getStrengthBase: function() {return this._strengthBase;},
+    getEndurance: function() {return this._endurance;},
+    getEnduranceBase: function() {return this._enduranceBase;},
+    getAgility: function() {return this._agility;},
+    getAgilityBase: function() {return this._agilityBase;},
+    getIntelligence: function() {return this._intelligence},
+    getIntelligenceBase: function() {return this._intelligenceBase},
+    getWisdom: function() {return this._wisdom},
+    getWisdomBase: function() {return this._wisdomBase},
+    changeStrength: function(value, temporary) {
+        value = value || 1; // Default increase value
+        // If temporary, don't change the base value
+        this._strength += value;
+        if(!temporary) {
+            this._strengthBase += value;
+        }
+        if(value>0) {
+            Game.sendMessage(this,"You feel stronger!");
+        } else {
+            Game.sendMessage(this,"You feel weaker!");
+        }
+    },
+    changeEndurance: function(value, temporary) {
+        value = value || 1; // Default increase value
+        // If temporary, don't change the base value
+        this._endurance += value;
+        if(!temporary) {
+            this._enduranceBase += value;
+        }
+        if(value>0) {
+            Game.sendMessage(this,"You feel stouter!");
+        } else {
+            Game.sendMessage(this,"You feel sicklier!");
+        }
+    },
+    changeAgility: function(value, temporary) {
+        value = value || 1; // Default increase value
+        // If temporary, don't change the base value
+        this._agility += value;
+        if(!temporary) {
+            this._agilityBase += value;
+        }
+        if(value>0) {
+            Game.sendMessage(this,"You feel nimbler!");
+        } else {
+            Game.sendMessage(this,"You feel clumsier!");
+        }
+    },
+    changeIntelligence: function(value, temporary) {
+        value = value || 1; // Default increase value
+        // If temporary, don't change the base value
+        this._intelligence += value;
+        if(!temporary) {
+            this._intelligenceBase += value;
+        }
+        if(value>0) {
+            Game.sendMessage(this,"You feel smarter!");
+        } else {
+            Game.sendMessage(this,"You feel dumber!");
+        }
+    },
+    changeWisdom: function(value, temporary) {
+        value = value || 1; // Default increase value
+        // If temporary, don't change the base value
+        this._wisdom += value;
+        if(!temporary) {
+            this._wisdomBase += value;
+        }
+        if(value>0) {
+            Game.sendMessage(this,"You feel wiser!");
+        } else {
+            Game.sendMessage(this,"You feel duller!");
+        }
+    },
+}
+
 // All Actor group mixins are scheduled
 Game.EntityMixins.PlayerActor = {
     name: "PlayerActor",
@@ -26,7 +117,6 @@ Game.EntityMixins.PlayerActor = {
         this._acting = false;
     }
 }
-
 Game.EntityMixins.Sight = { // Can see with given radius
     name: "Sight",
     groupName: "Sight",
@@ -62,7 +152,6 @@ Game.EntityMixins.Sight = { // Can see with given radius
         return found;    
     }
 }
-
 Game.EntityMixins.TaskActor = {
     name: "TaskActor",
     groupName: "Actor",
@@ -130,7 +219,6 @@ Game.EntityMixins.TaskActor = {
         
     }
 }
-
 Game.EntityMixins.FungusActor = {
     name: "FungusActor",
     groupName: "Actor",
@@ -163,7 +251,6 @@ Game.EntityMixins.FungusActor = {
         }
     }
 }
-
 // TODO: Make an alternate Destructible setup for entities with only armor (no HP), like living statues
 Game.EntityMixins.Destructible = {
     // Creatures, etc. Has HP.
@@ -253,7 +340,6 @@ Game.EntityMixins.Attacker = {
     groupName: "Attacker",
     init: function(template) {
         this._attackValue = template["attackValue"] || 1;
-        this._strength = template["strength"] || 1;
         this._unarmedDamageType = template["unarmedAttackType"] || Game.Enums.DamageTypes.BLUNT;
         this._rangedAttackValue = template['rangedAttackValue'] || 1;
     },
@@ -304,6 +390,10 @@ Game.EntityMixins.Attacker = {
             var ammo = this.getAmmo()
             if(ammo!=null) {
                 modifier+=ammo.getRangedDamageValue();
+            }
+            var weaponSkill = this.getSkill(Game.Enums.Skills.ARCHERY);
+            if(weaponSkill) {
+                modifier+=weaponSkill.getRangedDamageValueBoost();
             }
         }
         return modifier;
@@ -362,14 +452,6 @@ Game.EntityMixins.Attacker = {
                 Game.sendMessage(target, "The %s misses you.", [this.getName()]);
             }
         }
-    },
-    getStrength: function() {
-        return this._strength;
-    },
-    increaseStrength: function(value) {
-        value = value || 1; // Default increase value
-        this._strength += value;
-        Game.sendMessage(this,"You feel stronger!");
     },
     listeners: {
         details: function() {
@@ -679,14 +761,32 @@ Game.EntityMixins.ExperienceGainer = {
         this._levelUpEarned = false; // onGainLevel listener sets this to true for PlayerStatGainer. NPCs level up immediately.
 
         // Determine what stats can be leveled up
+        // Any non-zero stats are eligible
         this._statOptions = [];
-        if(this.hasMixin("Attacker")) {
-            this._statOptions.push(["Increase strength", this.increaseStrength]);
+        if(this.hasMixin("StatsHaver")) {
+            if(this.getStrengthBase()>0) {
+                this._statOptions.push(["Increase strength", this.changeStrength]);
+            }
+            if(this.getEnduranceBase()>0) {
+                this._statOptions.push(["Increase endurance", this.changeEndurance]);
+            }
+            if(this.getAgilityBase()>0) {
+                this._statOptions.push(["Increase agility", this.changeAgility]);
+            }
+            if(this.getIntelligenceBase()>0) {
+                this._statOptions.push(["Increase intelligence", this.changeIntelligence]);
+            }
+            if(this.getWisdomBase()>0) {
+                this._statOptions.push(["Increase wisdom", this.changeWisdom]);
+            }
         }
-        if(this.hasMixin("Destructible")) {
-            this._statOptions.push(["Increase endurance",this.increaseMaxHp]);
-        }
-
+        // this._statOptions = [];
+        // if(this.hasMixin("Attacker")) {
+        //     this._statOptions.push(["Increase strength", this.increaseStrength]);
+        // }
+        // if(this.hasMixin("Destructible")) {
+        //     this._statOptions.push(["Increase endurance",this.increaseMaxHp]);
+        // }
         // TODO: if hasMixin(SkillHaver), then also earn skill points at level up.
     },
     getLevel: function() {return this._level;},
@@ -830,7 +930,7 @@ Game.EntityMixins.SkillHaver = {
     name: "SkillHaver",
     init: function(template) { // SkillHaver init needs to be called last. Or, use a template.
         this._skills = {};
-        // This doesn't work: use skillName (string) instead of the actual skill object
+        // This doesn't work: use skillName (the string) instead of the actual skill object
         // for(var i=0; i<template["skills"].length; i++) {
         //     var skill = template["skills"][i].skill;
         //     //console.log(skill)

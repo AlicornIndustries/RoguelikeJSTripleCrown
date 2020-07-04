@@ -251,10 +251,15 @@ Game.Screen.playScreen = {
                 }
             } else if(inputData.keyCode === ROT.KEYS.VK_C) {
                 if(inputData.shiftKey) {
-                    // Character screen. For now, this is just used to level up.
-                    if(this._player.hasMixin("PlayerStatGainer") && this._player.getLevelUpEarned()) {
-                        Game.Screen.gainStatScreen.setup(this._player);
-                        Game.Screen.playScreen.setSubscreen(Game.Screen.gainStatScreen);
+                    // Character/gainStat screen.
+                    if(this._player.hasMixin("PlayerStatGainer")) {
+                        if(this._player.getLevelUpEarned()) {
+                            Game.Screen.gainStatScreen.setup(this._player);
+                            Game.Screen.playScreen.setSubscreen(Game.Screen.gainStatScreen);    
+                        } else {
+                            Game.Screen.characterScreen.setup(this._player);
+                            Game.Screen.playScreen.setSubscreen(Game.Screen.characterScreen);
+                        }
                     }
                 }
             } else if(inputData.keyCode === ROT.KEYS.VK_Q) {
@@ -348,17 +353,6 @@ Game.Screen.playScreen = {
                 }
             })
         }
-        // Testing
-        // console.log(this._player._skills);
-        // for(var s in this._player._skills) {
-        //     if(this._player._skills.hasOwnProperty(s)) {
-        //         console.log(this._player._skills[s])
-        //     }
-        // }
-        // This is still just getting MeleeWeapons (or whichever is last in the entity template)
-        //console.log(this._player.getSkill(Game.Enums.Skills.ARCHERY));
-        //console.log(this._player.getSkill(Game.Enums.Skills.MELEEWEAPONS));
-
     }
 }
 Game.Screen.winScreen = {
@@ -494,7 +488,6 @@ Game.Screen.ItemListScreen.prototype.handleInput = function(inputType, inputData
         }
     }
 }
-
 // Subscreens based on ItemListScreen
 Game.Screen.inventoryScreen = new Game.Screen.ItemListScreen({
     caption: "Inventory",
@@ -642,8 +635,6 @@ Game.Screen.examineScreen = new Game.Screen.ItemListScreen({
     }
 });
 
-
-
 Game.Screen.gainStatScreen = {
     setup: function(entity) {
         // Must be called before rendering
@@ -682,6 +673,30 @@ Game.Screen.gainStatScreen = {
         }
     }
 };
+Game.Screen.characterScreen = {
+    setup: function(entity) {
+        this._entity = entity;
+    },
+    render: function(display) {
+        // TODO: draw a pretty decorative border around the whole page
+        var y=1;
+        var titleString = this._entity.getName();
+        if(this._entity.hasMixin("ExperienceGainer")) {
+            titleString+=ROT.Util.format(", the level %s",this._entity.getLevel());
+        }
+        if(this._entity.hasMixin("Classy")) {
+            titleString+=ROT.Util.format(" %s",this._entity.getCharClass().name);
+        }
+        display.drawText(Game.getScreenWidth() / 2 - titleString.length / 2, y++, titleString);
+    },
+    handleInput: function(inputType, inputData) {
+        if(inputType==="keydown") {
+            if((inputData.keyCode===ROT.KEYS.VK_ESCAPE) || (inputData.keyCode===ROT.KEYS.VK_RETURN)) {
+                Game.Screen.playScreen.setSubscreen(undefined);
+            }
+        }
+    }
+}
 // Target-based screens (look, fire, zap)
 Game.Screen.TargetBasedScreen = function(template) {
     template = template || {};

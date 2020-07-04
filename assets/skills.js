@@ -50,7 +50,7 @@ Game.Skills.Archery = {
         return this._skillLevel;
     },
     getRangedDamageValueBoost() { // should this also care about the weapon in question?
-        return this._rangedDamageValueBoost();
+        return this._rangedDamageValueBoost;
     },
     levelUp: function(level) {
         level = level || 1; // Default to 1
