@@ -1,3 +1,6 @@
+// Keep in mind that this is really e.g. Game.Enums.BoostTypes["MELEEDAMAGE"]
+
+
 Game.Enums = {
     DamageTypes: Object.freeze({
         SLASHING: "slashing",
@@ -36,6 +39,11 @@ Game.Enums = {
             BOW: {name: "bow"},
             CROSSBOW: {name: "crossbow"}
         }},
+    }),
+    BoostTypes: Object.freeze({ // all the things a skill can potentially boost
+        MELEEDAMAGE: {name:"melee damage"},
+        RANGEDDAMAGE: {name: "ranged damage"},
+        SIGHTRADIUS: {name: "sight radius"}
     }),
     Races: Object.freeze({
         PonyRaces: {

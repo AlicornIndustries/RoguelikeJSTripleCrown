@@ -19,20 +19,23 @@ Game.PlayerTemplate = {
     sightRadius: 6,
     inventorySlots: 22,
     skills: [
-        {skill: Game.Enums.Skills.ARCHERY, skillLevel: 10},
-        {skill: Game.Enums.Skills.MELEEWEAPONS, skillLevel: 5},
+        {skill: Game.Enums.Skills.MELEEWEAPONS, skillLevel: 2},
+        {skill: Game.Enums.Skills.ARCHERY, skillLevel: 1},
     ],
-    powers: [
-        Game.Powers.TestAttackPower
-    ],
+    // skills: [
+    //     {skill: Game.Enums.Skills.ARCHERY, skillLevel: 10},
+    //     {skill: Game.Enums.Skills.MELEEWEAPONS, skillLevel: 5},
+    // ],
+    // powers: [
+    //     Game.Powers.TestRangedPower
+    // ],
     mixins: [Game.EntityMixins.PlayerActor, Game.EntityMixins.StatsHaver, Game.EntityMixins.StaminaHaver, Game.EntityMixins.Attacker,
              Game.EntityMixins.Destructible, Game.EntityMixins.Sight,
              Game.EntityMixins.MessageRecipient, Game.EntityMixins.InventoryHolder,
              Game.EntityMixins.FoodConsumer, Game.EntityMixins.Equipper,
              Game.EntityMixins.Affectable,
              Game.EntityMixins.SkillsHaver, Game.EntityMixins.ExperienceGainer,
-             Game.EntityMixins.PlayerStatGainer, Game.EntityMixins.Classy, Game.EntityMixins.RaceHaver,
-             Game.EntityMixins.PowersHaver]
+             Game.EntityMixins.PlayerStatGainer, Game.EntityMixins.Classy, Game.EntityMixins.RaceHaver,]
 }
 
 // Non-player templates are held in repositories

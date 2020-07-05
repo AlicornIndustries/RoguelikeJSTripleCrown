@@ -227,10 +227,11 @@ Game.Screen.playScreen = {
             } else if(inputData.keyCode===ROT.KEYS.VK_A) {
                 // activate a power
                 if(this._player.hasMixin("PowersHaver")) {
-                    Game.Screen.powersScreen.setup(this._player);
-                    Game.Screen.playScreen.setSubscreen(Game.Screen.powersScreen);
+                    // TODO
+                    return;
+                    // Game.Screen.powersScreen.setup(this._player);
+                    // Game.Screen.playScreen.setSubscreen(Game.Screen.powersScreen);
                 }
-
             } else if(inputData.keyCode===ROT.KEYS.VK_COMMA) {
                 // Pick up items
                 var items = this._player.getMap().getItemsAt(this._player.getX(), this._player.getY(), this._player.getD());
@@ -380,6 +381,154 @@ Game.Screen.loseScreen = {
     },
     handleInput: function(inputType, inputData) {
         // Nothing here yet. Add restart button.
+    }
+}
+// Character creation screens
+Game.Screen.raceSelectionScreen = {
+    _races: [],
+    _selectedIndex: null,
+    _selectedRace: null,
+    enter: function() {
+        // Populate array of races based on the enum
+        var that = this;
+        Object.keys(Game.Enums.Races.PonyRaces).forEach(function(race) {
+            that._races.push(Game.Enums.Races.PonyRaces[race]);
+        })
+    },
+    exit: function() {/*console.log("Exited race selection screen.");*/ },
+    render: function(display) {
+        text = "What race are you, courageous adventurer?"; // FUTURE: random epithet (brave/loyal...)
+        var border = '--------------';
+        var y=0;
+        display.drawText(Game.getScreenWidth()/2-text.length/2,y++,text);
+        display.drawText(Game.getScreenWidth() / 2 - border.length / 2, y++, border);
+
+        var letters = 'abcdefghijklmnopqrstuvwxyz';
+        for(var i=0; i<this._races.length; i++) {
+            var letter = letters.substring(i,i+1);
+            var selectionState = this._selectedIndex==i ? "+" : "-";
+            display.drawText(0,2+y,letter+" "+selectionState+" "+this._races[i].name);
+            y++;
+        }
+        // Print race description
+        if(this._selectedIndex!=null) {
+            var leftSide = 20;
+            var topSide = 4;
+            display.drawText(leftSide,topSide,this._races[this._selectedIndex].raceSelectionDescription);    
+        }
+    },
+    handleInput: function(inputType, inputData) {
+        if(inputType==="keydown") {
+            if((inputData.keyCode===ROT.KEYS.VK_RETURN) && this._selectedRace!=null) {
+                // If race selected, proceed to class selection screen
+                Game.Screen.classSelectionScreen.setPreviousSelections(this._selectedRace);
+                Game.switchScreen(Game.Screen.classSelectionScreen);
+            }
+            else if(inputData.keyCode>=ROT.KEYS.VK_A && inputData.keyCode<=ROT.KEYS.VK_Z) {
+                var index = inputData.keyCode-ROT.KEYS.VK_A;
+                if(this._races[index]) {
+                    this._selectedIndex = index;
+                    this._selectedRace = this._races[index];
+                    // Redraw screen to show selection status
+                    Game.refresh();
+                }
+            }
+        }
+    },
+};
+Game.Screen.classSelectionScreen = {
+    _charClasses: [],
+    _selectedIndex: null,
+    _selectedCharClass: null,
+    _selectedRace: null, // set by raceSelectionScreen TODO: Get cleaner method
+    enter: function() {
+        // Populate class array based on allowed races for each class
+        var that = this;
+        Object.keys(Game.Enums.CharClasses.PlayerClasses).forEach(function(charClass) {
+            if(Game.Enums.CharClasses.PlayerClasses[charClass].races.includes(that._selectedRace)) {
+                that._charClasses.push(Game.Enums.CharClasses.PlayerClasses[charClass]);
+            }
+        })
+    },
+    exit: function() { },
+    render: function(display) {
+        // FUTURE/TODO: fix a/an
+        text = ROT.Util.format("What class will you choose, %s?",this._selectedRace.name);
+        var border = '--------------';
+        var y=0;
+        display.drawText(Game.getScreenWidth()/2-text.length/2,y++,text);
+        display.drawText(Game.getScreenWidth() / 2 - border.length / 2, y++, border);
+
+        var letters = 'abcdefghijklmnopqrstuvwxyz';
+        for(var i=0; i<this._charClasses.length; i++) {
+            var letter = letters.substring(i,i+1);
+            var selectionState = this._selectedIndex==i ? "+" : "-";
+            display.drawText(0,2+y,letter+" "+selectionState+" "+this._charClasses[i].name);
+            y++;
+        }
+    },
+    handleInput: function(inputType, inputData) {
+        if(inputType==="keydown") {
+            if((inputData.keyCode===ROT.KEYS.VK_RETURN) && this._selectedCharClass!=null) {
+                Game.Screen.nameSelectionScreen.setPreviousSelections(this._selectedRace,this._selectedCharClass);
+                Game.switchScreen(Game.Screen.nameSelectionScreen);
+            }
+            else if(inputData.keyCode>=ROT.KEYS.VK_A && inputData.keyCode<=ROT.KEYS.VK_Z) {
+                var index = inputData.keyCode-ROT.KEYS.VK_A;
+                if(this._charClasses[index]) {
+                    this._selectedIndex = index;
+                    this._selectedCharClass = this._charClasses[index];
+                    // Redraw screen to show selection status
+                    Game.refresh();
+                }
+            }
+        }
+    },
+    setPreviousSelections: function(race) {
+        this._selectedRace = race;
+    }
+};
+Game.Screen.nameSelectionScreen = {
+    _selectedCharClass: null,
+    _selectedRace: null,
+    _name: "PLACEHOLDERNAME",
+    enter: function() {
+    },
+    exit: function() { },
+    render: function(display) {
+        text = "Finally, what is your name?";
+        var border = '--------------';
+        var y=0;
+        display.drawText(Game.getScreenWidth()/2-text.length/2,y++,text);
+        display.drawText(Game.getScreenWidth() / 2 - border.length / 2, y++, border);
+        
+        var nameString = "%c{blue}"+this._name;
+        display.drawText(4,2+y,nameString);
+    },
+    handleInput: function(inputType, inputData) {
+        if(inputType==="keydown") {
+            if((inputData.keyCode===ROT.KEYS.VK_RETURN) && this._name!=null) {
+                Game.Screen.playScreen.createPlayer(this._name,this._selectedRace,this._selectedCharClass);
+                Game.switchScreen(Game.Screen.playScreen);
+            }
+            else if(inputData.keyCode===ROT.KEYS.VK_BACK_SPACE) {
+                this._name = this._name.slice(0,-1);
+                Game.refresh();
+            }
+        }
+        else if(inputType==="keypress") {
+            var code = inputData.charCode;
+            // a-z, A-Z
+            if((code>=97 && code<=122) || (code>=65 && code<=90)) {
+                var ch = String.fromCharCode(code);
+                this._name+=ch;
+                Game.refresh();
+            }
+        }
+    },
+    setPreviousSelections: function(race,charClass) {
+        this._selectedRace = race;
+        this._selectedCharClass = charClass;
     }
 }
 Game.Screen.ItemListScreen = function(template) {
@@ -737,8 +886,6 @@ Game.Screen.characterScreen = {
 Game.Screen.TargetBasedScreen = function(template) {
     template = template || {};
     // By default, ok does nothing and does not consume a turn
-    // CHANGED
-    //this._isAcceptableFunction = template['okFunction'] || function(x,y) {return false;}
     this._okFunction = template['okFunction'] || function(x,y) {return false;}
     // Default caption function returns an empty string. Use for showing caption at the bottom of screen
     this._captionFunction = template['captionFunction'] || function(x,y) {return "";}
@@ -914,154 +1061,6 @@ Game.Screen.helpScreen = {
         Game.Screen.playScreen.setSubscreen(undefined);
     }
 };
-// Character creation screens
-Game.Screen.raceSelectionScreen = {
-    _races: [],
-    _selectedIndex: null,
-    _selectedRace: null,
-    enter: function() {
-        // Populate array of races based on the enum
-        var that = this;
-        Object.keys(Game.Enums.Races.PonyRaces).forEach(function(race) {
-            that._races.push(Game.Enums.Races.PonyRaces[race]);
-        })
-    },
-    exit: function() {/*console.log("Exited race selection screen.");*/ },
-    render: function(display) {
-        text = "What race are you, courageous adventurer?"; // FUTURE: random epithet (brave/loyal...)
-        var border = '--------------';
-        var y=0;
-        display.drawText(Game.getScreenWidth()/2-text.length/2,y++,text);
-        display.drawText(Game.getScreenWidth() / 2 - border.length / 2, y++, border);
-
-        var letters = 'abcdefghijklmnopqrstuvwxyz';
-        for(var i=0; i<this._races.length; i++) {
-            var letter = letters.substring(i,i+1);
-            var selectionState = this._selectedIndex==i ? "+" : "-";
-            display.drawText(0,2+y,letter+" "+selectionState+" "+this._races[i].name);
-            y++;
-        }
-        // Print race description
-        if(this._selectedIndex!=null) {
-            var leftSide = 20;
-            var topSide = 4;
-            display.drawText(leftSide,topSide,this._races[this._selectedIndex].raceSelectionDescription);    
-        }
-    },
-    handleInput: function(inputType, inputData) {
-        if(inputType==="keydown") {
-            if((inputData.keyCode===ROT.KEYS.VK_RETURN) && this._selectedRace!=null) {
-                // If race selected, proceed to class selection screen
-                Game.Screen.classSelectionScreen.setPreviousSelections(this._selectedRace);
-                Game.switchScreen(Game.Screen.classSelectionScreen);
-            }
-            else if(inputData.keyCode>=ROT.KEYS.VK_A && inputData.keyCode<=ROT.KEYS.VK_Z) {
-                var index = inputData.keyCode-ROT.KEYS.VK_A;
-                if(this._races[index]) {
-                    this._selectedIndex = index;
-                    this._selectedRace = this._races[index];
-                    // Redraw screen to show selection status
-                    Game.refresh();
-                }
-            }
-        }
-    },
-};
-Game.Screen.classSelectionScreen = {
-    _charClasses: [],
-    _selectedIndex: null,
-    _selectedCharClass: null,
-    _selectedRace: null, // set by raceSelectionScreen TODO: Get cleaner method
-    enter: function() {
-        // Populate class array based on allowed races for each class
-        var that = this;
-        Object.keys(Game.Enums.CharClasses.PlayerClasses).forEach(function(charClass) {
-            if(Game.Enums.CharClasses.PlayerClasses[charClass].races.includes(that._selectedRace)) {
-                that._charClasses.push(Game.Enums.CharClasses.PlayerClasses[charClass]);
-            }
-        })
-    },
-    exit: function() { },
-    render: function(display) {
-        // FUTURE/TODO: fix a/an
-        text = ROT.Util.format("What class will you choose, %s?",this._selectedRace.name);
-        var border = '--------------';
-        var y=0;
-        display.drawText(Game.getScreenWidth()/2-text.length/2,y++,text);
-        display.drawText(Game.getScreenWidth() / 2 - border.length / 2, y++, border);
-
-        var letters = 'abcdefghijklmnopqrstuvwxyz';
-        for(var i=0; i<this._charClasses.length; i++) {
-            var letter = letters.substring(i,i+1);
-            var selectionState = this._selectedIndex==i ? "+" : "-";
-            display.drawText(0,2+y,letter+" "+selectionState+" "+this._charClasses[i].name);
-            y++;
-        }
-    },
-    handleInput: function(inputType, inputData) {
-        if(inputType==="keydown") {
-            if((inputData.keyCode===ROT.KEYS.VK_RETURN) && this._selectedCharClass!=null) {
-                Game.Screen.nameSelectionScreen.setPreviousSelections(this._selectedRace,this._selectedCharClass);
-                Game.switchScreen(Game.Screen.nameSelectionScreen);
-            }
-            else if(inputData.keyCode>=ROT.KEYS.VK_A && inputData.keyCode<=ROT.KEYS.VK_Z) {
-                var index = inputData.keyCode-ROT.KEYS.VK_A;
-                if(this._charClasses[index]) {
-                    this._selectedIndex = index;
-                    this._selectedCharClass = this._charClasses[index];
-                    // Redraw screen to show selection status
-                    Game.refresh();
-                }
-            }
-        }
-    },
-    setPreviousSelections: function(race) {
-        this._selectedRace = race;
-    }
-};
-Game.Screen.nameSelectionScreen = {
-    _selectedCharClass: null,
-    _selectedRace: null,
-    _name: "PLACEHOLDERNAME",
-    enter: function() {
-    },
-    exit: function() { },
-    render: function(display) {
-        text = "Finally, what is your name?";
-        var border = '--------------';
-        var y=0;
-        display.drawText(Game.getScreenWidth()/2-text.length/2,y++,text);
-        display.drawText(Game.getScreenWidth() / 2 - border.length / 2, y++, border);
-        
-        var nameString = "%c{blue}"+this._name;
-        display.drawText(4,2+y,nameString);
-    },
-    handleInput: function(inputType, inputData) {
-        if(inputType==="keydown") {
-            if((inputData.keyCode===ROT.KEYS.VK_RETURN) && this._name!=null) {
-                Game.Screen.playScreen.createPlayer(this._name,this._selectedRace,this._selectedCharClass);
-                Game.switchScreen(Game.Screen.playScreen);
-            }
-            else if(inputData.keyCode===ROT.KEYS.VK_BACK_SPACE) {
-                this._name = this._name.slice(0,-1);
-                Game.refresh();
-            }
-        }
-        else if(inputType==="keypress") {
-            var code = inputData.charCode;
-            // a-z, A-Z
-            if((code>=97 && code<=122) || (code>=65 && code<=90)) {
-                var ch = String.fromCharCode(code);
-                this._name+=ch;
-                Game.refresh();
-            }
-        }
-    },
-    setPreviousSelections: function(race,charClass) {
-        this._selectedRace = race;
-        this._selectedCharClass = charClass;
-    }
-}
 // Projectile weapon firing screen
 Game.Screen.fireScreen = new Game.Screen.TargetBasedScreen( {
     captionFunction: function(x,y) {
@@ -1200,40 +1199,187 @@ Game.Screen.fireScreen = new Game.Screen.TargetBasedScreen( {
         }
     }
 })
-// Powers screen, for selecting which power to use
-Game.Screen.powersScreen = {
-    setup: function(powerUser) {
-        this._powerUser = powerUser; // Presumably, the player
-        // Populate based on your powers
-        this._powerNames = [];
-        for(var power in this._powerUser.getPowers()) {
-            this._powerNames.push(power);
-        }
-    },
-    render: function(display) {
-        var letters = 'abcdefghijklmnopqrstuvwxyz';
-        // Render caption
-        display.drawText(0,0,"Which power do you wish to use?")
-        var row = 0;
-        for(var i=0; i<this._powerNames.length; i++) {
-            if(this._powerNames[i]) {
-                var letter = letters.substring(i,i+1);
-                display.drawText(0,2+row,letter+" - "+this._powerNames[i])
-            }
-        }
-    },
-    handleInput: function(inputType,inputData) {
-        if((inputData.keyCode===ROT.KEYS.VK_ESCAPE) || (inputData.keyCode===ROT.KEYS.VK_RETURN)) {
-            // Switch back to play screen
-            Game.Screen.playScreen.setSubscreen(undefined);
-        } else if(inputData.keyCode>=ROT.KEYS.VK_A && inputData.keyCode<=ROT.KEYS.VK_Z) {
-            var index = inputData.keyCode-ROT.KEYS.VK_A;
-            if(this._powerNames[index]) {
-                // Activate ability
-                console.log(this._powerUser.getPowers());
-                console.log(this._powerNames[index])
-                this._powerUser.activatePower(this._powerNames[index]);
-            }
-        }
-    }
-}
+// Game.Screen.rangedPowerTargetingScreen = new Game.Screen.TargetBasedScreen( {
+//     captionFunction: function(x,y) {
+//         var d = this._player.getD();
+//         var map = this._player.getMap();
+//         // If tile is explored, give a better caption
+//         if(map.isExplored(x,y,d)) {
+//             // If tile explored, check if we can see it
+//             if(this._visibleCells[x+","+y]) {
+//                 var items = map.getItemsAt(x,y,d);
+//                 // Topmost item
+//                 if(items) {
+//                     var item = items[items.length-1];
+//                     // TODO: fix formating
+//                     //return String.format("%s - %s",item.getRepresentation(),item.describeA(true));
+//                     return item.getRepresentation()+" - "+item.describeA(true);
+//                 } 
+//                 else if(map.getEntityAt(x,y,d)) {
+//                     // Else check if there's an entity (TODO: shouldn't we do this first?)
+//                     // TODO: Wouldn't it be faster to save the getEntity from the if() statement?
+//                     var entity = map.getEntityAt(x,y,d)
+//                     //return String.format("%s - %s",entity.getRepresentation(),entity.describeA(true));
+//                     return entity.getRepresentation()+" - "+entity.describeA(true);
+
+//                 }
+//             }
+//             // If no entity/item visible, use tile information
+//             //return String.format("%s - %s", map.getTile(x,y,d).getRepresentation(), map.getTile(x,y,d).getDescription());
+//             return `${map.getTile(x,y,d).getRepresentation()} - ${map.getTile(x,y,d).getDescription()}`;
+//         } else {
+//             // If tile not explored, show null tile description
+//             //return String.format('%s - %s',Game.Tile.nullTile.getRepresentation(),Game.Tile.nullTile.getDescription());
+//             return `${Game.Tile.nullTile.getRepresentation()} - ${Game.Tile.nullTile.getDescription()}`;
+
+//         }
+//     },
+//     handleInput: function(inputType, inputData) {
+//         // Move the cursor
+//         if(inputType=="keydown") {
+//             if ((inputData.keyCode === ROT.KEYS.VK_LEFT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD4)) {
+//                 this.moveCursor(-1,0);
+//             } else if ((inputData.keyCode === ROT.KEYS.VK_RIGHT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD6)) {
+//                 this.moveCursor(1,0);
+//             } else if ((inputData.keyCode === ROT.KEYS.VK_UP) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD8)) {
+//                 this.moveCursor(0,-1);
+//             } else if ((inputData.keyCode === ROT.KEYS.VK_DOWN) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD2)) {
+//                 this.moveCursor(0,1);
+//             } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD7) {
+//                 this.moveCursor(-1,-1);
+//             } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD9) {
+//                 this.moveCursor(1,-1);
+//             } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD3) {
+//                 this.moveCursor(1,1);
+//             } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD1) {
+//                 this.moveCursor(-1,1);
+//             } else if(inputData.keyCode === ROT.KEYS.VK_ESCAPE) {
+//                 this.executeOkFunction();
+//                 return;
+//             } else if((inputData.keyCode===ROT.KEYS.VK_RETURN) || (inputData.keyCode===ROT.KEYS.VK_F)) {
+//                 // Fire at the target
+//                 var x = this._cursorX+this._offsetX;
+//                 var y = this._cursorY+this._offsetY;
+//                 if((x==this._player.getX()) && (y==this._player.getY())) {
+//                     Game.sendMessage(this._player, "Targeting yourself would not be prudent.");
+//                     this.executeOkFunction();
+//                     return;
+//                 } else {
+//                     var d = this._player.getD();
+//                     var map = this._player.getMap();
+//                     this._player.activatePower(this._power,x,y,d,map);
+//                     this.executeOkFunction();
+//                     map.getEngine().unlock();
+//                     return;
+//                 }
+//                 //this.executeOkFunction();
+//             }
+
+//             // TODO: else if ESC, cancel w/o using turn
+//         }
+//         Game.refresh();
+//     },
+//     setup: function(player, power, startX, startY, offsetX, offsetY,) {
+//             // FUTURE: Implement screen scrolling
+//             this._player = player;
+//             this._power = power;
+//             console.log(this._power);
+//             this._range = this._power.getRange();
+//             this._rangeSquared = this._range*this._range;
+//             // Store original position. Subtract screen offset so we don't have to later
+//             this._startX = startX - offsetX;
+//             this._startY = startY - offsetY;
+//             // Store current cursor position
+//             this._cursorX = this._startX;
+//             this._cursorY = this._startY;
+//             // Store map offsets
+//             this._offsetX = offsetX;
+//             this._offsetY = offsetY;
+//             // Cache the FOV
+//             var visibleCells = {};
+//             this._player.getMap().getFov(this._player.getD()).compute(
+//                 this._player.getX(), this._player.getY(),
+//                 this._player.getSightRadius(),
+//                 function(x,y,radius,visibility) {
+//                     visibleCells[x+","+y] = true;
+//                 });
+//             this._visibleCells = visibleCells;
+//     },
+//     render: function(display) {
+//         // Use playScreen to render
+//         Game.Screen.playScreen.renderTiles.call(Game.Screen.playScreen, display);
+
+//         // Draw targeting cursor
+//         display.drawText(this._cursorX, this._cursorY, "%c{magenta}*");
+
+//         // TODO: Highlight areas within range
+
+//         // Render caption at bottom
+//         display.drawText(0, Game.getScreenHeight()-2,
+//             this._captionFunction(this._cursorX+this._offsetX, this._cursorY+this._offsetY));
+//     },
+//     moveCursor: function(dx,dy) {
+//         // Accounts for power range
+//         var distanceX = (this._cursorX+dx)-this._startX;
+//         var distanceY = (this._cursorY+dy)-this._startY;
+
+//         if((distanceX*distanceX + distanceY*distanceY) <= this._rangeSquared) {
+//             // Ensure we stay within bounds
+//             this._cursorX = Math.max(0, Math.min(this._cursorX+dx, Game.getScreenWidth()));
+//             // Save the last line for the caption
+//             this._cursorY = Math.max(0, Math.min(this._cursorY+dy, Game.getScreenHeight()-1)); 
+//         }
+//     }
+// })
+// // Powers screen, for selecting which power to use
+// Game.Screen.powersScreen = {
+//     setup: function(powerUser) {
+//         this._powerUser = powerUser; // Presumably, the player
+//         // Populate based on your powers
+//         this._powerNames = [];
+//         for(var power in this._powerUser.getPowers()) {
+//             this._powerNames.push(power);
+//         }
+//     },
+//     render: function(display) {
+//         var letters = 'abcdefghijklmnopqrstuvwxyz';
+//         // Render caption
+//         display.drawText(0,0,"Which power do you wish to use?")
+//         var row = 0;
+//         for(var i=0; i<this._powerNames.length; i++) {
+//             if(this._powerNames[i]) {
+//                 var letter = letters.substring(i,i+1);
+//                 display.drawText(0,2+row,letter+" - "+this._powerNames[i])
+//             }
+//         }
+//     },
+//     handleInput: function(inputType,inputData) {
+//         if((inputData.keyCode===ROT.KEYS.VK_ESCAPE) || (inputData.keyCode===ROT.KEYS.VK_RETURN)) {
+//             // Switch back to play screen
+//             Game.Screen.playScreen.setSubscreen(undefined);
+//         } else if(inputData.keyCode>=ROT.KEYS.VK_A && inputData.keyCode<=ROT.KEYS.VK_Z) {
+//             var index = inputData.keyCode-ROT.KEYS.VK_A;
+//             var power = this._powerUser.getPower(this._powerNames[index]);
+//             if(power!=null) {
+//                 if(this._powerUser.canActivatePower(power)) {
+//                     // If the power needs to move to another subscreen (e.g. targeting), do that first
+//                     var relevantPowerSubscreen = power.usesSubscreen();
+//                     if(relevantPowerSubscreen) {
+//                         if(relevantPowerSubscreen==Game.Screen.rangedPowerTargetingScreen) {
+//                             var offsets = Game.Screen.playScreen.getScreenOffsets();
+//                             Game.Screen.rangedPowerTargetingScreen.setup(this._powerUser,this._power,this._powerUser.getX(), this._powerUser.getY(), offsets.x, offsets.y)
+//                             Game.Screen.playScreen.setSubscreen(Game.Screen.rangedPowerTargetingScreen);
+//                         }
+//                         // TODO
+//                     } else {
+//                         // No subscreen needed, activate power directly.
+//                         this._powerUser.activatePower(power);
+//                         // Power ends turn. Unlock engine.
+//                         Game.Screen.playScreen.setSubscreen(undefined);
+//                         this._powerUser.getMap().getEngine().unlock();
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }

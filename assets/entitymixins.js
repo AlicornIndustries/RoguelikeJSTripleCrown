@@ -111,6 +111,9 @@ Game.EntityMixins.StaminaHaver = {
     },
     getStamina: function() {return this._stamina},
     getStaminaMax: function() {return this._staminaMax},
+    changeStamina: function(delta) {
+        this._stamina = ROT.Util.clamp(this._stamina+delta,0,this._staminaMax);
+    },
     recalcStamina: function(restoreToFull=false) {
         this._staminaMax = 10*this.getEndurance();
         if(restoreToFull) {
@@ -413,16 +416,15 @@ Game.EntityMixins.Attacker = {
         if(this.hasMixin(Game.EntityMixins.Equipper)) {
             if(this.getWeapon()) {
                 modifier+=this.getWeapon().getDamageValue();
-                // Apply additional bonus if skilled in weapon use
-                var weaponSkill = this.getSkill(Game.Enums.Skills.MELEEWEAPONS);
-                if(weaponSkill) {
-                    modifier+=weaponSkill.getDamageValueBoost();
+                // Apply additional bonus if skilled in melee weapons
+                if(this.hasMixin("SkillsHaver")) {
+                    modifier+=this.getBoost(Game.Enums.BoostTypes.MELEEDAMAGE);
                 }
             }
         }
         return this._strength+modifier;
     },
-    getRangedDamageValue: function() { // FUTURE: will take into account equipped ammo, as well.
+    getRangedDamageValue: function() {
         var modifier = 0;
         if(this.hasMixin(Game.EntityMixins.Equipper)) {
             var projectileLauncher = this.getProjectileLauncher();
@@ -433,9 +435,8 @@ Game.EntityMixins.Attacker = {
             if(ammo!=null) {
                 modifier+=ammo.getRangedDamageValue();
             }
-            var weaponSkill = this.getSkill(Game.Enums.Skills.ARCHERY);
-            if(weaponSkill) {
-                modifier+=weaponSkill.getRangedDamageValueBoost();
+            if(this.hasMixin("SkillsHaver")) {
+                modifier+=this.getBoost(Game.Enums.BoostTypes.RANGEDDAMAGE);
             }
         }
         return modifier;
@@ -968,29 +969,20 @@ Game.EntityMixins.SkillsHaver = {
     name: "SkillsHaver",
     init: function(template) { // SkillsHaver init needs to be called last. Or, use a template.
         this._skills = {};
-        // This doesn't work: use skillName (the string) instead of the actual skill object
-        // for(var i=0; i<template["skills"].length; i++) {
-        //     var skill = template["skills"][i].skill;
-        //     //console.log(skill)
-        //     var skillLevel = template["skills"][i].skillLevel;
-        //     //this._skills[skill] = Game.Skills.createSkill(skill);
-        //     //this._skills[skill].init();
-        //     //this._skills[skill].levelUp(skillLevel);
-        //     this._skills[skill] = Game.Skills.createSkill(skill);
-        //     console.log(this._skills[skill]); // It's correct so far
-        //     this._skills[skill].init();
-        //     this._skills[skill].levelUp(skillLevel);
-        // }
-        //console.log(this.getSkill(Game.Enums.Skills.ARCHERY));
-        //console.log(this.getSkill(Game.Enums.Skills.MELEEWEAPONS));
-
         for(var i=0; i<template["skills"].length; i++) {
-            var skillName = template["skills"][i].skill.name;
+            var skillName = template["skills"][i].skill.name; // Use skillName (the string), not the actual Skill object
             var skillLevel = template["skills"][i].skillLevel;
             this._skills[skillName] = Game.Skills.createSkill(template["skills"][i].skill);
             this._skills[skillName].init();
             this._skills[skillName].levelUp(skillLevel);
         }
+        // Populate boosts collection
+        this._boosts = {};
+        for(var boostType in Game.Enums.BoostTypes) {
+            this.recalcBoost(Game.Enums.BoostTypes[boostType]);
+        }
+        // console.log(this.getBoost(Game.Enums.BoostTypes.MELEEDAMAGE));
+        // console.log(this.getBoost("melee damage"));
     },
     getSkill: function(skill) {
         // in: "archery" or Game.Enums.Skill.ARCHERY
@@ -1000,9 +992,32 @@ Game.EntityMixins.SkillsHaver = {
             return this._skills[skill];
         }
     },
-    getSkills: function() {
-        return this._skills;
-    }
+    getSkills: function() {return this._skills;},
+    getBoost: function(boostType,extraDetails) {
+        // getBoost("melee damage") or getBoost("melee damage",{targetRace:"timberwolf",equippedWeapon:"sword"})
+        // boostType can be Game.Enums.BoostType.boostType.name ("melee damage") or Game.EnumsBoostTypes.boostType (Game.Enums.BoostTypes.MELEEDAMAGE)
+        // extraDetails is optional
+        // Gets precalculated boost, does not recalculate it
+        if(extraDetails==null) {
+            if(typeof boostType==="object") {
+                return this._boosts[boostType.name];
+            } else {
+                return this._boosts[boostType];
+            }
+        }
+    },
+    recalcBoost: function(boostType) {
+        // NB: Does not currently recalc the values on the skill side
+        // First, zero the boost
+        this._boosts[boostType.name] = 0;
+        // Loop through all skills, summing their boosts of that type
+        for(var skill in this._skills) {
+            var boostValue = this._skills[skill].getBoost(boostType);
+            if(boostValue!=null) {
+                this._boosts[boostType.name]+=boostValue;
+            }
+        }
+    },
 };
 // for entities that can be affected by effects (most entities are this)
 Game.EntityMixins.Affectable = {
@@ -1127,16 +1142,23 @@ Game.EntityMixins.PowersHaver = {
             // Ex: this._powers[template["powers"][i].name].activate(this);
         }
     },
-    getPowers: function() {
-        return this._powers;
-    },
-    gainPower: function(power) {
-        // Create an instance of the power and assign it to the entity?
-        // Or:
-        this._powers[power.name] = power;
-    },
-    activatePower: function(power) {
-        // Call powers by name, e.g. "TestAttackPower"
-        this._powers[power].activate(this);
-    }
+    // getPower: function(power) {
+    //     return this._powers[power];
+    // },
+    // getPowers: function() {
+    //     return this._powers;
+    // },
+    // gainPower: function(power) {
+    //     // Create an instance of the power and assign it to the entity?
+    //     // Or:
+    //     this._powers[power.name] = power;
+    // },
+    // activatePower: function(power) {
+    //     // Call powers by name, e.g. "TestAttackPower"
+    //     this._powers[power].activate(this);
+    // },
+    // canActivatePower: function(power) {
+    //     return power.canActivate(this);
+    //     //return this._powers[power].canActivate(this);
+    // }
 }
