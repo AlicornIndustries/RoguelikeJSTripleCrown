@@ -129,6 +129,7 @@ Game.ItemMixins.Equippable = {
         this._armorDurability = this._maxArmorDurability || 0;
         this._armorReduction = template["armorReduction"] || 0;
         this._armorType = template["armorType"] || null;
+        this._weaponType = template["weaponType"] || null;
         this._wieldable = template["wieldable"] || false;
         this._wearable = template["wearable"] || false;
         this._quiverable = template["quiverable"] || false; // TODO: May remove this.
@@ -205,6 +206,7 @@ Game.ItemMixins.Equippable = {
     getArmorType: function() {
         return this._armorType;
     },
+    getWeaponType: function() {return this._weaponType},
     isWieldable: function() {
         return this._wieldable;
     },

@@ -19,9 +19,16 @@ Game.Skills.MeleeWeapons = {
     init: function() {
         this._skillLevel = 0;
         this._meleeDamageBoost = 0;
+        this._swordDamageBoost = 1000; // Testing value
     },
     getSkillLevel: function() {return this._skillLevel},
-    getBoost: function(boostType) {
+    getBoost: function(boostType,extraProperties) {
+        if(extraProperties!=null) {
+            console.log(extraProperties);
+            if(extraProperties.equippedWeapon==Game.Enums.WeaponTypes.SWORD) {
+                console.log("Y'ALL HIT 'EM WITH A SWORD");
+            }
+        }
         if(typeof boostType==="object") { // boostType is e.g. Game.Enums.BoostTypes.MELEEDAMAGE
             switch(boostType) {
                 case Game.Enums.BoostTypes.MELEEDAMAGE:

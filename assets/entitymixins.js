@@ -413,14 +413,14 @@ Game.EntityMixins.Attacker = {
     },
     getMeleeDamage: function() { // TODO: make this name consistent with getRangedDamageValue
         var modifier=0;
+        // TODO: Figure out a more efficient way to handle this conditional
         if(this.hasMixin(Game.EntityMixins.Equipper)) {
             if(this.getWeapon()) {
                 modifier+=this.getWeapon().getDamageValue();
-                // Apply additional bonus if skilled in melee weapons
-                if(this.hasMixin("SkillsHaver")) {
-                    modifier+=this.getBoost(Game.Enums.BoostTypes.MELEEDAMAGE);
-                }
             }
+        }
+        if(this.hasMixin("SkillsHaver")) {
+            modifier+=this.getBoost(Game.Enums.BoostTypes.MELEEDAMAGE,{equippedWeapon:this.getWeapon().getWeaponType()});
         }
         return this._strength+modifier;
     },
@@ -967,7 +967,7 @@ Game.EntityMixins.WindigoActor = Game.extend(Game.EntityMixins.TaskActor, {
 
 Game.EntityMixins.SkillsHaver = {
     name: "SkillsHaver",
-    init: function(template) { // SkillsHaver init needs to be called last. Or, use a template.
+    init: function(template) { // TODO: check if this is true: SkillsHaver init needs to be called last. Or, use a better template.
         this._skills = {};
         for(var i=0; i<template["skills"].length; i++) {
             var skillName = template["skills"][i].skill.name; // Use skillName (the string), not the actual Skill object
@@ -976,13 +976,6 @@ Game.EntityMixins.SkillsHaver = {
             this._skills[skillName].init();
             this._skills[skillName].levelUp(skillLevel);
         }
-        // Populate boosts collection
-        this._boosts = {};
-        for(var boostType in Game.Enums.BoostTypes) {
-            this.recalcBoost(Game.Enums.BoostTypes[boostType]);
-        }
-        // console.log(this.getBoost(Game.Enums.BoostTypes.MELEEDAMAGE));
-        // console.log(this.getBoost("melee damage"));
     },
     getSkill: function(skill) {
         // in: "archery" or Game.Enums.Skill.ARCHERY
@@ -993,30 +986,21 @@ Game.EntityMixins.SkillsHaver = {
         }
     },
     getSkills: function() {return this._skills;},
-    getBoost: function(boostType,extraDetails) {
-        // getBoost("melee damage") or getBoost("melee damage",{targetRace:"timberwolf",equippedWeapon:"sword"})
-        // boostType can be Game.Enums.BoostType.boostType.name ("melee damage") or Game.EnumsBoostTypes.boostType (Game.Enums.BoostTypes.MELEEDAMAGE)
-        // extraDetails is optional
-        // Gets precalculated boost, does not recalculate it
-        if(extraDetails==null) {
-            if(typeof boostType==="object") {
-                return this._boosts[boostType.name];
-            } else {
-                return this._boosts[boostType];
-            }
-        }
-    },
-    recalcBoost: function(boostType) {
-        // NB: Does not currently recalc the values on the skill side
-        // First, zero the boost
-        this._boosts[boostType.name] = 0;
+    getBoost: function(boostType,extraProperties) {
+        // FUTURE: Once all the skills are designed, hardcode optimizations st. e.g. when checking for melee damage, we only test the skills we know could affect it.
+        var boostValue = 0;
         // Loop through all skills, summing their boosts of that type
         for(var skill in this._skills) {
-            var boostValue = this._skills[skill].getBoost(boostType);
+            if(extraProperties!=null) {
+                var boostFromSkill = this._skills[skill].getBoost(boostType,extraProperties);
+            } else {
+                var boostFromSkill = this._skills[skill].getBoost(boostType);
+            }
             if(boostValue!=null) {
-                this._boosts[boostType.name]+=boostValue;
+                boostValue+=boostFromSkill;
             }
         }
+        return boostValue;
     },
 };
 // for entities that can be affected by effects (most entities are this)

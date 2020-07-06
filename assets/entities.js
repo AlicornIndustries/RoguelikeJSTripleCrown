@@ -19,7 +19,7 @@ Game.PlayerTemplate = {
     sightRadius: 6,
     inventorySlots: 22,
     skills: [
-        {skill: Game.Enums.Skills.MELEEWEAPONS, skillLevel: 2},
+        {skill: Game.Enums.Skills.MELEEWEAPONS, skillLevel: 100},
         {skill: Game.Enums.Skills.ARCHERY, skillLevel: 1},
     ],
     // skills: [
