@@ -132,6 +132,18 @@ Game.ItemRepository.define("potion of healing", {
     mixins: [Game.ItemMixins.Quaffable]},
     {disableRandomCreation: true
 });
+Game.ItemRepository.define("potion of bleeding", {
+    name: "potion of bleeding",
+    character: "!",
+    foreground: "greenYellow",
+    effect: Game.Effects.Bleed,
+    effectTemplate: {
+        bleedAmount: 10,
+        duration: 3
+    },
+    mixins: [Game.ItemMixins.Quaffable]},
+    {disableRandomCreation: true
+});
 // Wearables
 Game.ItemRepository.define("padded barding", {
     name: "padded barding",

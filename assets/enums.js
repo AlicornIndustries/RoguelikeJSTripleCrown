@@ -90,6 +90,7 @@ Game.Enums.CharClasses = Object.freeze({
                 {name: "shortsword", material:Game.Enums.Materials.STEEL},
                 {name: "padded barding"},
                 {name: "potion of healing"},
+                {name: "potion of bleeding"},
                 {name: "apple"}
             ],
         },

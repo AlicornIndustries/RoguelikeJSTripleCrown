@@ -350,8 +350,8 @@ Game.EntityMixins.Destructible = {
         }
         return this._defenseValue+modifier;
     },
-    takeDamage: function(attacker, damage) {
-        if(this.hasMixin(Game.EntityMixins.Equipper)) {
+    takeDamage: function(attacker, damage, bypassesArmor=false) {
+        if(!bypassesArmor && this.hasMixin(Game.EntityMixins.Equipper)) {
             if(this.getArmor()) {
                 damage = this.getArmor().damageArmor(damage);        
             }
@@ -458,31 +458,6 @@ Game.EntityMixins.Attacker = {
                 return undefined;
         }
     },
-    // getCrit: function(attackRoll, target=undefined) {
-    //     // FUTURE: returns a CritHit object with info about the damage dealt and special effects (bleed, concuss, etc)
-    //     // Returns false if no crit.
-    //     var critChance = 0;
-    //     var critDamageMult = 0;
-    //     var critChanceModifier = 0;
-    //     var weapon = this.getWeapon();
-    //     if(weapon) {
-    //         critChance=weapon.getCritChance();
-    //         critDamageMult=weapon.getCritDamageMult();
-    //     } else {
-    //         critChance=Game.Enums.WeaponTypes.UNARMED.critChanceBase;
-    //         critDamageMult=Game.Enums.WeaponTypes.UNARMED.critDamageMult;
-    //     }
-    //     if(this.hasMixin("SkillsHaver")) {
-    //         critChanceModifier+=this.getBoost(Game.Enums.BoostTypes.MELEECRITCHANCE,{"target":target});
-    //     }
-    //     // Crits if you roll <= (critChance*modifier), e.g. 10% crit chance * 110% crit modifier means roll <= 0.11
-    //     if(attackRoll<=(critChance*critChanceModifier)) {
-    //         return {"critHit": true, "critDamageMult":critDamageMult};
-    //     }
-    //     else {
-    //         return {"critHit": false};
-    //     }
-    // },
     getHit: function(target,attackType=Game.Enums.AttackTypes.MELEE) {
         // Returns an object with info about damage dealt, whether it was a critical. FUTURE: add hit location, etc here
         var attackRoll = ROT.RNG.getPercentage();
@@ -574,7 +549,7 @@ Game.EntityMixins.Attacker = {
             // FUTURE: On miss, drain opponent's stamina or some other "Dodge Meter?"      
         }
     },
-    rangedAttack: function(target, distance) {
+    rangedAttack: function(target, distance) { // TODO: distance currently unused
         if(target.hasMixin("Destructible")) {
             // Consume a unit of ammunition
             var ammo = this.getAmmo();
@@ -821,7 +796,7 @@ Game.EntityMixins.FoodConsumer = {
             item.changeRemainingQuaffs(-1);
             // Apply effects of potion
             if(this.hasMixin("Affectable")) {
-                this.addEffect(item.getEffects());
+                this.addEffect(item.getEffects(),this);
             }
             if(!item.hasRemainingQuaffs()) {
                 var index = this.getItemIndex(item);
@@ -1118,7 +1093,8 @@ Game.EntityMixins.Affectable = {
     init: function(template) {
         this._effects = [];
     },
-    addEffect: function(effect) {
+    addEffect: function(effect,inflictor) {
+        effect.setInflictor(inflictor);
         this._effects.push(effect);
         effect.start(this);
         // Immediately remove the effect if it's finished

@@ -33,12 +33,35 @@ Game.Effects.Heal = {
         return this._duration;
     }
 };
-Game.Effects.BuffStats = {
-    name: "buffStats",
+Game.Effects.Bleed = {
+    name: "bleed",
     init: function(template) {
-
+        this._bleedAmount = template["bleedAmount"];
+        this._duration = template["duration"];
+        this._inflictor = null; // Entity that inflicted the effect and gets the XP for the kill
+        this._done = false;
     },
-    update: function() {
-        
+    setInflictor: function(inflictor) {this._inflictor=inflictor},
+    update: function(entity) {
+        if(entity.hasMixin("Destructible")) {
+            entity.takeDamage(this._inflictor,this._bleedAmount,true);
+        }
+        this.reduceDuration();
+        return;
+    },
+    start: function(entity) {
+        if(entity.hasMixin("Destructible")) {
+            Game.sendMessage(entity,"You're bleeding!");
+        }
+    },
+    end: function(entity) {
+        Game.sendMessage(entity,"You staunch your bleeding.")
+        return;
+    },
+    reduceDuration: function() {
+        this._duration--;
+    },
+    getDuration: function() {
+        return this._duration;
     }
 }
