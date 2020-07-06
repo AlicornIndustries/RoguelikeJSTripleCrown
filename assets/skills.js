@@ -1,13 +1,17 @@
 Game.Skills = {};
 
-Game.Skills.createSkill = function(skillTerm) {
+Game.Skills.createSkill = function(skillTerm, skillOwner) {
     // TODO: Should this call the new skill's init?
     // in: Game.Enums.Skills.ARCHERY, out: Game.Skills.Archery
 
     if(skillTerm==Game.Enums.Skills.MELEEWEAPONS) {
-        return Object.create(Game.Skills.MeleeWeapons);
+        var skill = Object.create(Game.Skills.MeleeWeapons);
+        skill.init(skillOwner);
+        return skill;
     } else if(skillTerm==Game.Enums.Skills.ARCHERY) {
-        return Object.create(Game.Skills.Archery);
+        var skill = Object.create(Game.Skills.Archery);
+        skill.init(skillOwner);
+        return skill;
     } else {
         console.log("Tried to create unsupported skill "+skillTerm.name);
         return false;
@@ -16,34 +20,44 @@ Game.Skills.createSkill = function(skillTerm) {
 
 Game.Skills.MeleeWeapons = {
     name: Game.Enums.Skills.MELEEWEAPONS.name,
-    init: function() {
+    init: function(skillOwner) {
+        this._owner = skillOwner; // entity with the SkillsHaver plugin
         this._skillLevel = 0;
         this._meleeDamageBoost = 0;
-        this._swordDamageBoost = 1000; // Testing value
+        this._swordDamageBoost = 50; // Testing value TODO: Could be remade as:
+        // this._weaponDamageBoosts = {Game.Enums.WeaponTypes.SWORD: 50, Game.Enums.WeaponTypes.AXE: 25}
     },
     getSkillLevel: function() {return this._skillLevel},
     getBoost: function(boostType,extraProperties) {
-        if(extraProperties!=null) {
-            console.log(extraProperties);
-            if(extraProperties.equippedWeapon==Game.Enums.WeaponTypes.SWORD) {
-                console.log("Y'ALL HIT 'EM WITH A SWORD");
-            }
+        switch(boostType) {
+            case Game.Enums.BoostTypes.MELEEDAMAGE:
+                var modifier = 0;
+                if(this._owner.getWeapon() && this._owner.getWeapon().getWeaponType()==Game.Enums.WeaponTypes.SWORD) {
+                    modifier+=this._swordDamageBoost;
+                }
+                return this._meleeDamageBoost+modifier;
+            default:
+                return null;
         }
-        if(typeof boostType==="object") { // boostType is e.g. Game.Enums.BoostTypes.MELEEDAMAGE
-            switch(boostType) {
-                case Game.Enums.BoostTypes.MELEEDAMAGE:
-                    return this._meleeDamageBoost;
-                default:
-                    return null;
-            }
-        } else { // typeof boostType==="string", e.g. "MELEEDAMAGE"
-            switch(boostType) {
-                case "MELEEDAMAGE":
-                    return this._meleeDamageBoost;
-                default:
-                    return null;
-            }
-        }
+
+
+
+        // if(typeof boostType==="object") { // boostType is e.g. Game.Enums.BoostTypes.MELEEDAMAGE
+        //     switch(boostType) {
+        //         case Game.Enums.BoostTypes.MELEEDAMAGE: 
+        //             console.log(this._meleeDamageBoost);
+        //             return this._meleeDamageBoost;
+        //         default:
+        //             return null;
+        //     }
+        // } else { // typeof boostType==="string", e.g. "MELEEDAMAGE"
+        //     switch(boostType) {
+        //         case "MELEEDAMAGE":
+        //             return this._meleeDamageBoost;
+        //         default:
+        //             return null;
+        //     }
+        // }
     },
     levelUp: function(level=1) {
         this._skillLevel += level;
@@ -55,7 +69,8 @@ Game.Skills.MeleeWeapons = {
 }
 Game.Skills.Archery = {
     name: Game.Enums.Skills.ARCHERY.name,
-    init: function() {
+    init: function(skillOwner) {
+        this._owner = skillOwner; // entity with the SkillsHaver plugin
         this._skillLevel = 0;
         this._rangedDamageBoost = 0;
     },

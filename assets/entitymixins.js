@@ -411,7 +411,7 @@ Game.EntityMixins.Attacker = {
         }
         return this._rangedAttackValue+modifier;
     },
-    getMeleeDamage: function() { // TODO: make this name consistent with getRangedDamageValue
+    getMeleeDamage: function(target=undefined) { // TODO: make this name consistent with getRangedDamageValue
         var modifier=0;
         // TODO: Figure out a more efficient way to handle this conditional
         if(this.hasMixin(Game.EntityMixins.Equipper)) {
@@ -420,11 +420,12 @@ Game.EntityMixins.Attacker = {
             }
         }
         if(this.hasMixin("SkillsHaver")) {
-            modifier+=this.getBoost(Game.Enums.BoostTypes.MELEEDAMAGE,{equippedWeapon:this.getWeapon().getWeaponType()});
+            //modifier+=this.getBoost(Game.Enums.BoostTypes.MELEEDAMAGE,{equippedWeapon:this.getWeapon().getWeaponType()});
+            modifier+=this.getBoost(Game.Enums.BoostTypes.MELEEDAMAGE,{"target":target});
         }
         return this._strength+modifier;
     },
-    getRangedDamageValue: function() {
+    getRangedDamageValue: function(target=undefined) {
         var modifier = 0;
         if(this.hasMixin(Game.EntityMixins.Equipper)) {
             var projectileLauncher = this.getProjectileLauncher();
@@ -436,7 +437,7 @@ Game.EntityMixins.Attacker = {
                 modifier+=ammo.getRangedDamageValue();
             }
             if(this.hasMixin("SkillsHaver")) {
-                modifier+=this.getBoost(Game.Enums.BoostTypes.RANGEDDAMAGE);
+                modifier+=this.getBoost(Game.Enums.BoostTypes.RANGEDDAMAGE,{"target":target});
             }
         }
         return modifier;
@@ -451,7 +452,7 @@ Game.EntityMixins.Attacker = {
             var roll = ROT.RNG.getPercentage();
             if (hitChance >= roll) {
                 // Hit
-                var damage = this.getMeleeDamage();
+                var damage = this.getMeleeDamage(target);
                 Game.sendMessage(this, "You strike the %s for %d damage!",[target.getName(), damage]);
                 Game.sendMessage(target, "The %s strikes you for %d damage!",[this.getName(),damage]);
                 target.takeDamage(this, damage); 
@@ -478,7 +479,7 @@ Game.EntityMixins.Attacker = {
                 // TODO: Else, if not stackable, just remove the item. Search for another identical item and quiver it to replace it?
             }
 
-            var rangedAttackValue = this.getRangedAttackValue();
+            var rangedAttackValue = this.getRangedAttackValue(target);
             var defenseValue = target.getDefenseValue();
             // Clamp between 10% and 90% chance to hit
             var hitChance = ROT.Util.clamp(rangedAttackValue-defenseValue, 10, 90);
@@ -972,8 +973,8 @@ Game.EntityMixins.SkillsHaver = {
         for(var i=0; i<template["skills"].length; i++) {
             var skillName = template["skills"][i].skill.name; // Use skillName (the string), not the actual Skill object
             var skillLevel = template["skills"][i].skillLevel;
-            this._skills[skillName] = Game.Skills.createSkill(template["skills"][i].skill);
-            this._skills[skillName].init();
+            this._skills[skillName] = Game.Skills.createSkill(template["skills"][i].skill,this);
+            //this._skills[skillName].init();
             this._skills[skillName].levelUp(skillLevel);
         }
     },
