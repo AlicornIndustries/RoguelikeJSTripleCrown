@@ -36,13 +36,13 @@ Game.Enums = {
     }),
     WeaponTypes: Object.freeze({
         SWORD: {name: "sword", critChanceBase: 10, critDamageMultBase: 2},
-        KNIFE: {name: "knife", critChanceBase: 10, critDamageMultBase: 4},
-        AXE: {name: "axe", critChanceBase: 10, critDamageMultBase: 2},
+        KNIFE: {name: "knife", critChanceBase: 20, critDamageMultBase: 4},
+        AXE: {name: "axe", critChanceBase: 5, critDamageMultBase: 4},
         POLEARM: {name: "polearm", critChanceBase: 10, critDamageMultBase: 2},
-        UNARMED: {name: "unarmed", critChanceBase: 10, critDamageMultBase: 2},
-        BOW: {name: "bow", SubTypes: {
+        UNARMED: {name: "unarmed", critChanceBase: 20, critDamageMultBase: 4},
+        BOW: {name: "bow", Subtypes: {
             BOW: {name: "bow", critChanceBase: 10, critDamageMultBase: 2},
-            CROSSBOW: {name: "crossbow", critChanceBase: 5, critDamageMultBase: 2}
+            CROSSBOW: {name: "crossbow", critChanceBase: 10, critDamageMultBase: 2}
         }},
     }),
     BoostTypes: Object.freeze({ // all the things a skill can potentially boost

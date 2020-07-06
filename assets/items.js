@@ -89,7 +89,7 @@ Game.ItemRepository.define("bow", {
     name: "bow",
     character: ")",
     foreground: "yellow",
-    weaponType: Game.Enums.WeaponTypes.BOW,
+    weaponType: Game.Enums.WeaponTypes.BOW.Subtypes.BOW,
     attackValue: 0,
     damageValue: 1,
     damageType: Game.Enums.DamageTypes.BLUNT,
