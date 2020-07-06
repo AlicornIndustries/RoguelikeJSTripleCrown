@@ -82,7 +82,7 @@ Game.ItemMixins.Stackable = {
         var excess = this._stackSize-this._maxStackSize;
         this._stackSize = Math.min(this._stackSize,this._maxStackSize);
         return excess*-1;
-        // Deleting the item when stackSize<=0 is caused by the entity doing the projectileAttack, in Attacker
+        // Deleting the item when stackSize<=0 is caused by the entity doing the rangedAttack, in Attacker
     },
     splitStack: function() {
         // TODO. This might need to be a function of the InventoryHolder.
@@ -121,6 +121,7 @@ Game.ItemMixins.Equippable = {
     name: "Equippable",
     groupName: "Equippable",
     init: function(template) {
+        this._weaponType = template["weaponType"] || null;
         this._attackValue = template["attackValue"] || 0;
         this._damageValue = template['damageValue'] || 0;
         this._damageType = template["damageType"] || null;
@@ -129,10 +130,13 @@ Game.ItemMixins.Equippable = {
         this._armorDurability = this._maxArmorDurability || 0;
         this._armorReduction = template["armorReduction"] || 0;
         this._armorType = template["armorType"] || null;
-        this._weaponType = template["weaponType"] || null;
         this._wieldable = template["wieldable"] || false;
         this._wearable = template["wearable"] || false;
         this._quiverable = template["quiverable"] || false; // TODO: May remove this.
+        if(this._weaponType!=null) {
+            this._critChance = template["critChance"] || this._weaponType.critChanceBase;
+            this._critDamageMult = template["critDamageMult"] || this._weaponType.critDamageMultBase;    
+        }
     },
     getAttackValue: function() {
         return this._attackValue;
@@ -143,6 +147,8 @@ Game.ItemMixins.Equippable = {
     getDamageType: function() {
         return this._damageType;
     },
+    getCritChance: function() {return this._critChance},
+    getCritDamageMult: function() {return this._critDamageMult},
     getDefenseValue: function() {
         return this._defenseValue;
     },

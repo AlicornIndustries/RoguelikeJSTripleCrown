@@ -24,7 +24,7 @@ Game.Skills.MeleeWeapons = {
         this._owner = skillOwner; // entity with the SkillsHaver plugin
         this._skillLevel = 0;
         this._meleeDamageBoost = 0;
-        this._swordDamageBoost = 50; // Testing value TODO: Could be remade as:
+        this._swordDamageBoost = 10; // Testing value TODO: Could be remade as:
         // this._weaponDamageBoosts = {Game.Enums.WeaponTypes.SWORD: 50, Game.Enums.WeaponTypes.AXE: 25}
     },
     getSkillLevel: function() {return this._skillLevel},

@@ -1132,7 +1132,7 @@ Game.Screen.fireScreen = new Game.Screen.TargetBasedScreen( {
                     var map = this._player.getMap();
                     target = map.getEntityAt(x,y,d);
                     if(target!=null && target.hasMixin("Destructible")) {
-                        this._player.projectileAttack(target);
+                        this._player.rangedAttack(target);
                         this.executeOkFunction();
                         // Unlock engine after firing
                         this._player.getMap().getEngine().unlock();

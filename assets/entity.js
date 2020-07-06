@@ -101,7 +101,7 @@ Game.Entity.prototype.tryMove = function(x,y,d,map) {
         // Can only attack if we have Attacker and either we are the player or our target is the player (to avoid monsters attacking each other)
         // TODO: Replace with factions system.
         if(this.hasMixin("Attacker") && (this.hasMixin(Game.EntityMixins.PlayerActor) || target.hasMixin(Game.EntityMixins.PlayerActor))) {
-            this.attack(target);
+            this.meleeAttack(target);
             return true;
         } else {
             return false; // Nothing we can do, but we can't move there

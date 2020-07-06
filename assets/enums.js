@@ -30,19 +30,28 @@ Game.Enums = {
         PLATE: "plate",
         CHAINMAIL: "chain mail",
     }),
+    AttackTypes: Object.freeze({
+        MELEE: {name: "melee"},
+        RANGED: {name: "ranged"},
+    }),
     WeaponTypes: Object.freeze({
-        SWORD: {name: "sword"},
-        AXE: {name: "axe"},
-        POLEARM: {name: "polearm"},
-        UNARMED: {name: "unarmed"},
+        SWORD: {name: "sword", critChanceBase: 10, critDamageMultBase: 2},
+        KNIFE: {name: "knife", critChanceBase: 10, critDamageMultBase: 4},
+        AXE: {name: "axe", critChanceBase: 10, critDamageMultBase: 2},
+        POLEARM: {name: "polearm", critChanceBase: 10, critDamageMultBase: 2},
+        UNARMED: {name: "unarmed", critChanceBase: 10, critDamageMultBase: 2},
         BOW: {name: "bow", SubTypes: {
-            BOW: {name: "bow"},
-            CROSSBOW: {name: "crossbow"}
+            BOW: {name: "bow", critChanceBase: 10, critDamageMultBase: 2},
+            CROSSBOW: {name: "crossbow", critChanceBase: 5, critDamageMultBase: 2}
         }},
     }),
     BoostTypes: Object.freeze({ // all the things a skill can potentially boost
         MELEEDAMAGE: {name:"melee damage"},
+        MELEECRITCHANCE: {name: "melee crit chance"},
+        MELEECRITMULT: {name: "melee crit mult"},
         RANGEDDAMAGE: {name: "ranged damage"},
+        RANGEDCRITCHANCE: {name: "ranged crit chance"},
+        RANGEDCRITMULT: {name: "ranged crit mult"},
         SIGHTRADIUS: {name: "sight radius"}
     }),
     Races: Object.freeze({
