@@ -388,61 +388,68 @@ Game.EntityMixins.Attacker = {
         this._unarmedDamageType = template["unarmedAttackType"] || Game.Enums.DamageTypes.BLUNT;
         this._rangedAttackValue = template['rangedAttackValue'] || 1;
     },
-    getAttackValue: function() {
+    // TODO: Make this take in attackType as input (and make a getMeleeAttackValue function it can call)
+    getAttackValue: function(weapon=false) {
         var modifier = 0;
+        // If weapon wasn't passed, default to the equipped weapon, if available
         // If we can equip items, take them into account
-        if(this.hasMixin(Game.EntityMixins.Equipper)) {
+        if(!weapon && this.hasMixin(Game.EntityMixins.Equipper)) {
             if(this.getWeapon()) {
                 modifier+=this.getWeapon().getAttackValue();
             }
             if(this.getArmor()) {
                 modifier+=this.getArmor().getAttackValue();
             }
+        } else {
+            // If a weapon was not passed in
+            // unarmed
         }
         return this._attackValue+modifier;
     },
-    getRangedAttackValue: function() {
+    getRangedAttackValue: function(weapon=false) {
         var modifier = 0;
-        if(this.hasMixin(Game.EntityMixins.Equipper)) {
-            var projectileLauncher = this.getProjectileLauncher();
-            if(projectileLauncher) {
-                modifier+=projectileLauncher.getRangedAttackValue();
-            }
+        if(weapon!=false && this.hasMixin(Game.EntityMixins.Equipper)) {
+            modifier+=weapon.getRangedAttackValue();
+        }
+        else {
+            // unarmed, no weapon
         }
         return this._rangedAttackValue+modifier;
     },
-    getMeleeDamage: function(target=undefined) {
+    getThrownAttackValue: function(weapon) {
+        var modifier = 0;
+        modifier=weapon.getThrownAttackValue();
+        return this._rangedAttackValue+modifier; // TODO: for now, use the base ranged attack value to double for thrown attacks (they probably should be similar)
+    },
+    getMeleeDamage: function(weapon,target=undefined) {
         var modifier=0;
         // TODO: Figure out a more efficient way to handle this conditional
-        if(this.hasMixin(Game.EntityMixins.Equipper)) {
-            if(this.getWeapon()) {
-                modifier+=this.getWeapon().getDamageValue();
-            }
+        if(weapon) {
+            modifier+=weapon.getDamageValue();
+        }
+        else {
+            // TODO: unarmed 
         }
         if(this.hasMixin("SkillsHaver")) {
-            //modifier+=this.getBoost(Game.Enums.BoostTypes.MELEEDAMAGE,{equippedWeapon:this.getWeapon().getWeaponType()});
             modifier+=this.getBoost(Game.Enums.BoostTypes.MELEEDAMAGE,{"target":target});
         }
         return this._strength+modifier;
     },
-    getRangedDamage: function(target=undefined) {
+    getRangedDamage: function(weapon,target=undefined) {
         var modifier = 0;
-        if(this.hasMixin(Game.EntityMixins.Equipper)) {
-            var projectileLauncher = this.getProjectileLauncher();
-            if(projectileLauncher) {
-                modifier+=projectileLauncher.getRangedDamageValue();
-            }
-            var ammo = this.getAmmo()
-            if(ammo!=null) {
-                modifier+=ammo.getRangedDamageValue();
-            }
-            if(this.hasMixin("SkillsHaver")) {
-                modifier+=this.getBoost(Game.Enums.BoostTypes.RANGEDDAMAGE,{"target":target});
-            }
+        if(weapon) {
+            modifier+=weapon.getRangedDamageValue();
+        }
+        var ammo = this.getAmmo();
+        if(ammo!=null) {
+            modifier+=ammo.getRangedDamageValue();
+        }
+        if(this.hasMixin("SkillsHaver")) {
+            modifier+=this.getBoost(Game.Enums.BoostTypes.RANGEDDAMAGE,{"target":target});
         }
         return modifier;
     },
-    getThrownDamage: function(target=undefined,thrownItem) {
+    getThrownDamage: function(thrownItem,target=undefined) {
         var damage = 0;
         if(this.hasMixin(Game.EntityMixins.SkillsHaver)) {
             damage+=this.getBoost(Game.Enums.BoostTypes.THROWNDAMAGE,{"target":target});
@@ -452,7 +459,7 @@ Game.EntityMixins.Attacker = {
         }
         return damage;
     },
-    getAttackDamage: function(target,attackType,crit=false,critDamageMult=2,thrownItem=false) {
+    getAttackDamage: function(target,attackType,weapon=false,crit=false,critDamageMult=2) {
         if(crit) {
             var damageMult = critDamageMult;
         } else {
@@ -460,51 +467,55 @@ Game.EntityMixins.Attacker = {
         }
         switch(attackType) {
             case Game.Enums.AttackTypes.MELEE:
-                return this.getMeleeDamage(target)*damageMult;
+                return this.getMeleeDamage(weapon,target)*damageMult;
             case Game.Enums.AttackTypes.RANGED:
-                return this.getRangedDamage(target)*damageMult;
+                return this.getRangedDamage(weapon,target)*damageMult;
             case Game.Enums.AttackTypes.THROWN:
-                if(!thrownItem) {
-                    console.log("Tried to throw without a throwable item.");
-                }
-                return this.getThrownDamage(target,thrownItem)*damageMult;
+                return this.getThrownDamage(weapon,target)*damageMult;
             default:
                 console.log("Invalid attackType");
                 return undefined;
         }
     },
-    getHit: function(target,attackType=Game.Enums.AttackTypes.MELEE,thrownItem=false) {
+    getHit: function(target,attackType=Game.Enums.AttackTypes.MELEE,weapon=false) {
         // Returns an object with info about damage dealt, whether it was a critical. FUTURE: add hit location, etc here
         // Pass in the item that was thrown (e.g. shuriken)
         var attackRoll = ROT.RNG.getPercentage();
-        if(attackType==Game.Enums.AttackTypes.MELEE) {
-            var attackValue = this.getAttackValue();
-        } else { // TODO: Replace with switch structure
-            var attackValue = this.getRangedAttackValue();
+        switch(attackType) {
+            case Game.Enums.AttackTypes.MELEE:
+                var attackValue = this.getAttackValue(weapon);
+                break;
+            case Game.Enums.AttackTypes.RANGED:
+                var attackValue = this.getRangedAttackValue(weapon);
+                break;
+            case Game.Enums.AttackTypes.THROWN:
+                var attackValue = this.getThrownAttackValue(weapon);
+                break;
+            default:
+                console.log("Invalid attack type.");
+                console.log(attackType);
+                break;
         }
         var defenseValue = target.getDefenseValue();
         var critChance = 0;
-        var critDamageMult = 0;
+        var critDamageMult = 1;
         var critChanceMult = 1;
-        if(this.hasMixin("Equipper") && !thrownItem) {
-            var weapon = this.getWeapon();
-        } else if(thrownItem) {
-            var weapon = thrownItem;
-        }
-        else {
-            var weapon = false;
-        }
+
         // Setup variables
-        if(weapon && !thrownItem) {
-            critChance = weapon.getCritChance();
-            critDamageMult = weapon.getCritDamageMult();
-            // TODO: Incorporate critChanceMult
-        } else if(thrownItem) {
-            
-        } else {
-            critChance=Game.Enums.WeaponTypes.UNARMED.critChanceBase;
-            critDamageMult=Game.Enums.WeaponTypes.UNARMED.critDamageMult;
+        if(weapon) {
+            if(attackType==Game.Enums.AttackTypes.MELEE) {
+                critChance = weapon.getCritChance();
+                critDamageMult = weapon.getCritDamageMult();
+                // TODO: Incorporate critChanceMult
+            } else if(attackType==Game.Enums.AttackTypes.RANGED && weapon.hasMixin(Game.ItemMixins.ProjectileLauncher)) {
+                critChance = weapon.getRangedCritChance();
+                critDamageMult = weapon.getRangedCritDamageMult();
+            } else if(attackType==Game.Enums.AttackTypes.THROWN && weapon.hasMixin(Game.ItemMixins.Throwable)) {
+                critChance = weapon.getThrownCritChance();
+                critDamageMult = weapon.getThrownCritDamageMult();
+            }
         }
+        // TODO: else, unarmed
         if(this.hasMixin("SkillsHaver")) {
             switch(attackType) {
                 case Game.Enums.AttackTypes.MELEE:
@@ -522,16 +533,12 @@ Game.EntityMixins.Attacker = {
         }
         // Figure out if we crit
         if(attackRoll<=(critChance*critChanceMult)) {
-            return {"damage":this.getAttackDamage(target,attackType,true,critDamageMult), "crit":true, "hitSuccess":true}
+            return {"damage":this.getAttackDamage(target,attackType,weapon,true,critDamageMult), "crit":true, "hitSuccess":true}
         } else {
             var hitChance = ROT.Util.clamp(attackValue-defenseValue,0,90);
             if(attackRoll<=hitChance) {
                 // Regular hit
-                if(!thrownItem) {
-                    return {"damage":this.getAttackDamage(target,attackType,false), "crit":false, "hitSuccess":true}
-                } else {
-                    return {"damage":this.getAttackDamage(target,attackType,false,1,thrownItem), "crit":false, "hitSuccess":true}
-                }
+                return {"damage":this.getAttackDamage(target,attackType,weapon,false), "crit":false, "hitSuccess":true}
             } else {
                 // Miss
                 return {"hitSuccess":false};
@@ -553,10 +560,10 @@ Game.EntityMixins.Attacker = {
     //             return;
     //     }
     // },
-    meleeAttack: function(target) {
+    meleeAttack: function(target,weapon=false) {
         // Only works on destructibles
         if(target.hasMixin("Destructible")) {
-            hit = this.getHit(target,Game.Enums.AttackTypes.MELEE);
+            hit = this.getHit(target,Game.Enums.AttackTypes.MELEE,weapon);
             if(hit.crit) {
                 // Critical hit
                 Game.sendMessage(this, "You critically strike the %s for %d damage!",[target.getName(), hit.damage]);
@@ -576,7 +583,7 @@ Game.EntityMixins.Attacker = {
             // FUTURE: On miss, drain opponent's stamina or some other "Dodge Meter?"      
         }
     },
-    rangedAttack: function(target, distance) { // TODO: distance currently unused
+    rangedAttack: function(target, weapon, distance) { // TODO: distance currently unused
         if(target.hasMixin("Destructible")) {
             // Consume a unit of ammunition
             var ammo = this.getAmmo();
@@ -588,7 +595,7 @@ Game.EntityMixins.Attacker = {
                 }
                 // TODO: Else, if not stackable, just remove the item. Search for another identical item and quiver it to replace it?
             }
-            hit = this.getHit(target,Game.Enums.AttackTypes.RANGED);
+            hit = this.getHit(target,Game.Enums.AttackTypes.RANGED,weapon);
             if(hit.crit) {
                 // Critical hit
                 Game.sendMessage(this, "You critically strike the %s for %d damage!",[target.getName(), hit.damage]);
@@ -608,9 +615,9 @@ Game.EntityMixins.Attacker = {
         }
     },
     // TODO: Merge this into rangedAttack?
-    thrownAttack: function(target, thrownItem, distance=undefined) {
+    thrownAttack: function(target, weapon, distance=undefined) {
         if(target.hasMixin(Game.EntityMixins.Destructible)) {
-            hit = this.getHit(target,Game.Enums.AttackTypes.THROWN,thrownItem);
+            hit = this.getHit(target,Game.Enums.AttackTypes.THROWN,weapon);
             if(hit.crit) {
                 // Critical hit
                 Game.sendMessage(this, "You critically strike the %s for %d damage!",[target.getName(), hit.damage]);

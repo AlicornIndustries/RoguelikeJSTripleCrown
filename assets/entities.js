@@ -22,10 +22,6 @@ Game.PlayerTemplate = {
         {skill: Game.Enums.Skills.MELEEWEAPONS, skillLevel: 2},
         {skill: Game.Enums.Skills.ARCHERY, skillLevel: 1},
     ],
-    // skills: [
-    //     {skill: Game.Enums.Skills.ARCHERY, skillLevel: 10},
-    //     {skill: Game.Enums.Skills.MELEEWEAPONS, skillLevel: 5},
-    // ],
     // powers: [
     //     Game.Powers.TestRangedPower
     // ],

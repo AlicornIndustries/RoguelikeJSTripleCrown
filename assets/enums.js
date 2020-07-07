@@ -43,7 +43,7 @@ Game.Enums = {
         UNARMED: {name: "unarmed", critChanceBase: 20, critDamageMultBase: 4},
         BOW: {name: "bow", Subtypes: {
             BOW: {name: "bow", critChanceBase: 10, critDamageMultBase: 2},
-            CROSSBOW: {name: "crossbow", critChanceBase: 10, critDamageMultBase: 2}
+            CROSSBOW: {name: "crossbow", critChanceBase: 5, critDamageMultBase: 2}
         }},
     }),
     BoostTypes: Object.freeze({ // all the things a skill can potentially boost

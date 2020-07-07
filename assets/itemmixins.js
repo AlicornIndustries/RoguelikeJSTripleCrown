@@ -269,6 +269,8 @@ Game.ItemMixins.ProjectileLauncher = {
     getRange: function() {
         return this._range;
     },
+    getRangedCritChance: function() {return this._critChance}, // FUTURE/TODO: Separate these from the melee values. Make a getCritChance(attackType) method?
+    getRangedCritDamageMult: function() {return this._critDamageMult},
     // FUTURE/TODO: add listeners, details
 }
 // For arrows 
@@ -290,13 +292,18 @@ Game.ItemMixins.ProjectileAmmo = {
 Game.ItemMixins.Throwable = {
     name: "Throwable",
     init: function(template) {
+        this._thrownAttackValue = template["thrownAttackValue"] || 50;
         this._thrownDamage = template["thrownDamage"] || 1; // FUTURE: base this off of item's weight
         this._thrownCritChance = template["thrownCritChance"] || 5;
         this._thrownCritDamageMult = template["thrownCritDamageMult"] || 2;
         this._thrownDamageType = template["thrownDamageType"] || Game.Enums.DamageTypes.BLUNT
     },
+    getThrownAttackValue: function() {return this._thrownAttackValue},
     getThrownDamage: function() {return this._thrownDamage;},
-    getThrownDamageType: function() {return this._thrownDamageType}
+    getThrownDamageType: function() {return this._thrownDamageType;},
+    getThrownCritChance: function() {return this._thrownCritChance;},
+    getThrownCritDamageMult: function() {return this._thrownCritDamageMult;}
+
 }
 
 // For items made of a particular material, such as bronze, steel, or silver
