@@ -5,7 +5,7 @@ Game.ItemRepository.define("apple", {
     character: "%",
     foreground: "red",
     foodValue: 50,
-    mixins: [Game.ItemMixins.Edible]
+    mixins: [Game.ItemMixins.Edible,Game.ItemMixins.Throwable]
 });
 Game.ItemRepository.define("melon", {
     name: "melon",
@@ -25,7 +25,8 @@ Game.ItemRepository.define("horta blossom", { // For later alchemical uses. Gree
 Game.ItemRepository.define("rock", {
     name: "rock",
     character: "*",
-    foreground: "white"
+    foreground: "white",
+    mixins: [Game.ItemMixins.Throwable]
 });
 Game.ItemRepository.define("corpse", {
     name: "corpse",
@@ -82,7 +83,7 @@ Game.ItemRepository.define("staff", {
         Game.Enums.Materials.WOOD
     ],
     defaultMaterial: Game.Enums.Materials.WOOD,
-    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver]},
+    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver,Game.ItemMixins.Throwable]},
     {disableRandomCreation: true
 });
 Game.ItemRepository.define("bow", {
@@ -116,7 +117,7 @@ Game.ItemRepository.define("arrow", {
         Game.Enums.Materials.WOOD
     ],
     defaultMaterial: Game.Enums.Materials.WOOD,
-    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.ProjectileAmmo,Game.ItemMixins.MaterialHaver,Game.ItemMixins.Stackable]},
+    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.ProjectileAmmo,Game.ItemMixins.MaterialHaver,Game.ItemMixins.Stackable,Game.ItemMixins.Throwable]},
     {disableRandomCreation: true
 });
 // Potions/Quaffables
@@ -129,19 +130,20 @@ Game.ItemRepository.define("potion of healing", {
         healAmount: 5,
         duration: 3
     },
-    mixins: [Game.ItemMixins.Quaffable]},
+    mixins: [Game.ItemMixins.Quaffable,Game.ItemMixins.Throwable]},
     {disableRandomCreation: true
 });
 Game.ItemRepository.define("potion of bleeding", {
     name: "potion of bleeding",
     character: "!",
     foreground: "greenYellow",
+    toxic: true,
     effect: Game.Effects.Bleed,
     effectTemplate: {
         bleedAmount: 10,
         duration: 3
     },
-    mixins: [Game.ItemMixins.Quaffable]},
+    mixins: [Game.ItemMixins.Quaffable,Game.ItemMixins.Throwable]},
     {disableRandomCreation: true
 });
 // Wearables

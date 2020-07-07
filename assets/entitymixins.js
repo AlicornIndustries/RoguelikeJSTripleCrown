@@ -442,7 +442,17 @@ Game.EntityMixins.Attacker = {
         }
         return modifier;
     },
-    getAttackDamage: function(target,attackType,crit=false,critDamageMult=2) {
+    getThrownDamage: function(target=undefined,thrownItem) {
+        var damage = 0;
+        if(this.hasMixin(Game.EntityMixins.SkillsHaver)) {
+            damage+=this.getBoost(Game.Enums.BoostTypes.THROWNDAMAGE,{"target":target});
+        }
+        if(thrownItem.hasMixin(Game.ItemMixins.Throwable)) {
+            damage+=thrownItem.getThrownDamage();
+        }
+        return damage;
+    },
+    getAttackDamage: function(target,attackType,crit=false,critDamageMult=2,thrownItem=false) {
         if(crit) {
             var damageMult = critDamageMult;
         } else {
@@ -453,13 +463,19 @@ Game.EntityMixins.Attacker = {
                 return this.getMeleeDamage(target)*damageMult;
             case Game.Enums.AttackTypes.RANGED:
                 return this.getRangedDamage(target)*damageMult;
+            case Game.Enums.AttackTypes.THROWN:
+                if(!thrownItem) {
+                    console.log("Tried to throw without a throwable item.");
+                }
+                return this.getThrownDamage(target,thrownItem)*damageMult;
             default:
                 console.log("Invalid attackType");
                 return undefined;
         }
     },
-    getHit: function(target,attackType=Game.Enums.AttackTypes.MELEE) {
+    getHit: function(target,attackType=Game.Enums.AttackTypes.MELEE,thrownItem=false) {
         // Returns an object with info about damage dealt, whether it was a critical. FUTURE: add hit location, etc here
+        // Pass in the item that was thrown (e.g. shuriken)
         var attackRoll = ROT.RNG.getPercentage();
         if(attackType==Game.Enums.AttackTypes.MELEE) {
             var attackValue = this.getAttackValue();
@@ -470,17 +486,21 @@ Game.EntityMixins.Attacker = {
         var critChance = 0;
         var critDamageMult = 0;
         var critChanceMult = 1;
-        if(this.hasMixin("Equipper")) {
+        if(this.hasMixin("Equipper") && !thrownItem) {
             var weapon = this.getWeapon();
+        } else if(thrownItem) {
+            var weapon = thrownItem;
         }
         else {
             var weapon = false;
         }
         // Setup variables
-        if(weapon) {
+        if(weapon && !thrownItem) {
             critChance = weapon.getCritChance();
             critDamageMult = weapon.getCritDamageMult();
-            // TODO: Incorporate critChanceModifier
+            // TODO: Incorporate critChanceMult
+        } else if(thrownItem) {
+            
         } else {
             critChance=Game.Enums.WeaponTypes.UNARMED.critChanceBase;
             critDamageMult=Game.Enums.WeaponTypes.UNARMED.critDamageMult;
@@ -493,6 +513,9 @@ Game.EntityMixins.Attacker = {
                 case Game.Enums.AttackTypes.RANGED:
                     critChanceMult+=this.getBoost(Game.Enums.BoostTypes.RANGEDCRITCHANCE,{"target":target});
                     break;
+                case Game.Enums.AttackTypes.THROWN:
+                    critChanceMult+=this.getBoost(Game.Enums.BoostTypes.THROWNCRITCHANCE,{"target":target});
+                    break;
                 default:
                     critChanceMult=0;
             }
@@ -504,7 +527,11 @@ Game.EntityMixins.Attacker = {
             var hitChance = ROT.Util.clamp(attackValue-defenseValue,0,90);
             if(attackRoll<=hitChance) {
                 // Regular hit
-                return {"damage":this.getAttackDamage(target,attackType,false), "crit":false, "hitSuccess":true}
+                if(!thrownItem) {
+                    return {"damage":this.getAttackDamage(target,attackType,false), "crit":false, "hitSuccess":true}
+                } else {
+                    return {"damage":this.getAttackDamage(target,attackType,false,1,thrownItem), "crit":false, "hitSuccess":true}
+                }
             } else {
                 // Miss
                 return {"hitSuccess":false};
@@ -580,6 +607,28 @@ Game.EntityMixins.Attacker = {
             }
         }
     },
+    // TODO: Merge this into rangedAttack?
+    thrownAttack: function(target, thrownItem, distance=undefined) {
+        if(target.hasMixin(Game.EntityMixins.Destructible)) {
+            hit = this.getHit(target,Game.Enums.AttackTypes.THROWN,thrownItem);
+            if(hit.crit) {
+                // Critical hit
+                Game.sendMessage(this, "You critically strike the %s for %d damage!",[target.getName(), hit.damage]);
+                Game.sendMessage(target, "The %s critically strikes you for %d damage!",[this.getName(), hit.damage]);
+                target.takeDamage(this,hit.damage);
+            } else if(hit.hitSuccess) {
+                // Regular hit
+                Game.sendMessage(this, "You strike the %s for %d damage!",[target.getName(), hit.damage]);
+                Game.sendMessage(target, "The %s strikes you for %d damage!",[this.getName(), hit.damage]);
+                target.takeDamage(this,hit.damage);
+
+            } else {
+                // Miss
+                Game.sendMessage(this, "You miss the %s.", [target.getName()]);
+                Game.sendMessage(target, "The %s misses you.", [this.getName()]);
+            }
+        }
+    },
     listeners: {
         details: function() {
             var results = [];
@@ -631,12 +680,8 @@ Game.EntityMixins.InventoryHolder = {
         var inventorySlots = template['inventorySlots'] || 10;
         this._items = new Array(inventorySlots);
     },
-    getItems: function() {
-        return this._items;
-    },
-    getItem: function(i) {
-        return this._items[i];
-    },
+    getItems: function() {return this._items;},
+    getItem: function(i) {return this._items[i];},
     getItemIndex: function(item) {
         // Converts an item into its index in the inventory
         // TODO: Refactor this kludge.
@@ -733,6 +778,23 @@ Game.EntityMixins.InventoryHolder = {
                 this._map.addItem(this.getX(), this.getY(), this.getD(), this._items[i]);
             }
             this.removeItem(i);
+        }
+    },
+    throwItem(itemToThrow,x,y) {
+        var i = this.getItemIndex(itemToThrow);
+        var d = this.getD();
+        if(this._items[i] && this._map) {
+            if(this.hasMixin(Game.EntityMixins.Equipper)) {
+                this.unequip(itemToThrow);
+            }
+            // Put item on the thrown location
+            this._map.addItem(x,y,d,this._items[i]);
+            this.removeItem(i);
+        }
+        var target = this._map.getEntityAt(x,y,d);
+        if(target!=null && this.hasMixin(Game.EntityMixins.Attacker)) {
+            // Perform a projectile attack on the target
+            this.thrownAttack(target,itemToThrow);
         }
     }
 }
@@ -874,6 +936,15 @@ Game.EntityMixins.Equipper = {
         }
         if(this._quivered===item) {
             this.unquiver();
+        }
+    },
+    getThrowingRange: function(item) {
+        // Get range the entity can throw something.
+        // FUTURE: have an equation based on strength and weight
+        if(this.hasMixin(Game.EntityMixins.StatsHaver)) {
+            return this.getStrength();
+        } else {
+            return 1;
         }
     },
 }

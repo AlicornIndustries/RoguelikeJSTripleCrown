@@ -141,8 +141,12 @@ Game.ItemMixins.Equippable = {
     getAttackValue: function() {
         return this._attackValue;
     },
-    getDamageValue: function() {  // FUTURE/TODO: Replace with a damageRange system for e.g. 2d6 or whatever damage. Weapons will do strength+damageValue.
-        return this._damageValue;
+    getDamageValue: function(thrown=false) {  // FUTURE/TODO: Replace with a damageRange system for e.g. 2d6 or whatever damage. Weapons will do strength+damageValue.
+        if(!thrown) {
+            return this._damageValue;
+        } else {
+            return this._thrownDamageValue;
+        }
     },
     getDamageType: function() {
         return this._damageType;
@@ -281,6 +285,18 @@ Game.ItemMixins.ProjectileAmmo = {
     getRangedDamageType: function() {
         return this._rangedDamageType;
     }
+}
+
+Game.ItemMixins.Throwable = {
+    name: "Throwable",
+    init: function(template) {
+        this._thrownDamage = template["thrownDamage"] || 1; // FUTURE: base this off of item's weight
+        this._thrownCritChance = template["thrownCritChance"] || 5;
+        this._thrownCritDamageMult = template["thrownCritDamageMult"] || 2;
+        this._thrownDamageType = template["thrownDamageType"] || Game.Enums.DamageTypes.BLUNT
+    },
+    getThrownDamage: function() {return this._thrownDamage;},
+    getThrownDamageType: function() {return this._thrownDamageType}
 }
 
 // For items made of a particular material, such as bronze, steel, or silver

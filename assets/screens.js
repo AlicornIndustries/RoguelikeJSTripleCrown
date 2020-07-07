@@ -278,6 +278,9 @@ Game.Screen.playScreen = {
                     // q: quaff screen
                     this.showItemsSubscreen(Game.Screen.quaffScreen, this._player.getItems(), "You have nothing to drink.");
                 }
+            } else if(inputData.keyCode === ROT.KEYS.VK_T) {
+                // throwing screen
+                this.showItemsSubscreen(Game.Screen.throwingItemSelectionScreen, this._player.getItems(), "You ahave nothing you can throw.");
             } else {
                 // Not a valid key
                 return;
@@ -790,6 +793,47 @@ Game.Screen.examineScreen = new Game.Screen.ItemListScreen({
         return true;
     }
 });
+// Throwing item selection screen (passes item on to throwingScreen)
+Game.Screen.throwingItemSelectionScreen = new Game.Screen.ItemListScreen({
+    caption: "Choose the item you wish to throw",
+    canSelect: true,
+    canSelectMultipleItems: false,
+    isAcceptable: function(item) {
+        return item && item.hasMixin(Game.ItemMixins.Throwable) && (!item.hasMixin(Game.ItemMixins.Equippable || item!=this._player.getArmor()));
+    },
+    ok: function(selectedItems) {
+        var keys = Object.keys(selectedItems);
+        if(keys.length>0) {
+            var itemToThrow = selectedItems[keys[0]];
+            var offsets = Game.Screen.playScreen.getScreenOffsets();
+            Game.Screen.throwingScreen.setup(this._player, itemToThrow, this._player.getX(), this._player.getY(), offsets.x, offsets.y)
+            Game.Screen.playScreen.setSubscreen(Game.Screen.throwingScreen);
+        }
+        return false; // TODO: Check if we should actually return this here, since this goes to another subscreen
+    },
+    setup: function(player, items) {
+        // TODO/BUG: It appears as though this is never called.
+        // Returns count of acceptable items
+        this._player = player;
+        // Number of acceptable items
+        var count = 0;
+        // Keep only acceptable items
+        var that = this;
+        this._items = items.map(function(item) {
+            // Null item if it's not acceptable
+            if(that._isAcceptableFunction(item)) {
+                count++;
+                return item;
+            } else {
+                return null;
+            }
+        });
+        // Clean set of selected indices
+        this._selectedIndices = {};
+        return count;
+    }
+});
+
 Game.Screen.gainStatScreen = {
     setup: function(entity) {
         // Must be called before rendering
@@ -1198,7 +1242,123 @@ Game.Screen.fireScreen = new Game.Screen.TargetBasedScreen( {
             this._cursorY = Math.max(0, Math.min(this._cursorY+dy, Game.getScreenHeight()-1)); 
         }
     }
-})
+});
+// Throwing  screen TODO: also make a screen to choose the item to throw
+Game.Screen.throwingScreen = new Game.Screen.TargetBasedScreen({
+    captionFunction: function(x,y) {
+        var d = this._player.getD();
+        var map = this._player.getMap();
+        // If tile is explored, give a better caption
+        if(map.isExplored(x,y,d)) {
+            // If tile explored, check if we can see it
+            if(this._visibleCells[x+","+y]) {
+                var items = map.getItemsAt(x,y,d);
+                // Topmost item
+                if(items) {
+                    var item = items[items.length-1];
+                    // TODO: fix formating
+                    //return String.format("%s - %s",item.getRepresentation(),item.describeA(true));
+                    return item.getRepresentation()+" - "+item.describeA(true);
+                } 
+                else if(map.getEntityAt(x,y,d)) {
+                    // Else check if there's an entity (TODO: shouldn't we do this first?)
+                    // TODO: Wouldn't it be faster to save the getEntity from the if() statement?
+                    var entity = map.getEntityAt(x,y,d)
+                    //return String.format("%s - %s",entity.getRepresentation(),entity.describeA(true));
+                    return entity.getRepresentation()+" - "+entity.describeA(true);
+
+                }
+            }
+            // If no entity/item visible, use tile information
+            //return String.format("%s - %s", map.getTile(x,y,d).getRepresentation(), map.getTile(x,y,d).getDescription());
+            return `${map.getTile(x,y,d).getRepresentation()} - ${map.getTile(x,y,d).getDescription()}`;
+        } else {
+            // If tile not explored, show null tile description
+            //return String.format('%s - %s',Game.Tile.nullTile.getRepresentation(),Game.Tile.nullTile.getDescription());
+            return `${Game.Tile.nullTile.getRepresentation()} - ${Game.Tile.nullTile.getDescription()}`;
+
+        }
+    },
+    handleInput: function(inputType, inputData) {
+        // Move the cursor
+        if(inputType=="keydown") {
+            if ((inputData.keyCode === ROT.KEYS.VK_LEFT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD4)) {
+                this.moveCursor(-1,0);
+            } else if ((inputData.keyCode === ROT.KEYS.VK_RIGHT) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD6)) {
+                this.moveCursor(1,0);
+            } else if ((inputData.keyCode === ROT.KEYS.VK_UP) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD8)) {
+                this.moveCursor(0,-1);
+            } else if ((inputData.keyCode === ROT.KEYS.VK_DOWN) || (inputData.keyCode === ROT.KEYS.VK_NUMPAD2)) {
+                this.moveCursor(0,1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD7) {
+                this.moveCursor(-1,-1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD9) {
+                this.moveCursor(1,-1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD3) {
+                this.moveCursor(1,1);
+            } else if (inputData.keyCode === ROT.KEYS.VK_NUMPAD1) {
+                this.moveCursor(-1,1);
+            } else if(inputData.keyCode === ROT.KEYS.VK_ESCAPE) {
+                this.executeOkFunction();
+                return;
+            } else if((inputData.keyCode===ROT.KEYS.VK_RETURN) || (inputData.keyCode===ROT.KEYS.VK_T)) {
+                // Fire at the target
+                var x = this._cursorX+this._offsetX;
+                var y = this._cursorY+this._offsetY;
+                if((x==this._player.getX()) && (y==this._player.getY())) {
+                    Game.sendMessage(this._player, "You can't throw something at yourself.");
+                    this.executeOkFunction();
+                    return;
+                } else {
+                    this._player.throwItem(this._itemToThrow,x,y);
+                    this.executeOkFunction();
+                    this._player.getMap().getEngine().unlock();
+                    return;
+                }
+            }
+            // TODO: else if ESC, cancel w/o using turn
+        }
+        Game.refresh();
+    },
+    setup: function(player, itemToThrow, startX, startY, offsetX, offsetY) {
+        // FUTURE: Implement screen scrolling
+        this._player = player;
+        this._itemToThrow = itemToThrow;
+        // Store original position. Subtract screen offset so we don't have to later
+        this._startX = startX - offsetX;
+        this._startY = startY - offsetY;
+        // Store current cursor position
+        this._cursorX = this._startX;
+        this._cursorY = this._startY;
+        // Store map offsets
+        this._offsetX = offsetX;
+        this._offsetY = offsetY;
+        // Cache the FOV
+        var visibleCells = {};
+        this._player.getMap().getFov(this._player.getD()).compute(
+            this._player.getX(), this._player.getY(),
+            this._player.getSightRadius(),
+            function(x,y,radius,visibility) {
+                visibleCells[x+","+y] = true;
+            });
+        this._visibleCells = visibleCells;
+
+        // Get range player can throw the item
+        this._range = this._player.getThrowingRange(this._itemToThrow);
+        this._rangeSquared = this._range*this._range;
+    },
+    moveCursor: function(dx,dy) {
+        var distanceX = (this._cursorX+dx)-this._startX;
+        var distanceY = (this._cursorY+dy)-this._startY;
+
+        if((distanceX*distanceX + distanceY*distanceY) <= this._rangeSquared) {
+            // Ensure we stay within bounds
+            this._cursorX = Math.max(0, Math.min(this._cursorX+dx, Game.getScreenWidth()));
+            // Save the last line for the caption
+            this._cursorY = Math.max(0, Math.min(this._cursorY+dy, Game.getScreenHeight()-1)); 
+        }
+    }
+});
 // Game.Screen.rangedPowerTargetingScreen = new Game.Screen.TargetBasedScreen( {
 //     captionFunction: function(x,y) {
 //         var d = this._player.getD();

@@ -33,6 +33,7 @@ Game.Enums = {
     AttackTypes: Object.freeze({
         MELEE: {name: "melee"},
         RANGED: {name: "ranged"},
+        THROWN: {name: "thrown"}
     }),
     WeaponTypes: Object.freeze({
         SWORD: {name: "sword", critChanceBase: 10, critDamageMultBase: 2},
@@ -52,6 +53,9 @@ Game.Enums = {
         RANGEDDAMAGE: {name: "ranged damage"},
         RANGEDCRITCHANCE: {name: "ranged crit chance"},
         RANGEDCRITMULT: {name: "ranged crit mult"},
+        THROWNDAMAGE: {name: "thrown damage"},
+        THROWNCRITCHANCE: {name: "thrown crit chance"},
+        THROWNCRITMULT: {name: "thrown crit mult"},
         SIGHTRADIUS: {name: "sight radius"}
     }),
     Races: Object.freeze({
