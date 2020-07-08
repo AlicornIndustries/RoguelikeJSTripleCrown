@@ -26,14 +26,25 @@ Game.Skills.MeleeWeapons = {
         this._meleeDamageBoost = 0;
         this._swordDamageBoost = 10; // Testing value TODO: Could be remade as:
         // this._weaponDamageBoosts = {Game.Enums.WeaponTypes.SWORD: 50, Game.Enums.WeaponTypes.AXE: 25}
+        this._weaponDamageBoosts = {};
+        // Populate weapon damage boosts
+        this._weaponDamageBoosts[Game.Enums.WeaponTypes.SWORD.name] = 0;
+        this._weaponDamageBoosts[Game.Enums.WeaponTypes.KNIFE.name] = 0;
+        this._weaponDamageBoosts[Game.Enums.WeaponTypes.AXE.name] = 0;
+        this._weaponDamageBoosts[Game.Enums.WeaponTypes.POLEARM.name] = 0;
+        this._weaponDamageBoosts[Game.Enums.WeaponTypes.UNARMED.name] = 0;
+        this._weaponDamageBoosts[Game.Enums.WeaponTypes.BOW.Subtypes.BOW.name] = 0;
+        this._weaponDamageBoosts[Game.Enums.WeaponTypes.BOW.Subtypes.CROSSBOW.name] = 0;
+        //console.log(this._weaponDamageBoosts[Game.Enums.WeaponTypes.SWORD.name]);
     },
     getSkillLevel: function() {return this._skillLevel},
     getBoost: function(boostType,extraProperties) {
         switch(boostType) {
             case Game.Enums.BoostTypes.MELEEDAMAGE:
                 var modifier = 0;
-                if(this._owner.getWeapon() && this._owner.getWeapon().getWeaponType()==Game.Enums.WeaponTypes.SWORD) {
-                    modifier+=this._swordDamageBoost;
+                console.log(extraProperties);
+                if(extraProperties["weapon"]!=null) {
+                    modifier+=this._weaponDamageBoosts[extraProperties["weapon"].getWeaponType().name];
                 }
                 return this._meleeDamageBoost+modifier;
             default:

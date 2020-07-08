@@ -431,7 +431,7 @@ Game.EntityMixins.Attacker = {
             // TODO: unarmed 
         }
         if(this.hasMixin("SkillsHaver")) {
-            modifier+=this.getBoost(Game.Enums.BoostTypes.MELEEDAMAGE,{"target":target});
+            modifier+=this.getBoost(Game.Enums.BoostTypes.MELEEDAMAGE,{"target":target,"weapon":weapon});
         }
         return this._strength+modifier;
     },
@@ -445,14 +445,14 @@ Game.EntityMixins.Attacker = {
             modifier+=ammo.getRangedDamageValue();
         }
         if(this.hasMixin("SkillsHaver")) {
-            modifier+=this.getBoost(Game.Enums.BoostTypes.RANGEDDAMAGE,{"target":target});
+            modifier+=this.getBoost(Game.Enums.BoostTypes.RANGEDDAMAGE,{"target":target,"weapon":weapon});
         }
         return modifier;
     },
     getThrownDamage: function(thrownItem,target=undefined) {
         var damage = 0;
         if(this.hasMixin(Game.EntityMixins.SkillsHaver)) {
-            damage+=this.getBoost(Game.Enums.BoostTypes.THROWNDAMAGE,{"target":target});
+            damage+=this.getBoost(Game.Enums.BoostTypes.THROWNDAMAGE,{"target":target,"weapon":weapon});
         }
         if(thrownItem.hasMixin(Game.ItemMixins.Throwable)) {
             damage+=thrownItem.getThrownDamage();
