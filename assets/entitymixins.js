@@ -193,6 +193,8 @@ Game.EntityMixins.TaskActor = {
     act: function() {
         if(this.hasMixin("Affectable")) {
             this.updateEffects();
+            // If it died due to an effect, stop.
+            return;
         }
         // Iterate through our tasks
         for(var i=0; i<this._tasks.length; i++) {
@@ -625,6 +627,11 @@ Game.EntityMixins.Attacker = {
                 target.takeDamage(this,hit.damage);
             } else if(hit.hitSuccess) {
                 // Regular hit
+                // If the thrown item has an effect (e.g. a potion), apply it
+                if(weapon.hasMixin(Game.ItemMixins.Quaffable) && target.hasMixin(Game.EntityMixins.Affectable)) {
+                    target.addEffect(weapon.getEffects(),this);
+                    // TODO: destroy the potion
+                }
                 Game.sendMessage(this, "You strike the %s for %d damage!",[target.getName(), hit.damage]);
                 Game.sendMessage(target, "The %s strikes you for %d damage!",[this.getName(), hit.damage]);
                 target.takeDamage(this,hit.damage);
@@ -898,15 +905,13 @@ Game.EntityMixins.Equipper = {
         this._armor = null;
         this._quivered = null;
         this._quiveredThrowing = null;
+        this._passiveEquippedBoosts = {}; // Boosts from equipped items (rings, etc)
     },
-    wield: function(item) {
-        this._weapon = item;
-    },
-    unwield: function() {
-        this._weapon = null;
-    },
+    wield: function(item) {this._weapon = item;},
+    unwield: function() {this._weapon = null;},
     wear: function(item) {
         this._armor = item;
+        // TODO: Apply passiveBoosts
     },
     unwear: function() { // TODO: account for multiple slots. This should take in an item/item slot as input
         this._armor = null;
@@ -924,12 +929,8 @@ Game.EntityMixins.Equipper = {
             return null;
         }
     },
-    getArmor: function() {
-        return this._armor;
-    },
-    getAmmo: function() {
-        return this._quivered;
-    },
+    getArmor: function() {return this._armor;},
+    getAmmo: function() {return this._quivered;},
     unequip: function(item) {
         // Helper function called before removing item
         if(this._weapon===item) {

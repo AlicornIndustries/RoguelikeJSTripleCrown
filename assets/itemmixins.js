@@ -124,16 +124,14 @@ Game.ItemMixins.Equippable = {
         this._wieldable = template["wieldable"] || false;
         this._wearable = template["wearable"] || false;
         this._quiverable = template["quiverable"] || false; // TODO: May remove this.
+        this._passiveBoosts = {}; // Bonuses the item provides when equipped
+        // Populate item passive boosts
+        //this._passiveBoosts[Game.Enums.MELEEDAMAGE] = 100;
     },
-    isWieldable: function() {
-        return this._wieldable;
-    },
-    isWearable: function() {
-        return this._wearable;
-    },
-    isQuiverable: function() {
-        return this._quiverable;
-    },
+    isWieldable: function() {return this._wieldable;},
+    isWearable: function() {return this._wearable;},
+    isQuiverable: function() {return this._quiverable;}, // TODO: Move this to ProjectileAmmo?
+    getPassiveBoosts: function() {return this._passiveBoosts;},
     listeners: {
         details: function() {
             var results = [];
@@ -150,7 +148,6 @@ Game.ItemMixins.Equippable = {
         }
     }
 }
-
 Game.ItemMixins.Weapon = {
     name: "Weapon",
     init: function(template) {
@@ -163,27 +160,20 @@ Game.ItemMixins.Weapon = {
         this._critDamageMult = template["critDamageMult"] || this._weaponType.critDamageMultBase;
     },
     getWeaponType: function() {return this._weaponType},
-    getAttackValue: function() {
-        return this._attackValue;
-    },
-    getDamageValue: function(thrown=false) {  // FUTURE/TODO: Replace with a damageRange system for e.g. 2d6 or whatever damage. Weapons will do strength+damageValue.
+    getAttackValue: function() {return this._attackValue;},
+    getDamageValue: function(thrown=false) {  // FUTURE/TODO: Remove the 'thrown' check. Replace with a damageRange system for e.g. 2d6 or whatever damage. Weapons will do strength+damageValue.
         if(!thrown) {
             return this._damageValue;
         } else {
             return this._thrownDamageValue;
         }
     },
-    getDamageType: function() {
-        return this._damageType;
-    },
+    getDamageType: function() {return this._damageType;},
     getCritChance: function() {return this._critChance},
     getCritDamageMult: function() {return this._critDamageMult},
     getWeaponType: function() {return this._weaponType},
-    isWieldable: function() {
-        return this._wieldable;
-    },
+    isWieldable: function() {return this._wieldable;},
 }
-
 Game.ItemMixins.Armor = {
     name: "Armor",
     init: function(template) {
