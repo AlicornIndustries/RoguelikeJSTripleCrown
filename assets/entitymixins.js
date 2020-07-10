@@ -626,12 +626,16 @@ Game.EntityMixins.Attacker = {
             hit = this.getHit(target,Game.Enums.AttackTypes.THROWN,weapon);
             if(hit.crit) {
                 // Critical hit
+                // If the thrown item has an effect (e.g. a potion), apply it
+                if(weapon.hasMixin(Game.ItemMixins.Quaffable) && target.hasMixin(Game.EntityMixins.Affectable)) {
+                    target.addEffect(weapon.getEffects(),this);
+                    // TODO: destroy the potion
+                }
                 Game.sendMessage(this, "You critically strike the %s for %d damage!",[target.getName(), hit.damage]);
                 Game.sendMessage(target, "The %s critically strikes you for %d damage!",[this.getName(), hit.damage]);
                 target.takeDamage(this,hit.damage);
             } else if(hit.hitSuccess) {
                 // Regular hit
-                // If the thrown item has an effect (e.g. a potion), apply it
                 if(weapon.hasMixin(Game.ItemMixins.Quaffable) && target.hasMixin(Game.EntityMixins.Affectable)) {
                     target.addEffect(weapon.getEffects(),this);
                     // TODO: destroy the potion
@@ -645,7 +649,7 @@ Game.EntityMixins.Attacker = {
                 Game.sendMessage(this, "You miss the %s.", [target.getName()]);
                 Game.sendMessage(target, "The %s misses you.", [this.getName()]);
             }
-        }
+        }        
     },
     listeners: {
         details: function() {
@@ -805,9 +809,14 @@ Game.EntityMixins.InventoryHolder = {
             if(this.hasMixin(Game.EntityMixins.Equipper)) {
                 this.unequip(itemToThrow);
             }
-            // Put item on the thrown location
-            this._map.addItem(x,y,d,this._items[i]);
-            this.removeItem(i);
+            // If item is breakable (potion/quaffable), destroy it
+            if(itemToThrow.hasMixin(Game.ItemMixins.Quaffable)) {
+                this.removeItem(i);
+            } else {
+                // Put item on the thrown location
+                this._map.addItem(x,y,d,this._items[i]);
+                this.removeItem(i);
+            }
         }
         var target = this._map.getEntityAt(x,y,d);
         if(target!=null && this.hasMixin(Game.EntityMixins.Attacker)) {

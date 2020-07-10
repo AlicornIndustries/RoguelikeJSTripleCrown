@@ -159,7 +159,7 @@ Game.ItemRepository.define("potion of bleeding", {
     toxic: true,
     effect: Game.Effects.Bleed,
     effectTemplate: {
-        bleedAmount: 100,
+        bleedAmount: 10,
         duration: 3
     },
     intendedToBeThrown: true,
