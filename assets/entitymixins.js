@@ -572,11 +572,21 @@ Game.EntityMixins.Attacker = {
             hit = this.getHit(target,Game.Enums.AttackTypes.MELEE,weapon);
             if(hit.crit) {
                 // Critical hit
+                // Apply weapon effects TODO: also apply onCrit effects. FUTURE: Move this into a single function
+                if(weapon && weapon.getEffectsOnHit() && target.hasMixin(Game.EntityMixins.Affectable)) {
+                    console.log(weapon.getEffectsOnHit());
+                    target.addEffect(weapon.getEffectsOnHit(),this);
+                }
                 Game.sendMessage(this, "You critically strike the %s for %d damage!",[target.getName(), hit.damage]);
                 Game.sendMessage(target, "The %s critically strikes you for %d damage!",[this.getName(), hit.damage]);
                 target.takeDamage(this,hit.damage);
             } else if(hit.hitSuccess) {
                 // Regular hit
+                // Apply weapon effects
+                if(weapon && weapon.getEffectsOnHit() && target.hasMixin(Game.EntityMixins.Affectable)) {
+                    console.log(weapon.getEffectsOnHit());
+                    target.addEffect(weapon.getEffectsOnHit(),this);
+                }
                 Game.sendMessage(this, "You strike the %s for %d damage!",[target.getName(), hit.damage]);
                 Game.sendMessage(target, "The %s strikes you for %d damage!",[this.getName(), hit.damage]);
                 target.takeDamage(this,hit.damage);
@@ -629,7 +639,6 @@ Game.EntityMixins.Attacker = {
                 // If the thrown item has an effect (e.g. a potion), apply it
                 if(weapon.hasMixin(Game.ItemMixins.Quaffable) && target.hasMixin(Game.EntityMixins.Affectable)) {
                     target.addEffect(weapon.getEffects(),this);
-                    // TODO: destroy the potion
                 }
                 Game.sendMessage(this, "You critically strike the %s for %d damage!",[target.getName(), hit.damage]);
                 Game.sendMessage(target, "The %s critically strikes you for %d damage!",[this.getName(), hit.damage]);
@@ -638,7 +647,6 @@ Game.EntityMixins.Attacker = {
                 // Regular hit
                 if(weapon.hasMixin(Game.ItemMixins.Quaffable) && target.hasMixin(Game.EntityMixins.Affectable)) {
                     target.addEffect(weapon.getEffects(),this);
-                    // TODO: destroy the potion
                 }
                 Game.sendMessage(this, "You strike the %s for %d damage!",[target.getName(), hit.damage]);
                 Game.sendMessage(target, "The %s strikes you for %d damage!",[this.getName(), hit.damage]);

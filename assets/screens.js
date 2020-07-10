@@ -280,7 +280,7 @@ Game.Screen.playScreen = {
                 }
             } else if(inputData.keyCode === ROT.KEYS.VK_T) {
                 // throwing screen
-                this.showItemsSubscreen(Game.Screen.throwingItemSelectionScreen, this._player.getItems(), "You ahave nothing you can throw.");
+                this.showItemsSubscreen(Game.Screen.throwingItemSelectionScreen, this._player.getItems(), "You have nothing you can throw.");
             } else {
                 // Not a valid key
                 return;
@@ -809,7 +809,7 @@ Game.Screen.throwingItemSelectionScreen = new Game.Screen.ItemListScreen({
             Game.Screen.throwingScreen.setup(this._player, itemToThrow, this._player.getX(), this._player.getY(), offsets.x, offsets.y)
             Game.Screen.playScreen.setSubscreen(Game.Screen.throwingScreen);
         }
-        return false; // TODO: Check if we should actually return this here, since this goes to another subscreen
+        return false;
     },
     setup: function(player, items) {
         // TODO/BUG: It appears as though this is never called.
@@ -1312,8 +1312,8 @@ Game.Screen.throwingScreen = new Game.Screen.TargetBasedScreen({
                 } else {
                     this._player.throwItem(this._itemToThrow,x,y);
                     this.executeOkFunction();
-                    this._player.getMap().getEngine().unlock();
-                    return;
+                    //this._player.getMap().getEngine().unlock();
+                    //return;
                 }
             }
             // TODO: else if ESC, cancel w/o using turn

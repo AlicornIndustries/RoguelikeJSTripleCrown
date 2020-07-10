@@ -158,6 +158,10 @@ Game.ItemMixins.Weapon = {
         this._defenseValue = template["defenseValue"] || 0;
         this._critChance = template["critChance"] || this._weaponType.critChanceBase;
         this._critDamageMult = template["critDamageMult"] || this._weaponType.critDamageMultBase;
+        this._effectOnHit = template["effectOnHit"] || null; // TODO: replace with array of effects. FUTURE: Add effectsOnCrit, effectsOnKill...
+        if(this._effectOnHit!=null) {
+            this._effectOnHit.init(template["effectOnHitTemplate"])
+        }
     },
     getWeaponType: function() {return this._weaponType},
     getAttackValue: function() {return this._attackValue;},
@@ -173,6 +177,7 @@ Game.ItemMixins.Weapon = {
     getCritDamageMult: function() {return this._critDamageMult},
     getWeaponType: function() {return this._weaponType},
     isWieldable: function() {return this._wieldable;},
+    getEffectsOnHit: function() {return this._effectOnHit;}
 }
 Game.ItemMixins.Armor = {
     name: "Armor",

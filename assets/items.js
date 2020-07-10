@@ -47,6 +47,32 @@ Game.ItemRepository.define("shortsword", {
     damageValue: 5,
     damageType: Game.Enums.DamageTypes.SLASHING,
     wieldable: true,
+    effectOnHit: Game.Effects.Bleed,
+    effectOnHitTemplate: {
+        bleedAmount: 10,
+        duration: 3
+    },
+    possibleMaterials: [
+        Game.Enums.Materials.IRON, Game.Enums.Materials.STEEL, Game.Enums.Materials.BRONZE, Game.Enums.Materials.SILVER
+    ],
+    defaultMaterial: Game.Enums.Materials.STEEL,
+    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver,Game.ItemMixins.Weapon]},
+    {disableRandomCreation: true
+});
+Game.ItemRepository.define("shortsword of bleeding", {
+    name:"shortsword",
+    character: ")",
+    foreground: "lightRed",
+    weaponType: Game.Enums.WeaponTypes.SWORD,
+    attackValue: 5,
+    damageValue: 5,
+    damageType: Game.Enums.DamageTypes.SLASHING,
+    wieldable: true,
+    effectOnHit: Game.Effects.Bleed,
+    effectOnHitTemplate: {
+        bleedAmount: 10,
+        duration: 3
+    },
     possibleMaterials: [
         Game.Enums.Materials.IRON, Game.Enums.Materials.STEEL, Game.Enums.Materials.BRONZE, Game.Enums.Materials.SILVER
     ],
