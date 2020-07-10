@@ -42,7 +42,6 @@ Game.Skills.MeleeWeapons = {
         switch(boostType) {
             case Game.Enums.BoostTypes.MELEEDAMAGE:
                 var modifier = 0;
-                console.log(extraProperties);
                 if(extraProperties["weapon"]!=null) {
                     modifier+=this._weaponDamageBoosts[extraProperties["weapon"].getWeaponType().name];
                 }

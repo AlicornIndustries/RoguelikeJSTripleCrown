@@ -758,7 +758,7 @@ Game.Screen.quiverScreen = new Game.Screen.ItemListScreen({
     canSelect: true,
     canSelectMultipleItems: false,
     isAcceptable: function(item) {
-        return item && item.hasMixin("Equippable") && item.isQuiverable();
+        return (item && item.hasMixin("Equippable") && item.isQuiverable()) ;
     },
     ok: function(selectedItems) {
         // Check if we selected "no item"

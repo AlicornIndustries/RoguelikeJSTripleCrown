@@ -449,13 +449,13 @@ Game.EntityMixins.Attacker = {
         }
         return modifier;
     },
-    getThrownDamage: function(thrownItem,target=undefined) {
+    getThrownDamage: function(weapon,target=undefined) {
         var damage = 0;
         if(this.hasMixin(Game.EntityMixins.SkillsHaver)) {
             damage+=this.getBoost(Game.Enums.BoostTypes.THROWNDAMAGE,{"target":target,"weapon":weapon});
         }
-        if(thrownItem.hasMixin(Game.ItemMixins.Throwable)) {
-            damage+=thrownItem.getThrownDamage();
+        if(weapon.hasMixin(Game.ItemMixins.Throwable)) {
+            damage+=weapon.getThrownDamageValue();
         }
         return damage;
     },
@@ -897,6 +897,7 @@ Game.EntityMixins.Equipper = {
         this._weapon = null;
         this._armor = null;
         this._quivered = null;
+        this._quiveredThrowing = null;
     },
     wield: function(item) {
         this._weapon = item;
@@ -907,18 +908,14 @@ Game.EntityMixins.Equipper = {
     wear: function(item) {
         this._armor = item;
     },
-    unwear: function() { // TODO: account for multiple slots
+    unwear: function() { // TODO: account for multiple slots. This should take in an item/item slot as input
         this._armor = null;
     },
-    quiver: function(item) {
-        this._quivered = item;
-    },
-    unquiver: function() {
-        this._quivered = null;
-    },
-    getWeapon: function() {
-        return this._weapon;
-    },
+    quiver: function(item) {this._quivered = item;},
+    unquiver: function() {this._quivered = null;},
+    quiverThrowing: function(item) {this._quiveredThrowing = item;},
+    unquiverThrowing: function(item) {this._quiveredThrowing = null;},
+    getWeapon: function() {return this._weapon;},
     getProjectileLauncher: function() {
         if(this._weapon.hasMixin("ProjectileLauncher")) {
             return this._weapon;

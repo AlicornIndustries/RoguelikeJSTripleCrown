@@ -120,6 +120,25 @@ Game.ItemRepository.define("arrow", {
     mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.ProjectileAmmo,Game.ItemMixins.MaterialHaver,Game.ItemMixins.Stackable,Game.ItemMixins.Throwable]},
     {disableRandomCreation: true
 });
+// Throwing weapons
+Game.ItemRepository.define("shuriken", {
+    name: "shuriken",
+    character: ")",
+    foreground: "cornflowerBlue",
+    thrownAttackValue: 10,
+    thrownDamageValue: 5,
+    thrownDamageType: Game.Enums.DamageTypes.SLASHING,
+    thrownCritChance: 30,
+    thrownCritDamageMult: 3,
+    quiverableThrowing: true,
+    possibleMaterials: [
+        Game.Enums.Materials.IRON,
+        Game.Enums.Materials.STEEL,
+    ],
+    defaultMaterial: Game.Enums.Materials.STEEL,
+    mixins: [Game.ItemMixins.MaterialHaver]},
+    {disableRandomCreation: true
+});
 // Potions/Quaffables
 Game.ItemRepository.define("potion of healing", {
     name: "potion of healing",
@@ -143,6 +162,7 @@ Game.ItemRepository.define("potion of bleeding", {
         bleedAmount: 10,
         duration: 3
     },
+    intendedToBeThrown: true,
     mixins: [Game.ItemMixins.Quaffable,Game.ItemMixins.Throwable]},
     {disableRandomCreation: true
 });

@@ -242,6 +242,22 @@ Game.ItemMixins.Equippable = {
         }
     }
 }
+
+Game.ItemMixins.Weapon = {
+    name: "Weapon",
+    groupName: "Equippable",
+    init: function(template) {
+        this._weaponType = template["weaponType"] || null;
+        this._attackValue = template["attackValue"] || 0;
+        this._damageValue = template['damageValue'] || 0;
+        this._damageType = template["damageType"] || null;
+        this._defenseValue = template["defenseValue"] || 0;
+        this._wieldable = template["wieldable"] || true;
+        this._critChance = template["critChance"] || this._weaponType.critChanceBase;
+        this._critDamageMult = template["critDamageMult"] || this._weaponType.critDamageMultBase;
+    },
+}
+
 // For projectile weapons (bows, crossbows)
 Game.ItemMixins.ProjectileLauncher = {
     name: "ProjectileLauncher",
@@ -293,16 +309,18 @@ Game.ItemMixins.Throwable = {
     name: "Throwable",
     init: function(template) {
         this._thrownAttackValue = template["thrownAttackValue"] || 50;
-        this._thrownDamage = template["thrownDamage"] || 1; // FUTURE: base this off of item's weight
+        this._thrownDamageValue = template["thrownDamageValue"] || 1; // FUTURE: base this off of item's weight
         this._thrownCritChance = template["thrownCritChance"] || 5;
         this._thrownCritDamageMult = template["thrownCritDamageMult"] || 2;
         this._thrownDamageType = template["thrownDamageType"] || Game.Enums.DamageTypes.BLUNT
+        this._quiverableThrowing = template["quiverableThrowing"] || false;
     },
     getThrownAttackValue: function() {return this._thrownAttackValue},
-    getThrownDamage: function() {return this._thrownDamage;},
+    getThrownDamageValue: function() {return this._thrownDamageValue;},
     getThrownDamageType: function() {return this._thrownDamageType;},
     getThrownCritChance: function() {return this._thrownCritChance;},
-    getThrownCritDamageMult: function() {return this._thrownCritDamageMult;}
+    getThrownCritDamageMult: function() {return this._thrownCritDamageMult;},
+    isQuiverableThrowing: function() {return this._quiverableThrowing;}
 
 }
 

@@ -95,7 +95,8 @@ Game.Enums.CharClasses = Object.freeze({
                 {name: "padded barding"},
                 {name: "potion of healing"},
                 {name: "potion of bleeding"},
-                {name: "apple"}
+                {name: "apple"},
+                {name: "shuriken"}
             ],
         },
         WIZARD: {

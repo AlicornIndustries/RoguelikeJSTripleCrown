@@ -60,11 +60,11 @@ Game.DynamicGlyph.prototype.hasMixin = function(obj) {
 Game.DynamicGlyph.prototype.setName = function(name) {this._name = name;};
 Game.DynamicGlyph.prototype.getName = function() {return this._name;}
 Game.DynamicGlyph.prototype.describe = function() {
-    var suffix = "";
+    var prefix = "";
     var name = this._name;
     // If the item is stackable, mention the count ("100 arrows")
     if(this.hasMixin("Stackable")) {
-        suffix+= (this.getStackSize()+" ");
+        prefix+= (this.getStackSize()+" ");
         if(this.getStackSize()>1) {
             name+="s"; // TODO: have a pluralName system, optional, defaults to +"s"
         }
@@ -73,13 +73,13 @@ Game.DynamicGlyph.prototype.describe = function() {
     if(this.hasMixin("MaterialHaver")) {
         // A wood staff is a "wooden" staff
         if(this._material.adj!=null) {
-            suffix+= this._material.adj;
+            prefix+= this._material.adj;
         }
         else {
-            suffix+= this._material.name;
+            prefix+= this._material.name;
         }
     }
-    return suffix+" "+name;
+    return prefix+" "+name;
 }
 Game.DynamicGlyph.prototype.describeA = function(capitalize) {
     // "a rock", "An apple." Capitalize article if true
