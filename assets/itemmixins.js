@@ -121,10 +121,6 @@ Game.ItemMixins.Equippable = {
     name: "Equippable",
     groupName: "Equippable",
     init: function(template) {
-        this._weaponType = template["weaponType"] || null;
-        this._attackValue = template["attackValue"] || 0;
-        this._damageValue = template['damageValue'] || 0;
-        this._damageType = template["damageType"] || null;
         this._defenseValue = template["defenseValue"] || 0;
         this._maxArmorDurability = template["armorDurability"] || 0;
         this._armorDurability = this._maxArmorDurability || 0;
@@ -133,11 +129,45 @@ Game.ItemMixins.Equippable = {
         this._wieldable = template["wieldable"] || false;
         this._wearable = template["wearable"] || false;
         this._quiverable = template["quiverable"] || false; // TODO: May remove this.
-        if(this._weaponType!=null) {
-            this._critChance = template["critChance"] || this._weaponType.critChanceBase;
-            this._critDamageMult = template["critDamageMult"] || this._weaponType.critDamageMultBase;    
-        }
     },
+    isWieldable: function() {
+        return this._wieldable;
+    },
+    isWearable: function() {
+        return this._wearable;
+    },
+    isQuiverable: function() {
+        return this._quiverable;
+    },
+    listeners: {
+        details: function() {
+            var results = [];
+            if(this._wieldable) {
+                results.push({key: "damage value", value: this._damageValue});
+                results.push({key: "damage type", value: this._damageType});
+                results.push({key: "attack value", value: this._attackValue});
+            }
+            if(this._wearable) {
+                results.push({key: "durability", value: (this._armorDurability.toString()+"/"+this._maxArmorDurability.toString())});
+                results.push({key: "damage reduction", value: this._armorReduction});
+                results.push({key: "defense value", value: this._defenseValue});
+            }
+        }
+    }
+}
+
+Game.ItemMixins.Weapon = {
+    name: "Weapon",
+    init: function(template) {
+        this._weaponType = template["weaponType"] || null;
+        this._attackValue = template["attackValue"] || 0;
+        this._damageValue = template['damageValue'] || 0;
+        this._damageType = template["damageType"] || null;
+        this._defenseValue = template["defenseValue"] || 0;
+        this._critChance = template["critChance"] || this._weaponType.critChanceBase;
+        this._critDamageMult = template["critDamageMult"] || this._weaponType.critDamageMultBase;
+    },
+    getWeaponType: function() {return this._weaponType},
     getAttackValue: function() {
         return this._attackValue;
     },
@@ -153,6 +183,21 @@ Game.ItemMixins.Equippable = {
     },
     getCritChance: function() {return this._critChance},
     getCritDamageMult: function() {return this._critDamageMult},
+    getWeaponType: function() {return this._weaponType},
+    isWieldable: function() {
+        return this._wieldable;
+    },
+}
+
+Game.ItemMixins.Armor = {
+    name: "Armor",
+    init: function(template) {
+        this._defenseValue = template["defenseValue"] || 0;
+        this._maxArmorDurability = template["armorDurability"] || 0;
+        this._armorDurability = this._maxArmorDurability || 0;
+        this._armorReduction = template["armorReduction"] || 0;
+        this._armorType = template["armorType"] || null;
+    },
     getDefenseValue: function() {
         return this._defenseValue;
     },
@@ -215,46 +260,6 @@ Game.ItemMixins.Equippable = {
     },
     getArmorType: function() {
         return this._armorType;
-    },
-    getWeaponType: function() {return this._weaponType},
-    isWieldable: function() {
-        return this._wieldable;
-    },
-    isWearable: function() {
-        return this._wearable;
-    },
-    isQuiverable: function() {
-        return this._quiverable;
-    },
-    listeners: {
-        details: function() {
-            var results = [];
-            if(this._wieldable) {
-                results.push({key: "damage value", value: this._damageValue});
-                results.push({key: "damage type", value: this._damageType});
-                results.push({key: "attack value", value: this._attackValue});
-            }
-            if(this._wearable) {
-                results.push({key: "durability", value: (this._armorDurability.toString()+"/"+this._maxArmorDurability.toString())});
-                results.push({key: "damage reduction", value: this._armorReduction});
-                results.push({key: "defense value", value: this._defenseValue});
-            }
-        }
-    }
-}
-
-Game.ItemMixins.Weapon = {
-    name: "Weapon",
-    groupName: "Equippable",
-    init: function(template) {
-        this._weaponType = template["weaponType"] || null;
-        this._attackValue = template["attackValue"] || 0;
-        this._damageValue = template['damageValue'] || 0;
-        this._damageType = template["damageType"] || null;
-        this._defenseValue = template["defenseValue"] || 0;
-        this._wieldable = template["wieldable"] || true;
-        this._critChance = template["critChance"] || this._weaponType.critChanceBase;
-        this._critDamageMult = template["critDamageMult"] || this._weaponType.critDamageMultBase;
     },
 }
 

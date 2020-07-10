@@ -51,7 +51,7 @@ Game.ItemRepository.define("shortsword", {
         Game.Enums.Materials.IRON, Game.Enums.Materials.STEEL, Game.Enums.Materials.BRONZE, Game.Enums.Materials.SILVER
     ],
     defaultMaterial: Game.Enums.Materials.STEEL,
-    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver]},
+    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver,Game.ItemMixins.Weapon]},
     {disableRandomCreation: true
 });
 Game.ItemRepository.define("longsword", {
@@ -67,14 +67,14 @@ Game.ItemRepository.define("longsword", {
         Game.Enums.Materials.IRON, Game.Enums.Materials.STEEL, Game.Enums.Materials.BRONZE, Game.Enums.Materials.SILVER
     ],
     defaultMaterial: Game.Enums.Materials.STEEL,
-    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver]},
+    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver,Game.ItemMixins.Weapon]},
     {disableRandomCreation: true
 });
 Game.ItemRepository.define("staff", {
     name: "staff",
     character: ")",
     foreground: "yellow",
-    weaponType: Game.Enums.WeaponTypes.STAFF,
+    weaponType: Game.Enums.WeaponTypes.POLEARM,
     attackValue: 5,
     damageValue: 2,
     damageType: Game.Enums.DamageTypes.BLUNT,
@@ -83,7 +83,7 @@ Game.ItemRepository.define("staff", {
         Game.Enums.Materials.WOOD
     ],
     defaultMaterial: Game.Enums.Materials.WOOD,
-    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver,Game.ItemMixins.Throwable]},
+    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver,Game.ItemMixins.Throwable,Game.ItemMixins.Weapon]},
     {disableRandomCreation: true
 });
 Game.ItemRepository.define("bow", {
@@ -102,7 +102,7 @@ Game.ItemRepository.define("bow", {
         Game.Enums.Materials.WOOD
     ],
     defaultMaterial: Game.Enums.Materials.WOOD,
-    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver,Game.ItemMixins.ProjectileLauncher]},
+    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver,Game.ItemMixins.ProjectileLauncher,Game.ItemMixins.Weapon]},
     {disableRandomCreation: true
 });
 // Ammo
@@ -178,7 +178,7 @@ Game.ItemRepository.define("padded barding", {
     wearable: true,
     possibleMaterials: [Game.Enums.Materials.CLOTH],
     defaultMaterial: Game.Enums.Materials.CLOTH,
-    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver]},
+    mixins: [Game.ItemMixins.Equippable,Game.ItemMixins.MaterialHaver,Game.ItemMixins.Armor]},
     {disableRandomCreation: true
 });
 /*

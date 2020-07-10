@@ -341,9 +341,9 @@ Game.EntityMixins.Destructible = {
     getDefenseValue: function() {
         var modifier=0;
         if(this.hasMixin(Game.EntityMixins.Equipper)) {
-            if(this.getWeapon()) {
-                modifier+=this.getWeapon().getDefenseValue();
-            }
+            // if(this.getWeapon()) {
+            //     modifier+=this.getWeapon().getDefenseValue();
+            // }
             if(this.getArmor()) {
                 modifier+=this.getArmor().getDefenseValue();
             }
@@ -397,9 +397,9 @@ Game.EntityMixins.Attacker = {
             if(this.getWeapon()) {
                 modifier+=this.getWeapon().getAttackValue();
             }
-            if(this.getArmor()) {
-                modifier+=this.getArmor().getAttackValue();
-            }
+            // if(this.getArmor()) {
+            //     modifier+=this.getArmor().getAttackValue();
+            // }
         } else {
             // If a weapon was not passed in
             // unarmed
