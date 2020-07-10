@@ -121,11 +121,6 @@ Game.ItemMixins.Equippable = {
     name: "Equippable",
     groupName: "Equippable",
     init: function(template) {
-        this._defenseValue = template["defenseValue"] || 0;
-        this._maxArmorDurability = template["armorDurability"] || 0;
-        this._armorDurability = this._maxArmorDurability || 0;
-        this._armorReduction = template["armorReduction"] || 0;
-        this._armorType = template["armorType"] || null;
         this._wieldable = template["wieldable"] || false;
         this._wearable = template["wearable"] || false;
         this._quiverable = template["quiverable"] || false; // TODO: May remove this.
