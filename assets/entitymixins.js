@@ -194,7 +194,11 @@ Game.EntityMixins.TaskActor = {
         if(this.hasMixin("Affectable")) {
             this.updateEffects();
             // If it died due to an effect, stop.
-            return;
+            if(this.hasMixin(Game.EntityMixins.Destructible)) {
+                if(this._hp<=0) {
+                    return;
+                }
+            }
         }
         // Iterate through our tasks
         for(var i=0; i<this._tasks.length; i++) {

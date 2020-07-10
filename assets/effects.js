@@ -6,8 +6,10 @@ Game.Effects.Heal = {
     init: function(template) {
         this._healAmount = template["healAmount"] || 10;
         this._duration = template["duration"] || 0;
+        this._inflictor = null; // Entity that inflicted the effect and gets the XP for the kill
         this._done = false;
     },
+    setInflictor: function(inflictor) {this._inflictor=inflictor},
     update: function(entity) {
         console.log(entity);
         if(entity.hasMixin("Destructible")) {
