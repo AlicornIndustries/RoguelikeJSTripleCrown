@@ -526,12 +526,31 @@ Game.EntityMixins.Attacker = {
             switch(attackType) {
                 case Game.Enums.AttackTypes.MELEE:
                     critChanceMult+=this.getBoost(Game.Enums.BoostTypes.MELEECRITCHANCE,{"target":target});
+                    critDamageMult+=this.getBoost(Game.Enums.BoostTypes.MELEECRITMULT,{"target":target});
                     break;
                 case Game.Enums.AttackTypes.RANGED:
                     critChanceMult+=this.getBoost(Game.Enums.BoostTypes.RANGEDCRITCHANCE,{"target":target});
+                    critDamageMult+=this.getBoost(Game.Enums.BoostTypes.RANGEDCRITMULT,{"target":target});
                     break;
                 case Game.Enums.AttackTypes.THROWN:
                     critChanceMult+=this.getBoost(Game.Enums.BoostTypes.THROWNCRITCHANCE,{"target":target});
+                    critDamageMult+=this.getBoost(Game.Enums.BoostTypes.THROWNCRITMULT,{"target":target});
+                    break;
+                // default:
+                //     critChanceMult=1;
+            }
+        }
+        // TODO: Revise this to use a structure more like getBoost(). Also, rename getBoost to getSkillsBoost()
+        if(this.hasMixin(Game.EntityMixins.Equipper)) {
+            switch(attackType) {
+                case Game.Enums.AttackTypes.MELEE:
+                    critChanceMult+=this.getPassiveEquipmentBoosts()[Game.Enums.BoostTypes.MELEECRITCHANCE.name];
+                    break;
+                case Game.Enums.AttackTypes.RANGED:
+                    critChanceMult+=this.getPassiveEquipmentBoosts()[Game.Enums.BoostTypes.RANGEDCRITCHANCE.name];
+                    break;
+                case Game.Enums.AttackTypes.THROWN:
+                    critChanceMult+=this.getPassiveEquipmentBoosts()[Game.Enums.BoostTypes.THROWNCRITCHANCE.name];
                     break;
                 default:
                     critChanceMult=0;
@@ -926,17 +945,28 @@ Game.EntityMixins.Equipper = {
         this._armor = null;
         this._quivered = null;
         this._quiveredThrowing = null;
-        this._passiveEquippedBoosts = {}; // Boosts from equipped items (rings, etc)
+        this._passiveEquipmentBoosts = {}; // Boosts from equipped items (rings, etc)
     },
     wield: function(item) {this._weapon = item;},
     unwield: function() {this._weapon = null;},
     wear: function(item) {
-        this._armor = item;
-        // TODO: Apply passiveBoosts
+        this._armor = item; // FUTURE: slots. if item is armor... if item is ring...
+        Object.keys(item.getPassiveBoosts()).forEach(key => {
+            if(typeof this._passiveEquipmentBoosts[key] === "undefined") {
+                this._passiveEquipmentBoosts[key] = item.getPassiveBoosts()[key]; // TODO: Currently, this doesn't cause any in-game consequences
+            } else {
+                this._passiveEquipmentBoosts[key] += item.getPassiveBoosts()[key];
+            }
+        });
     },
     unwear: function() { // TODO: account for multiple slots. This should take in an item/item slot as input
+        // Remove the boosts granted by the equipment
+        Object.keys(this._armor.getPassiveBoosts()).forEach(key => {
+            this._passiveEquipmentBoosts[key] -= this._armor.getPassiveBoosts(key);
+        });
         this._armor = null;
     },
+    getPassiveEquipmentBoosts: function() {return this._passiveEquipmentBoosts;},
     quiver: function(item) {this._quivered = item;},
     unquiver: function() {this._quivered = null;},
     quiverThrowing: function(item) {this._quiveredThrowing = item;},

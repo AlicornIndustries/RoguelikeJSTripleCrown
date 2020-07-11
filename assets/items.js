@@ -47,11 +47,6 @@ Game.ItemRepository.define("shortsword", {
     damageValue: 5,
     damageType: Game.Enums.DamageTypes.SLASHING,
     wieldable: true,
-    effectOnHit: Game.Effects.Bleed,
-    effectOnHitTemplate: {
-        bleedAmount: 10,
-        duration: 3
-    },
     possibleMaterials: [
         Game.Enums.Materials.IRON, Game.Enums.Materials.STEEL, Game.Enums.Materials.BRONZE, Game.Enums.Materials.SILVER
     ],
@@ -178,8 +173,8 @@ Game.ItemRepository.define("potion of healing", {
     mixins: [Game.ItemMixins.Quaffable,Game.ItemMixins.Throwable]},
     {disableRandomCreation: true
 });
-Game.ItemRepository.define("potion of bleeding", {
-    name: "potion of bleeding",
+Game.ItemRepository.define("phial of bleeding", {
+    name: "phial of bleeding",
     character: "!",
     foreground: "greenYellow",
     toxic: true,

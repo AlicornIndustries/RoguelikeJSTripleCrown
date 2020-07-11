@@ -126,7 +126,7 @@ Game.ItemMixins.Equippable = {
         this._quiverable = template["quiverable"] || false; // TODO: May remove this.
         this._passiveBoosts = {}; // Bonuses the item provides when equipped
         // Populate item passive boosts
-        //this._passiveBoosts[Game.Enums.MELEEDAMAGE] = 100;
+        //this._passiveBoosts[Game.Enums.BoostTypes.MELEECRITCHANCE.name] = 100;
     },
     isWieldable: function() {return this._wieldable;},
     isWearable: function() {return this._wearable;},
