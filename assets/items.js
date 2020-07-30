@@ -157,7 +157,7 @@ Game.ItemRepository.define("shuriken", {
         Game.Enums.Materials.STEEL,
     ],
     defaultMaterial: Game.Enums.Materials.STEEL,
-    mixins: [Game.ItemMixins.MaterialHaver]},
+    mixins: [Game.ItemMixins.Throwable,Game.ItemMixins.MaterialHaver]},
     {disableRandomCreation: true
 });
 // Potions/Quaffables

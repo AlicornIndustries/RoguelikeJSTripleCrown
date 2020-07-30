@@ -437,7 +437,7 @@ Game.EntityMixins.Attacker = {
             // TODO: unarmed 
         }
         if(this.hasMixin("SkillsHaver")) {
-            modifier+=this.getBoost(Game.Enums.BoostTypes.MELEEDAMAGE,{"target":target,"weapon":weapon});
+            modifier+=this.getSkillsBoost(Game.Enums.BoostTypes.MELEEDAMAGE,{"target":target,"weapon":weapon});
         }
         return this._strength+modifier;
     },
@@ -451,14 +451,14 @@ Game.EntityMixins.Attacker = {
             modifier+=ammo.getRangedDamageValue();
         }
         if(this.hasMixin("SkillsHaver")) {
-            modifier+=this.getBoost(Game.Enums.BoostTypes.RANGEDDAMAGE,{"target":target,"weapon":weapon});
+            modifier+=this.getSkillsBoost(Game.Enums.BoostTypes.RANGEDDAMAGE,{"target":target,"weapon":weapon});
         }
         return modifier;
     },
     getThrownDamage: function(weapon,target=undefined) {
         var damage = 0;
         if(this.hasMixin(Game.EntityMixins.SkillsHaver)) {
-            damage+=this.getBoost(Game.Enums.BoostTypes.THROWNDAMAGE,{"target":target,"weapon":weapon});
+            damage+=this.getSkillsBoost(Game.Enums.BoostTypes.THROWNDAMAGE,{"target":target,"weapon":weapon});
         }
         if(weapon.hasMixin(Game.ItemMixins.Throwable)) {
             damage+=weapon.getThrownDamageValue();
@@ -525,22 +525,22 @@ Game.EntityMixins.Attacker = {
         if(this.hasMixin("SkillsHaver")) {
             switch(attackType) {
                 case Game.Enums.AttackTypes.MELEE:
-                    critChanceMult+=this.getBoost(Game.Enums.BoostTypes.MELEECRITCHANCE,{"target":target});
-                    critDamageMult+=this.getBoost(Game.Enums.BoostTypes.MELEECRITMULT,{"target":target});
+                    critChanceMult+=this.getSkillsBoost(Game.Enums.BoostTypes.MELEECRITCHANCE,{"target":target});
+                    critDamageMult+=this.getSkillsBoost(Game.Enums.BoostTypes.MELEECRITMULT,{"target":target});
                     break;
                 case Game.Enums.AttackTypes.RANGED:
-                    critChanceMult+=this.getBoost(Game.Enums.BoostTypes.RANGEDCRITCHANCE,{"target":target});
-                    critDamageMult+=this.getBoost(Game.Enums.BoostTypes.RANGEDCRITMULT,{"target":target});
+                    critChanceMult+=this.getSkillsBoost(Game.Enums.BoostTypes.RANGEDCRITCHANCE,{"target":target});
+                    critDamageMult+=this.getSkillsBoost(Game.Enums.BoostTypes.RANGEDCRITMULT,{"target":target});
                     break;
                 case Game.Enums.AttackTypes.THROWN:
-                    critChanceMult+=this.getBoost(Game.Enums.BoostTypes.THROWNCRITCHANCE,{"target":target});
-                    critDamageMult+=this.getBoost(Game.Enums.BoostTypes.THROWNCRITMULT,{"target":target});
+                    critChanceMult+=this.getSkillsBoost(Game.Enums.BoostTypes.THROWNCRITCHANCE,{"target":target});
+                    critDamageMult+=this.getSkillsBoost(Game.Enums.BoostTypes.THROWNCRITMULT,{"target":target});
                     break;
                 // default:
                 //     critChanceMult=1;
             }
         }
-        // TODO: Revise this to use a structure more like getBoost(). Also, rename getBoost to getSkillsBoost()
+        // TODO: Revise this to use a structure more like getSkillsBoost().
         if(this.hasMixin(Game.EntityMixins.Equipper)) {
             switch(attackType) {
                 case Game.Enums.AttackTypes.MELEE:
@@ -1197,15 +1197,15 @@ Game.EntityMixins.SkillsHaver = {
         }
     },
     getSkills: function() {return this._skills;},
-    getBoost: function(boostType,extraProperties) {
+    getSkillsBoost: function(boostType,extraProperties) {
         // FUTURE: Once all the skills are designed, hardcode optimizations st. e.g. when checking for melee damage, we only test the skills we know could affect it.
         var boostValue = 0;
         // Loop through all skills, summing their boosts of that type
         for(var skill in this._skills) {
             if(extraProperties!=null) {
-                var boostFromSkill = this._skills[skill].getBoost(boostType,extraProperties);
+                var boostFromSkill = this._skills[skill].getSkillBoost(boostType,extraProperties);
             } else {
-                var boostFromSkill = this._skills[skill].getBoost(boostType);
+                var boostFromSkill = this._skills[skill].getSkillBoost(boostType);
             }
             if(boostValue!=null) {
                 boostValue+=boostFromSkill;

@@ -38,7 +38,7 @@ Game.Skills.MeleeWeapons = {
         //console.log(this._weaponDamageBoosts[Game.Enums.WeaponTypes.SWORD.name]);
     },
     getSkillLevel: function() {return this._skillLevel},
-    getBoost: function(boostType,extraProperties) {
+    getSkillBoost: function(boostType,extraProperties) {
         switch(boostType) {
             case Game.Enums.BoostTypes.MELEEDAMAGE:
                 var modifier = 0;
@@ -85,7 +85,7 @@ Game.Skills.Archery = {
         this._rangedDamageBoost = 0;
     },
     getSkillLevel: function() {return this._skillLevel},
-    getBoost: function(boostType) {
+    getSkillBoost: function(boostType) {
         if(typeof boostType==="object") { // boostType is e.g. Game.Enums.BoostTypes.MELEEDAMAGE
             switch(boostType) {
                 case Game.Enums.BoostTypes.RANGEDDAMAGE:
