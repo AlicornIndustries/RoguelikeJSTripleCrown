@@ -38,17 +38,18 @@ Game.PlayerTemplate = {
 // Create central entity repository
 Game.EntityRepository = new Game.Repository("entities", Game.Entity);
 
-Game.EntityRepository.define("fungus", {
-    name: "fungus",
-    character: "F",
-    foreground: "chartreuse",
-    background: "black",
-    speed: 250,
-    maxHp: 15,
-    defenseValue: 0,
-    mixins: [Game.EntityMixins.FungusActor, Game.EntityMixins.StatsHaver, Game.EntityMixins.Destructible, Game.EntityMixins.Affectable,
-             Game.EntityMixins.ExperienceGainer, Game.EntityMixins.RandomStatGainer]
-});
+// Removed fungus temporarily.
+// Game.EntityRepository.define("fungus", {
+//     name: "fungus",
+//     character: "F",
+//     foreground: "chartreuse",
+//     background: "black",
+//     speed: 250,
+//     maxHp: 15,
+//     defenseValue: 0,
+//     mixins: [Game.EntityMixins.FungusActor, Game.EntityMixins.StatsHaver, Game.EntityMixins.Destructible, Game.EntityMixins.Affectable,
+//              Game.EntityMixins.ExperienceGainer, Game.EntityMixins.RandomStatGainer]
+// });
 Game.EntityRepository.define("timberwolf", {
     name: "timberwolf",
     character: "t",

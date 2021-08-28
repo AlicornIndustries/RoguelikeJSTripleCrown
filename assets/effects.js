@@ -1,3 +1,5 @@
+// Status effects, like healing or bleeding. Can be instantaneous or over time.
+
 Game.Effects = {};
 
 Game.Effects.Heal = {

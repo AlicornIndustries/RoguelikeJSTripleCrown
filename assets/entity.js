@@ -38,6 +38,7 @@ Game.Entity.prototype.setPosition = function(x,y,d) {
 Game.Entity.prototype.setSpeed = function(speed) {
     this._speed = speed;
 }
+Game.Entity.prototype.getName = function() {return this._name;}
 Game.Entity.prototype.getX = function() {return this._x;}
 Game.Entity.prototype.getY = function() {return this._y;}
 Game.Entity.prototype.getD = function() {return this._d;}

@@ -8,7 +8,7 @@ Game.Screen.startScreen = {
     enter: function() {/*console.log("Entered start screen.");*/ },
     exit: function() {/*console.log("Exited start screen.");*/ },
     render: function(display) {
-        display.drawText(1,1,"%c{yellow}CATACOMBS OF DOOM");
+        display.drawText(1,1,"%c{yellow}TRIPLE CROWN");
         display.drawText(1,2,"Press [Enter] to start!");
     },
     handleInput: function(inputType, inputData) {
@@ -1093,7 +1093,7 @@ Game.Screen.helpScreen = {
         display.drawText(0, y++, '[d] to drop items');
         display.drawText(0, y++, '[e] to eat items');
         display.drawText(0, y++, '[w] to wield items');
-        display.drawText(0, y++, '[W] to wield items');
+        display.drawText(0, y++, '[W] to wear items');
         display.drawText(0, y++, '[x] to examine items');
         display.drawText(0, y++, '[;] to look around you');
         display.drawText(0, y++, '[?] to show this help screen');
